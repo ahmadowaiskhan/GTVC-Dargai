@@ -1,0 +1,504 @@
+{
+  "images": [
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2020/04/GTVC-Logo.png",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2026/06/Final-TEVTA-Logo.png",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2023/04/WhatsApp-Image-2023-04-06-at-21.14.05.jpg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2025/09/IMG-20250915-WA0023.jpg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2024/08/WhatsApp-Image-2024-08-03-at-5.04.53-AM-400x250.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2024/07/449183659_1218289049529269_57910991077804791_n-400x250.jpg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2024/07/449190921_1217844769573697_7422068200401437323_n-400x250.jpg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2024/07/449522244_1218430019515172_6731738602433747277_n-400x250.jpg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2024/07/449180398_1216050239753150_7521395861079915014_n-400x250.jpg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2024/07/448899667_1215403989817775_8054180203156370662_n-400x250.jpg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2024/07/448405513_1209635903727917_6486700746281904212_n-400x250.jpg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2024/07/417427159_1207879047236936_1883778463494068379_n-400x250.jpg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2020/04/WhatsApp-Image-2020-04-25-at-10.44.45-PM-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2020/04/Meeting-of-IMC-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2020/04/WhatsApp-Image-2020-04-28-at-10.58.45-PM-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2020/04/WhatsApp-Image-2020-04-28-at-10.58.46-PM-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2020/04/institutejpeg-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2020/04/be76076a-56e9-43b2-a23c-90571d1f8c02-400x284.jpg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2020/04/WhatsApp-Image-2020-04-28-at-1.57.57-PM-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2020/04/WhatsApp-Image-2020-04-28-at-10.58.43-PM-1-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.44-AM-3-12-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.46-AM-15-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.43-AM-14-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.47-AM-11-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.45-AM-15-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.44-AM-4-12-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.46-AM-3-11-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.44-AM-3-11-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.19.27-AM-13-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.46-AM-4-11-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.45-AM-4-11-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.19.27-AM-6-11-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.19.26-AM-15-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.46-AM-2-11-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.43-AM-2-12-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.19.27-AM-5-10-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.19.26-AM-1-11-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.19.26-AM-14-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.45-AM-2-11-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.19.27-AM-4-11-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.43-AM-3-11-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.19.26-AM-2-11-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.45-AM-1-11-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.43-AM-1-11-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.19.26-AM-3-10-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.44-AM-1-11-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.46-AM-1-10-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2022/02/WhatsApp-Image-2022-02-12-at-11.18.47-AM-8-400x284.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2020/05/happy-student-gtvc-dargai-225x300.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2024/08/WhatsApp-Image-2024-08-03-at-5.04.53-AM-scaled-1.jpg",
+    "https://gtvcdargai.edu.pk/wp-content/themes/Divi/includes/builder/styles/images/preloader.gif",
+    "//gtvcdargai.edu.pk/wp-content/themes/Divi/core/admin/fonts/modules/all/modules.eot",
+    "//gtvcdargai.edu.pk/wp-content/themes/Divi/core/admin/fonts/modules/all/modules.eot?#iefix",
+    "//gtvcdargai.edu.pk/wp-content/themes/Divi/core/admin/fonts/modules/all/modules.woff",
+    "//gtvcdargai.edu.pk/wp-content/themes/Divi/core/admin/fonts/modules/all/modules.ttf",
+    "//gtvcdargai.edu.pk/wp-content/themes/Divi/core/admin/fonts/modules/all/modules.svg#ETmodules",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2026/06/WhatsApp-Image-2026-06-02-at-6.50.47-AM.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2026/06/WhatsApp-Image-2026-06-02-at-6.50.46-AM.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2026/06/WhatsApp-Image-2026-06-01-at-10.47.54-AM.jpeg",
+    "https://gtvcdargai.edu.pk/wp-content/uploads/2020/04/WhatsApp-Image-2020-04-25-at-10.44.45-PM.jpeg"
+  ],
+  "headings": [
+    {
+      "tag": "h4",
+      "text": "Email"
+    },
+    {
+      "tag": "h4",
+      "text": "Phone"
+    },
+    {
+      "tag": "h4",
+      "text": "Address"
+    },
+    {
+      "tag": "h1",
+      "text": "MODEL TEVT INSTITUTE (MI) GOVERNMENT TECHNICAL AND VOCATIONAL CENTRE DARGAI (ACCREDITED WITH NAVTTC)"
+    },
+    {
+      "tag": "h1",
+      "text": "The institute operates under Khyber Pakhtunkhwa Technical Education and Vocational Training Authority (KP-TEVTA)"
+    },
+    {
+      "tag": "h1",
+      "text": "ADMISSION OPEN NOW SESSION SPRING 2026"
+    },
+    {
+      "tag": "h4",
+      "text": "Our Institute"
+    },
+    {
+      "tag": "h4",
+      "text": "About Tevta"
+    },
+    {
+      "tag": "h2",
+      "text": "Competency Based Training"
+    },
+    {
+      "tag": "h4",
+      "text": "ELECTRICIAN COURSE CBT LEVEL II & III"
+    },
+    {
+      "tag": "h4",
+      "text": "PLUMBING COURSE CBT LEVEL II & III"
+    },
+    {
+      "tag": "h4",
+      "text": "WELDING COURSE CBT LEVEL II"
+    },
+    {
+      "tag": "h4",
+      "text": "COMPUTER COURSE"
+    },
+    {
+      "tag": "h4",
+      "text": "AUTO CAD COURSE CBT LEVEL II & III"
+    },
+    {
+      "tag": "h4",
+      "text": "IT DIPLOMA"
+    },
+    {
+      "tag": "h2",
+      "text": "INFORMATION ABOUT TRAINING"
+    },
+    {
+      "tag": "h2",
+      "text": "News &amp; Events"
+    },
+    {
+      "tag": "h2",
+      "text": "ADMISSION OPEN NOW SPRING 2025"
+    },
+    {
+      "tag": "h2",
+      "text": "ADMISSION OPEN NOW 2024"
+    },
+    {
+      "tag": "h2",
+      "text": "On Job Training Opportunities for Pass Out Students"
+    },
+    {
+      "tag": "h2",
+      "text": "NOTIFICATION"
+    },
+    {
+      "tag": "h2",
+      "text": "Surprise Visit Alert!"
+    },
+    {
+      "tag": "h2",
+      "text": "Proud Moment for Government Technical &#038; Vocational Centre Boys Dargai Malakand"
+    },
+    {
+      "tag": "h2",
+      "text": "DIT PART-I &#038; II EXAMINATION FEE NOTIFICATION"
+    },
+    {
+      "tag": "h2",
+      "text": "Principal Muhammad Saleem Khan, VC &amp; JP, and team members from GTVC Dargai visited the Small Industrial State in Dargai to facilitate student job placements."
+    },
+    {
+      "tag": "h2",
+      "text": "DIT SPRING 2023 Position Holders"
+    },
+    {
+      "tag": "h2",
+      "text": "The results of the DIT 1st Term 2024 Examinations are now available. Students are advised to check their results by clicking on the following link:"
+    },
+    {
+      "tag": "h2",
+      "text": "Gallery"
+    },
+    {
+      "tag": "h2",
+      "text": "\"Thank you GTVC for giving opportunity to learn Practical advance things as a Plumber.\""
+    },
+    {
+      "tag": "h2",
+      "text": "\"Teachers are very professional and cooperative \""
+    },
+    {
+      "tag": "h4",
+      "text": "GTVC Dargai"
+    },
+    {
+      "tag": "h4",
+      "text": "Programs"
+    },
+    {
+      "tag": "h4",
+      "text": "Quick Links"
+    },
+    {
+      "tag": "h4",
+      "text": "Contact Us"
+    }
+  ],
+  "links": [
+    {
+      "href": "mailto:info@gtvcdargai.edu.pk",
+      "text": ""
+    },
+    {
+      "href": "mailto:info@gtvcdargai.edu.pk",
+      "text": "Email"
+    },
+    {
+      "href": "tel:0932331966%20",
+      "text": ""
+    },
+    {
+      "href": "tel:0932331966%20",
+      "text": "Phone"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/",
+      "text": "HOME"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/about-us/",
+      "text": "ABOUT US"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/programs/",
+      "text": "PROGRAMS"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/electrician/",
+      "text": "ELECTRICIAN COURSE"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/plumbing/",
+      "text": "PLUMBING COURSE"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/welding/",
+      "text": "WELDING COURSE"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/computer-course/",
+      "text": "COMPUTER COURSE"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/autocad-course/",
+      "text": "AUTOCAD COURSE"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/dit-diploma/",
+      "text": "DIT DIPLOMA"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/projects/",
+      "text": "PROJECTS"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/apply-online/",
+      "text": "APPLY ONLINE"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/faculty/",
+      "text": "FACULTY"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/news-events/",
+      "text": "NEWS &#038; EVENTS"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/downloads/",
+      "text": "DOWNLOADS"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/contact-us/",
+      "text": "CONTACT US"
+    },
+    {
+      "href": "https://alumni.kptevta.gov.pk/",
+      "text": "ALUMNI"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/apply-online/",
+      "text": "MODEL TEVT INSTITUTE (MI) GOVERNMENT TECHNICAL AND VOCATIONAL CENTRE DARGAI (ACCREDITED WITH NAVTTC)"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/apply-online/",
+      "text": "Enroll Now"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/apply-online/",
+      "text": "The institute operates under Khyber Pakhtunkhwa Technical Education and Vocational Training Authority (KP-TEVTA)"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/apply-online/",
+      "text": "Enroll Now"
+    },
+    {
+      "href": "#",
+      "text": "For More Details"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/contact-us/",
+      "text": "ADMISSION OPEN NOW SPRING 2025"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/electrician/",
+      "text": "Read More"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/plumbing/",
+      "text": "Read More"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/welding/",
+      "text": "Read More"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/computer-course/",
+      "text": "Read More"
+    },
+    {
+      "href": "#",
+      "text": "Read More"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/dit-diploma/",
+      "text": "Read More"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/admission-open-now-spring-2025/",
+      "text": "ADMISSION OPEN NOW SPRING 2025"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/author/admin/",
+      "text": "admin"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/category/uncategorized/",
+      "text": "Uncategorized"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/admission-open-now-2024/",
+      "text": "ADMISSION OPEN NOW 2024"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/author/admin/",
+      "text": "admin"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/category/uncategorized/",
+      "text": "Uncategorized"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/on-job-training-opportunities-for-pass-out-students/",
+      "text": "On Job Training Opportunities for Pass Out Students"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/author/admin/",
+      "text": "admin"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/category/uncategorized/",
+      "text": "Uncategorized"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/notification/",
+      "text": "NOTIFICATION"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/author/admin/",
+      "text": "admin"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/category/uncategorized/",
+      "text": "Uncategorized"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/surprise-visit-alert/",
+      "text": "Surprise Visit Alert!"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/author/admin/",
+      "text": "admin"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/category/uncategorized/",
+      "text": "Uncategorized"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/proud-moment-for-government-technical-vocational-centre-boys-dargai-malakand/",
+      "text": "Proud Moment for Government Technical &#038; Vocational Centre Boys Dargai Malakand"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/author/admin/",
+      "text": "admin"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/category/uncategorized/",
+      "text": "Uncategorized"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/dit-part-i-ii-examination-fee-notification/",
+      "text": "DIT PART-I &#038; II EXAMINATION FEE NOTIFICATION"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/author/admin/",
+      "text": "admin"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/category/uncategorized/",
+      "text": "Uncategorized"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/principal-muhammad-saleem-khan-vc-jp-and-team-members-from-gtvc-dargai-visited-the-small-industrial-state-in-dargai-to-facilitate-student-job-placements/",
+      "text": "Principal Muhammad Saleem Khan, VC &amp; JP, and team members from GTVC Dargai visited the Small Industrial State in Dargai to facilitate student job placements."
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/author/admin/",
+      "text": "admin"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/category/uncategorized/",
+      "text": "Uncategorized"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/dit-spring-2023-position-holders/",
+      "text": "DIT SPRING 2023 Position Holders"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/author/admin/",
+      "text": "admin"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/category/uncategorized/",
+      "text": "Uncategorized"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/the-results-of-the-dit-1st-term-2024-examinations-are-now-available-students-are-advised-to-check-their-results-by-clicking-on-the-following-link/",
+      "text": "The results of the DIT 1st Term 2024 Examinations are now available. Students are advised to check their results by clicking on the following link:"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/author/admin/",
+      "text": "admin"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/category/uncategorized/",
+      "text": "Uncategorized"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/page/2/?et_blog",
+      "text": "&laquo; Older Entries"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/electrician/",
+      "text": "ELECTRICIAN COURSE"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/plumbing/",
+      "text": "PLUMBING COURSE"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/welding/",
+      "text": "WELDING COURSE"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/computer-course/",
+      "text": "COMPUTER COURSE"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/dit-diploma/",
+      "text": "DIT DIPLOMA"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/",
+      "text": "HOME"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/about-us/",
+      "text": "ABOUT US"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/apply-online/",
+      "text": "APPLY ONLINE"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/faculty/",
+      "text": "FACULTY"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/downloads/",
+      "text": "DOWNLOADS"
+    },
+    {
+      "href": "https://gtvcdargai.edu.pk/contact-us/",
+      "text": "CONTACT US"
+    },
+    {
+      "href": "https://www.facebook.com/gtvc.dargaimkd",
+      "text": "Facebook"
+    }
+  ]
+}

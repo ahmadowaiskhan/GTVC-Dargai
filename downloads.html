@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Downloads &amp; Forms | GTVC Dargai</title>
+  <meta name="description" content="Download admission forms, course outlines, DIT date sheets, and prospectus for Government Technical & Vocational Centre Dargai.">
+  <link rel="icon" href="assets/images/GTVC-Logo.png" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/responsive.css">
+  <style>
+    .page-hero {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      color: var(--white);
+      padding: 5rem 0 3.5rem;
+      text-align: center;
+    }
+    .page-hero h1 {
+      font-family: var(--font-heading);
+      font-size: 2.8rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+    }
+    .breadcrumbs {
+      display: inline-flex;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--gray-400);
+    }
+    .breadcrumbs a { color: var(--accent); }
+    .download-card {
+      background: var(--white);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--gray-200);
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+      transition: var(--transition);
+      box-shadow: var(--shadow-sm);
+    }
+    .download-card:hover {
+      border-color: var(--secondary-light);
+      transform: translateX(6px);
+      box-shadow: var(--shadow-md);
+    }
+    .dl-left {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+    }
+    .dl-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-md);
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      flex-shrink: 0;
+    }
+    .dl-info h3 {
+      font-family: var(--font-heading);
+      font-size: 1.15rem;
+      color: var(--primary);
+      margin-bottom: 0.25rem;
+    }
+    .dl-info span {
+      font-size: 0.82rem;
+      color: var(--gray-400);
+      font-weight: 600;
+    }
+    @media (max-width: 650px) {
+      .download-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Alert Bar -->
+  <div class="top-alert-bar">
+    <div class="container alert-content">
+      <div class="alert-ticker">
+        <span class="alert-badge"><i class="fas fa-bullhorn"></i> New</span>
+        <span>ADMISSION OPEN NOW SESSION SPRING 2026 &bull; DIT, CBT Level II & III Courses &bull; Apply Today!</span>
+      </div>
+      <div class="alert-links">
+        <a href="admissions.html"><i class="fas fa-file-signature"></i> Apply Online</a>
+        <a href="https://alumni.kptevta.gov.pk/" target="_blank" rel="noopener"><i class="fas fa-user-graduate"></i> Alumni Portal</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Header Bar -->
+  <header class="top-header-bar">
+    <div class="container top-bar-flex">
+      <div class="top-contact-items">
+        <a href="mailto:info@gtvcdargai.edu.pk"><i class="fas fa-envelope"></i> info@gtvcdargai.edu.pk</a>
+        <a href="tel:0932331966"><i class="fas fa-phone-alt"></i> 0932 331 966</a>
+        <span><i class="fas fa-map-marker-alt"></i> GTVC Dargai, Malakand, KP, Pakistan</span>
+      </div>
+      <div class="top-social-actions">
+        <div class="social-links">
+          <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
+          <a href="https://twitter.com" target="_blank"><i class="fab fa-x-twitter"></i></a>
+          <a href="https://youtube.com" target="_blank"><i class="fab fa-youtube"></i></a>
+          <a href="https://linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navbar -->
+  <nav class="main-navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="branding-wrap">
+        <div class="brand-logos">
+          <img src="assets/images/GTVC-Logo.png" alt="GTVC Dargai" class="brand-logo-img">
+          <img src="assets/images/Final-TEVTA-Logo.png" alt="KP-TEVTA" class="brand-logo-img">
+        </div>
+        <div class="branding-text">
+          <h1 class="brand-title">GTVC DARGAI</h1>
+          <span class="brand-sub">Model TEVT Institute &bull; KP-TEVTA</span>
+        </div>
+      </a>
+
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
+        <li class="nav-item"><a href="about.html" class="nav-link">About Us</a></li>
+        <li class="nav-item"><a href="programs.html" class="nav-link">Programs</a></li>
+        <li class="nav-item"><a href="admissions.html" class="nav-link">Admissions</a></li>
+        <li class="nav-item"><a href="faculty.html" class="nav-link">Faculty</a></li>
+        <li class="nav-item"><a href="news-events.html" class="nav-link">News &amp; Events</a></li>
+        <li class="nav-item"><a href="gallery.html" class="nav-link">Gallery</a></li>
+        <li class="nav-item active"><a href="downloads.html" class="nav-link">Downloads</a></li>
+        <li class="nav-item"><a href="contact.html" class="nav-link">Contact</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="admissions.html" class="btn-apply-header"><i class="fas fa-paper-plane"></i> Apply Online</a>
+        <button class="mobile-menu-btn" aria-label="Toggle Navigation"><i class="fas fa-bars"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page Hero -->
+  <div class="page-hero">
+    <div class="container">
+      <h1>Official Documents &amp; Downloads</h1>
+      <div class="breadcrumbs">
+        <a href="index.html">Home</a> &bull; <span>Downloads</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Section -->
+  <section class="section">
+    <div class="container" style="max-width: 960px;">
+      
+      <!-- Doc 1 -->
+      <div class="download-card">
+        <div class="dl-left">
+          <div class="dl-icon"><i class="fas fa-file-pdf"></i></div>
+          <div class="dl-info">
+            <h3>Admission Application Form (Printable PDF)</h3>
+            <span>PDF Document &bull; 1.4 MB &bull; Session Spring 2026</span>
+          </div>
+        </div>
+        <a href="javascript:alert('Downloading GTVC Dargai Admission Form (Spring 2026)...');" class="btn-primary" style="padding: 0.6rem 1.4rem; font-size: 0.9rem;">
+          <i class="fas fa-download"></i> Download PDF
+        </a>
+      </div>
+
+      <!-- Doc 2 -->
+      <div class="download-card">
+        <div class="dl-left">
+          <div class="dl-icon"><i class="fas fa-file-pdf"></i></div>
+          <div class="dl-info">
+            <h3>GTVC Dargai Institutional Prospectus</h3>
+            <span>PDF Document &bull; 3.8 MB &bull; KP-TEVTA Model Institute</span>
+          </div>
+        </div>
+        <a href="javascript:alert('Downloading Institutional Prospectus...');" class="btn-primary" style="padding: 0.6rem 1.4rem; font-size: 0.9rem;">
+          <i class="fas fa-download"></i> Download PDF
+        </a>
+      </div>
+
+      <!-- Doc 3 -->
+      <div class="download-card">
+        <div class="dl-left">
+          <div class="dl-icon" style="color: #0284c7; background: rgba(2, 132, 199, 0.1);"><i class="fas fa-book"></i></div>
+          <div class="dl-info">
+            <h3>CBT Level II &amp; III Electrician Curriculum Matrix</h3>
+            <span>PDF Document &bull; 2.1 MB &bull; NAVTTC Standardized</span>
+          </div>
+        </div>
+        <a href="javascript:alert('Downloading CBT Electrician Curriculum Outline...');" class="btn-primary" style="padding: 0.6rem 1.4rem; font-size: 0.9rem;">
+          <i class="fas fa-download"></i> Download PDF
+        </a>
+      </div>
+
+      <!-- Doc 4 -->
+      <div class="download-card">
+        <div class="dl-left">
+          <div class="dl-icon" style="color: #059669; background: rgba(5, 150, 105, 0.1);"><i class="fas fa-calendar-check"></i></div>
+          <div class="dl-info">
+            <h3>DIT Part-I &amp; Part-II Examination Fee &amp; Date Sheet</h3>
+            <span>KPBTE Official Gazette &bull; 850 KB</span>
+          </div>
+        </div>
+        <a href="javascript:alert('Downloading DIT Examination Notice & Form...');" class="btn-primary" style="padding: 0.6rem 1.4rem; font-size: 0.9rem;">
+          <i class="fas fa-download"></i> Download PDF
+        </a>
+      </div>
+
+      <!-- Doc 5 -->
+      <div class="download-card">
+        <div class="dl-left">
+          <div class="dl-icon" style="color: #d97706; background: rgba(217, 119, 6, 0.1);"><i class="fas fa-file-contract"></i></div>
+          <div class="dl-info">
+            <h3>Trainee Code of Conduct &amp; Attendance Policy</h3>
+            <span>PDF Document &bull; 620 KB &bull; GTVC Administration</span>
+          </div>
+        </div>
+        <a href="javascript:alert('Downloading Trainee Code of Conduct...');" class="btn-primary" style="padding: 0.6rem 1.4rem; font-size: 0.9rem;">
+          <i class="fas fa-download"></i> Download PDF
+        </a>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom-bar">
+        <div class="footer-bottom-flex">
+          <p>&copy; 2026 GTVC Dargai (KP-TEVTA). All Rights Reserved.</p>
+          <div class="footer-bottom-links">
+            <a href="index.html">Home</a>
+            <a href="programs.html">Programs</a>
+            <a href="contact.html">Contact</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

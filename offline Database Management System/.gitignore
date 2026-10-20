@@ -1,0 +1,8 @@
+node_modules/
+.env
+database/gtvc.db
+uploads/students/photos/*
+uploads/teachers/photos/*
+uploads/documents/**/*
+uploads/temp/*
+!uploads/**/.gitkeep

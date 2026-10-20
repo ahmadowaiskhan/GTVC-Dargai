@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Academic & Vocational Programs | GTVC Dargai</title>
+  <meta name="description" content="Explore Competency-Based Training (CBT) and Diploma courses at GTVC Dargai: Electrician, Plumbing, Welding, Computer, AutoCAD, and DIT.">
+  <link rel="icon" href="assets/images/GTVC-Logo.png" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/responsive.css">
+  <style>
+    .page-hero {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      color: var(--white);
+      padding: 5rem 0 3.5rem;
+      text-align: center;
+    }
+    .page-hero h1 {
+      font-family: var(--font-heading);
+      font-size: 2.8rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+    }
+    .breadcrumbs {
+      display: inline-flex;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--gray-400);
+    }
+    .breadcrumbs a { color: var(--accent); }
+    .course-detail-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-md);
+      margin-bottom: 3.5rem;
+      display: grid;
+      grid-template-columns: 420px 1fr;
+    }
+    .course-detail-img {
+      width: 100%;
+      height: 100%;
+      min-height: 380px;
+      object-fit: cover;
+    }
+    .course-detail-body {
+      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .program-specs-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+      margin: 1.5rem 0;
+      background: var(--gray-50);
+      padding: 1.25rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--gray-200);
+    }
+    .spec-item small {
+      display: block;
+      color: var(--gray-600);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .spec-item strong {
+      color: var(--primary);
+      font-size: 0.95rem;
+    }
+    .syllabus-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .syllabus-list li {
+      font-size: 0.9rem;
+      color: var(--gray-800);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .syllabus-list li i {
+      color: var(--secondary);
+    }
+    @media (max-width: 900px) {
+      .course-detail-card { grid-template-columns: 1fr; }
+      .program-specs-grid { grid-template-columns: 1fr; }
+      .syllabus-list { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Alert Bar -->
+  <div class="top-alert-bar">
+    <div class="container alert-content">
+      <div class="alert-ticker">
+        <span class="alert-badge"><i class="fas fa-bullhorn"></i> New</span>
+        <span>ADMISSION OPEN NOW SESSION SPRING 2026 &bull; DIT, CBT Level II & III Courses &bull; Apply Today!</span>
+      </div>
+      <div class="alert-links">
+        <a href="admissions.html"><i class="fas fa-file-signature"></i> Apply Online</a>
+        <a href="https://alumni.kptevta.gov.pk/" target="_blank" rel="noopener"><i class="fas fa-user-graduate"></i> Alumni Portal</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Header Bar -->
+  <header class="top-header-bar">
+    <div class="container top-bar-flex">
+      <div class="top-contact-items">
+        <a href="mailto:info@gtvcdargai.edu.pk"><i class="fas fa-envelope"></i> info@gtvcdargai.edu.pk</a>
+        <a href="tel:0932331966"><i class="fas fa-phone-alt"></i> 0932 331 966</a>
+        <span><i class="fas fa-map-marker-alt"></i> GTVC Dargai, Malakand, KP, Pakistan</span>
+      </div>
+      <div class="top-social-actions">
+        <div class="social-links">
+          <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
+          <a href="https://twitter.com" target="_blank"><i class="fab fa-x-twitter"></i></a>
+          <a href="https://youtube.com" target="_blank"><i class="fab fa-youtube"></i></a>
+          <a href="https://linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navbar -->
+  <nav class="main-navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="branding-wrap">
+        <div class="brand-logos">
+          <img src="assets/images/GTVC-Logo.png" alt="GTVC Dargai" class="brand-logo-img">
+          <img src="assets/images/Final-TEVTA-Logo.png" alt="KP-TEVTA" class="brand-logo-img">
+        </div>
+        <div class="branding-text">
+          <h1 class="brand-title">GTVC DARGAI</h1>
+          <span class="brand-sub">Model TEVT Institute &bull; KP-TEVTA</span>
+        </div>
+      </a>
+
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
+        <li class="nav-item"><a href="about.html" class="nav-link">About Us</a></li>
+        <li class="nav-item active"><a href="programs.html" class="nav-link">Programs</a></li>
+        <li class="nav-item"><a href="admissions.html" class="nav-link">Admissions</a></li>
+        <li class="nav-item"><a href="faculty.html" class="nav-link">Faculty</a></li>
+        <li class="nav-item"><a href="news-events.html" class="nav-link">News &amp; Events</a></li>
+        <li class="nav-item"><a href="gallery.html" class="nav-link">Gallery</a></li>
+        <li class="nav-item"><a href="downloads.html" class="nav-link">Downloads</a></li>
+        <li class="nav-item"><a href="contact.html" class="nav-link">Contact</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="admissions.html" class="btn-apply-header"><i class="fas fa-paper-plane"></i> Apply Online</a>
+        <button class="mobile-menu-btn" aria-label="Toggle Navigation"><i class="fas fa-bars"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page Hero -->
+  <div class="page-hero">
+    <div class="container">
+      <h1>Vocational &amp; Technical Programs</h1>
+      <div class="breadcrumbs">
+        <a href="index.html">Home</a> &bull; <span>Programs</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Section -->
+  <section class="section">
+    <div class="container">
+
+      <!-- Course 1: Electrician -->
+      <div class="course-detail-card" id="electrician">
+        <img src="assets/images/WhatsApp-Image-2022-02-12-at-11.18.44-AM-3-12-400x284.jpeg" alt="Electrician Workshop" class="course-detail-img">
+        <div class="course-detail-body">
+          <span class="badge-tag"><i class="fas fa-bolt"></i> High Demand Trade</span>
+          <h2 style="font-family: var(--font-heading); font-size: 1.85rem; color: var(--primary); margin-bottom: 0.5rem;">Electrician Course CBT Level II &amp; III</h2>
+          <p style="color: var(--gray-600); line-height: 1.7;">Electrician's work is physically demanding such as climbing ladders and lifting tools. This course teaches complete residential wiring, single and three-phase industrial installations, motor controls, solar PV wiring, and circuit testing.</p>
+
+          <div class="program-specs-grid">
+            <div class="spec-item"><small>Duration</small><strong>6 Months</strong></div>
+            <div class="spec-item"><small>Accreditation</small><strong>NAVTTC &amp; KP-TEVTA</strong></div>
+            <div class="spec-item"><small>Eligibility</small><strong>Matric / Middle</strong></div>
+          </div>
+
+          <h4 style="font-family: var(--font-heading); margin-bottom: 0.75rem; color: var(--primary);">Key Modules Covered:</h4>
+          <ul class="syllabus-list">
+            <li><i class="fas fa-check-circle"></i> Domestic &amp; Industrial Wiring</li>
+            <li><i class="fas fa-check-circle"></i> Solar Panel &amp; Inverter Setup</li>
+            <li><i class="fas fa-check-circle"></i> AC/DC Motors &amp; Generators</li>
+            <li><i class="fas fa-check-circle"></i> Protective Relays &amp; Breakers</li>
+          </ul>
+
+          <div>
+            <a href="admissions.html?trade=electrician" class="btn-primary"><i class="fas fa-pencil-alt"></i> Apply for Electrician</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Course 2: Plumbing -->
+      <div class="course-detail-card" id="plumbing">
+        <img src="assets/images/WhatsApp-Image-2022-02-12-at-11.18.46-AM-15-400x284.jpeg" alt="Plumbing Workshop" class="course-detail-img">
+        <div class="course-detail-body">
+          <span class="badge-tag"><i class="fas fa-faucet"></i> Gulf &amp; Local Market Ready</span>
+          <h2 style="font-family: var(--font-heading); font-size: 1.85rem; color: var(--primary); margin-bottom: 0.5rem;">Plumbing Course CBT Level II &amp; III</h2>
+          <p style="color: var(--gray-600); line-height: 1.7;">Learn proper techniques in modern plumbing and sanitary engineering from basic piping to advanced automated booster pumps, PPRC hot and cold piping, and drainage layouts.</p>
+
+          <div class="program-specs-grid">
+            <div class="spec-item"><small>Duration</small><strong>6 Months</strong></div>
+            <div class="spec-item"><small>Accreditation</small><strong>NAVTTC &amp; KP-TEVTA</strong></div>
+            <div class="spec-item"><small>Eligibility</small><strong>Matric / Middle</strong></div>
+          </div>
+
+          <h4 style="font-family: var(--font-heading); margin-bottom: 0.75rem; color: var(--primary);">Key Modules Covered:</h4>
+          <ul class="syllabus-list">
+            <li><i class="fas fa-check-circle"></i> Pipe Threading &amp; Cutting</li>
+            <li><i class="fas fa-check-circle"></i> Sanitary Fixtures Installation</li>
+            <li><i class="fas fa-check-circle"></i> Drainage &amp; Vent Systems</li>
+            <li><i class="fas fa-check-circle"></i> Water Pump Maintenance</li>
+          </ul>
+
+          <div>
+            <a href="admissions.html?trade=plumbing" class="btn-primary"><i class="fas fa-pencil-alt"></i> Apply for Plumbing</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Course 3: Welding -->
+      <div class="course-detail-card" id="welding">
+        <img src="assets/images/WhatsApp-Image-2022-02-12-at-11.18.43-AM-14-400x284.jpeg" alt="Welding Lab" class="course-detail-img">
+        <div class="course-detail-body">
+          <span class="badge-tag"><i class="fas fa-fire"></i> Heavy Fabrication</span>
+          <h2 style="font-family: var(--font-heading); font-size: 1.85rem; color: var(--primary); margin-bottom: 0.5rem;">Welding Course CBT Level II</h2>
+          <p style="color: var(--gray-600); line-height: 1.7;">To develop and enhance the skill level of technicians in heavy structural fabrication, pressure vessels, and architectural steel work under strict industrial safety protocols.</p>
+
+          <div class="program-specs-grid">
+            <div class="spec-item"><small>Duration</small><strong>6 Months</strong></div>
+            <div class="spec-item"><small>Accreditation</small><strong>NAVTTC &amp; KP-TEVTA</strong></div>
+            <div class="spec-item"><small>Eligibility</small><strong>Matric / Middle</strong></div>
+          </div>
+
+          <h4 style="font-family: var(--font-heading); margin-bottom: 0.75rem; color: var(--primary);">Key Modules Covered:</h4>
+          <ul class="syllabus-list">
+            <li><i class="fas fa-check-circle"></i> Shielded Metal Arc Welding (SMAW)</li>
+            <li><i class="fas fa-check-circle"></i> Oxy-Acetylene Gas Cutting</li>
+            <li><i class="fas fa-check-circle"></i> Butt &amp; Fillet Joint Positions</li>
+            <li><i class="fas fa-check-circle"></i> Industrial Metallurgy &amp; Safety</li>
+          </ul>
+
+          <div>
+            <a href="admissions.html?trade=welding" class="btn-primary"><i class="fas fa-pencil-alt"></i> Apply for Welding</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Course 4: AutoCAD -->
+      <div class="course-detail-card" id="autocad">
+        <img src="assets/images/WhatsApp-Image-2020-04-28-at-10.58.46-PM-400x284.jpeg" alt="AutoCAD Lab" class="course-detail-img">
+        <div class="course-detail-body">
+          <span class="badge-tag"><i class="fas fa-drafting-compass"></i> Engineering Design</span>
+          <h2 style="font-family: var(--font-heading); font-size: 1.85rem; color: var(--primary); margin-bottom: 0.5rem;">AutoCAD Course CBT Level II &amp; III</h2>
+          <p style="color: var(--gray-600); line-height: 1.7;">Enable trainees to perform routine skilled drafting tasks in civil, architectural, electrical, and mechanical drafting. Hands-on training on modern CAD workstations.</p>
+
+          <div class="program-specs-grid">
+            <div class="spec-item"><small>Duration</small><strong>6 Months</strong></div>
+            <div class="spec-item"><small>Accreditation</small><strong>NAVTTC &amp; KP-TEVTA</strong></div>
+            <div class="spec-item"><small>Eligibility</small><strong>Matric (Science/Arts)</strong></div>
+          </div>
+
+          <h4 style="font-family: var(--font-heading); margin-bottom: 0.75rem; color: var(--primary);">Key Modules Covered:</h4>
+          <ul class="syllabus-list">
+            <li><i class="fas fa-check-circle"></i> 2D Floor Plans &amp; Elevations</li>
+            <li><i class="fas fa-check-circle"></i> 3D Modeling &amp; Perspective</li>
+            <li><i class="fas fa-check-circle"></i> Layers, Blocks &amp; Dimensioning</li>
+            <li><i class="fas fa-check-circle"></i> Plotting &amp; Blueprint Reading</li>
+          </ul>
+
+          <div>
+            <a href="admissions.html?trade=autocad" class="btn-primary"><i class="fas fa-pencil-alt"></i> Apply for AutoCAD</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Course 5: DIT Diploma -->
+      <div class="course-detail-card" id="dit">
+        <img src="assets/images/WhatsApp-Image-2020-04-28-at-1.57.57-PM-400x284.jpeg" alt="DIT IT Lab" class="course-detail-img">
+        <div class="course-detail-body">
+          <span class="badge-tag"><i class="fas fa-laptop-code"></i> Board Certified Diploma</span>
+          <h2 style="font-family: var(--font-heading); font-size: 1.85rem; color: var(--primary); margin-bottom: 0.5rem;">Diploma in Information Technology (DIT)</h2>
+          <p style="color: var(--gray-600); line-height: 1.7;">Accredited by the Khyber Pakhtunkhwa Board of Technical Education (KPBTE) Peshawar. This 1-year diploma is mandatory for IT/Computer Operator government and private sector jobs.</p>
+
+          <div class="program-specs-grid">
+            <div class="spec-item"><small>Duration</small><strong>1 Year (2 Terms)</strong></div>
+            <div class="spec-item"><small>Examination Body</small><strong>KPBTE Peshawar</strong></div>
+            <div class="spec-item"><small>Eligibility</small><strong>Matric / Intermediate</strong></div>
+          </div>
+
+          <h4 style="font-family: var(--font-heading); margin-bottom: 0.75rem; color: var(--primary);">Key Modules Covered:</h4>
+          <ul class="syllabus-list">
+            <li><i class="fas fa-check-circle"></i> Term 1: Office Automation, OS &amp; C++</li>
+            <li><i class="fas fa-check-circle"></i> Term 2: Web Design (HTML/CSS/JS) &amp; DB</li>
+            <li><i class="fas fa-check-circle"></i> Networking &amp; Hardware Troubleshooting</li>
+            <li><i class="fas fa-check-circle"></i> Graphic Software &amp; Digital Presentation</li>
+          </ul>
+
+          <div>
+            <a href="admissions.html?trade=dit" class="btn-primary"><i class="fas fa-pencil-alt"></i> Apply for DIT Diploma</a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top-grid">
+        <div class="footer-col">
+          <div class="footer-logos">
+            <img src="assets/images/GTVC-Logo.png" alt="GTVC Logo">
+            <img src="assets/images/Final-TEVTA-Logo.png" alt="TEVTA Logo">
+          </div>
+          <p class="footer-brand-desc">Government Technical &amp; Vocational Centre Dargai Malakand &bull; Model TEVT Institute under KP-TEVTA.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Programs</h4>
+          <ul class="footer-links-list">
+            <li><a href="#electrician">Electrician CBT II &amp; III</a></li>
+            <li><a href="#plumbing">Plumbing CBT II &amp; III</a></li>
+            <li><a href="#welding">Welding CBT II</a></li>
+            <li><a href="#dit">DIT Diploma</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Quick Links</h4>
+          <ul class="footer-links-list">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="admissions.html">Admissions</a></li>
+            <li><a href="contact.html">Contact Us</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact Us</h4>
+          <ul class="footer-contact-list">
+            <li><i class="fas fa-map-marker-alt"></i> GTVC Dargai, Malakand, KP</li>
+            <li><i class="fas fa-phone-alt"></i> 0932 331 966</li>
+            <li><i class="fas fa-envelope"></i> info@gtvcdargai.edu.pk</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom-bar">
+        <div class="footer-bottom-flex">
+          <p>&copy; 2026 GTVC Dargai (KP-TEVTA). All Rights Reserved.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

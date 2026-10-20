@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photo Gallery &amp; Campus Tour | GTVC Dargai</title>
+  <meta name="description" content="View photo gallery of workshops, modern machinery, IT labs, and events at Government Technical & Vocational Centre Dargai Malakand.">
+  <link rel="icon" href="assets/images/GTVC-Logo.png" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/responsive.css">
+  <style>
+    .page-hero {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      color: var(--white);
+      padding: 5rem 0 3.5rem;
+      text-align: center;
+    }
+    .page-hero h1 {
+      font-family: var(--font-heading);
+      font-size: 2.8rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+    }
+    .breadcrumbs {
+      display: inline-flex;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--gray-400);
+    }
+    .breadcrumbs a { color: var(--accent); }
+    .gallery-filters {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 2.5rem;
+    }
+    .filter-btn {
+      background: var(--white);
+      border: 1px solid var(--gray-200);
+      padding: 0.6rem 1.4rem;
+      border-radius: var(--radius-full);
+      font-family: var(--font-heading);
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--gray-800);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .filter-btn:hover, .filter-btn.active {
+      background: var(--secondary);
+      color: var(--white);
+      border-color: var(--secondary);
+      box-shadow: 0 4px 12px rgba(4, 120, 87, 0.25);
+    }
+    .gallery-grid-full {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    @media (max-width: 900px) {
+      .gallery-grid-full { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 550px) {
+      .gallery-grid-full { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Alert Bar -->
+  <div class="top-alert-bar">
+    <div class="container alert-content">
+      <div class="alert-ticker">
+        <span class="alert-badge"><i class="fas fa-bullhorn"></i> New</span>
+        <span>ADMISSION OPEN NOW SESSION SPRING 2026 &bull; DIT, CBT Level II & III Courses &bull; Apply Today!</span>
+      </div>
+      <div class="alert-links">
+        <a href="admissions.html"><i class="fas fa-file-signature"></i> Apply Online</a>
+        <a href="https://alumni.kptevta.gov.pk/" target="_blank" rel="noopener"><i class="fas fa-user-graduate"></i> Alumni Portal</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Header Bar -->
+  <header class="top-header-bar">
+    <div class="container top-bar-flex">
+      <div class="top-contact-items">
+        <a href="mailto:info@gtvcdargai.edu.pk"><i class="fas fa-envelope"></i> info@gtvcdargai.edu.pk</a>
+        <a href="tel:0932331966"><i class="fas fa-phone-alt"></i> 0932 331 966</a>
+        <span><i class="fas fa-map-marker-alt"></i> GTVC Dargai, Malakand, KP, Pakistan</span>
+      </div>
+      <div class="top-social-actions">
+        <div class="social-links">
+          <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
+          <a href="https://twitter.com" target="_blank"><i class="fab fa-x-twitter"></i></a>
+          <a href="https://youtube.com" target="_blank"><i class="fab fa-youtube"></i></a>
+          <a href="https://linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navbar -->
+  <nav class="main-navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="branding-wrap">
+        <div class="brand-logos">
+          <img src="assets/images/GTVC-Logo.png" alt="GTVC Dargai" class="brand-logo-img">
+          <img src="assets/images/Final-TEVTA-Logo.png" alt="KP-TEVTA" class="brand-logo-img">
+        </div>
+        <div class="branding-text">
+          <h1 class="brand-title">GTVC DARGAI</h1>
+          <span class="brand-sub">Model TEVT Institute &bull; KP-TEVTA</span>
+        </div>
+      </a>
+
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
+        <li class="nav-item"><a href="about.html" class="nav-link">About Us</a></li>
+        <li class="nav-item"><a href="programs.html" class="nav-link">Programs</a></li>
+        <li class="nav-item"><a href="admissions.html" class="nav-link">Admissions</a></li>
+        <li class="nav-item"><a href="faculty.html" class="nav-link">Faculty</a></li>
+        <li class="nav-item"><a href="news-events.html" class="nav-link">News &amp; Events</a></li>
+        <li class="nav-item active"><a href="gallery.html" class="nav-link">Gallery</a></li>
+        <li class="nav-item"><a href="downloads.html" class="nav-link">Downloads</a></li>
+        <li class="nav-item"><a href="contact.html" class="nav-link">Contact</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="admissions.html" class="btn-apply-header"><i class="fas fa-paper-plane"></i> Apply Online</a>
+        <button class="mobile-menu-btn" aria-label="Toggle Navigation"><i class="fas fa-bars"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page Hero -->
+  <div class="page-hero">
+    <div class="container">
+      <h1>Campus Life &amp; Workshop Gallery</h1>
+      <div class="breadcrumbs">
+        <a href="index.html">Home</a> &bull; <span>Gallery</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Section -->
+  <section class="section">
+    <div class="container">
+
+      <!-- Gallery Filter Buttons -->
+      <div class="gallery-filters">
+        <button class="filter-btn active" data-filter="all">All Photos</button>
+        <button class="filter-btn" data-filter="electrician">Electrician Lab</button>
+        <button class="filter-btn" data-filter="plumbing">Plumbing Lab</button>
+        <button class="filter-btn" data-filter="welding">Welding Station</button>
+        <button class="filter-btn" data-filter="it">Computer &amp; CAD</button>
+        <button class="filter-btn" data-filter="events">Events &amp; Campus</button>
+      </div>
+
+      <!-- Gallery Grid -->
+      <div class="gallery-grid-full">
+        <!-- 1. Electrician -->
+        <div class="gallery-thumb-item" data-category="electrician" data-caption="Practical Wiring & Switchgear in Electrician Lab">
+          <img src="assets/images/WhatsApp-Image-2022-02-12-at-11.18.44-AM-3-12-400x284.jpeg" alt="Electrician Lab Practical" class="gallery-thumb-img">
+          <div class="gallery-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+        </div>
+
+        <div class="gallery-thumb-item" data-category="electrician" data-caption="Motor Control Testing by Trainees">
+          <img src="assets/images/WhatsApp-Image-2022-02-12-at-11.18.44-AM-4-12-400x284.jpeg" alt="Motor Control Testing" class="gallery-thumb-img">
+          <div class="gallery-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+        </div>
+
+        <div class="gallery-thumb-item" data-category="electrician" data-caption="Solar PV Panel & Distribution Board Training">
+          <img src="assets/images/WhatsApp-Image-2022-02-12-at-11.18.45-AM-15-400x284.jpeg" alt="Distribution Board Setup" class="gallery-thumb-img">
+          <div class="gallery-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+        </div>
+
+        <!-- 2. Plumbing -->
+        <div class="gallery-thumb-item" data-category="plumbing" data-caption="Piping Network and Pressure Testing in Plumbing Workshop">
+          <img src="assets/images/WhatsApp-Image-2022-02-12-at-11.18.46-AM-15-400x284.jpeg" alt="Plumbing Workshop Station" class="gallery-thumb-img">
+          <div class="gallery-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+        </div>
+
+        <div class="gallery-thumb-item" data-category="plumbing" data-caption="Sanitary Fixtures Assembly & Booster Pumps">
+          <img src="assets/images/WhatsApp-Image-2022-02-12-at-11.18.46-AM-3-11-400x284.jpeg" alt="Sanitary Fixtures Setup" class="gallery-thumb-img">
+          <div class="gallery-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+        </div>
+
+        <div class="gallery-thumb-item" data-category="plumbing" data-caption="Drainage and PPRC Hot & Cold Pipe Fusion">
+          <img src="assets/images/WhatsApp-Image-2022-02-12-at-11.18.46-AM-4-11-400x284.jpeg" alt="Pipe Fusion Testing" class="gallery-thumb-img">
+          <div class="gallery-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+        </div>
+
+        <!-- 3. Welding -->
+        <div class="gallery-thumb-item" data-category="welding" data-caption="Shielded Metal Arc Welding in Workshop Booths">
+          <img src="assets/images/WhatsApp-Image-2022-02-12-at-11.18.43-AM-14-400x284.jpeg" alt="Welding Booth" class="gallery-thumb-img">
+          <div class="gallery-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+        </div>
+
+        <div class="gallery-thumb-item" data-category="welding" data-caption="Structural Steel Joint Fabrication Practice">
+          <img src="assets/images/WhatsApp-Image-2022-02-12-at-11.18.47-AM-11-400x284.jpeg" alt="Structural Joint" class="gallery-thumb-img">
+          <div class="gallery-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+        </div>
+
+        <div class="gallery-thumb-item" data-category="welding" data-caption="Gas Cutting and Safety Equipment Demonstration">
+          <img src="assets/images/WhatsApp-Image-2022-02-12-at-11.18.43-AM-2-12-400x284.jpeg" alt="Gas Cutting" class="gallery-thumb-img">
+          <div class="gallery-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+        </div>
+
+        <!-- 4. IT & CAD -->
+        <div class="gallery-thumb-item" data-category="it" data-caption="State-of-the-art DIT Computer Laboratory">
+          <img src="assets/images/WhatsApp-Image-2020-04-28-at-10.58.45-PM-400x284.jpeg" alt="Computer Lab" class="gallery-thumb-img">
+          <div class="gallery-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+        </div>
+
+        <div class="gallery-thumb-item" data-category="it" data-caption="AutoCAD Drafting and Architectural Workstations">
+          <img src="assets/images/WhatsApp-Image-2020-04-28-at-10.58.46-PM-400x284.jpeg" alt="AutoCAD Station" class="gallery-thumb-img">
+          <div class="gallery-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+        </div>
+
+        <div class="gallery-thumb-item" data-category="it" data-caption="Software Engineering & Web Development Training">
+          <img src="assets/images/WhatsApp-Image-2020-04-28-at-1.57.57-PM-400x284.jpeg" alt="Software Lab" class="gallery-thumb-img">
+          <div class="gallery-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+        </div>
+
+        <!-- 5. Events & Campus -->
+        <div class="gallery-thumb-item" data-category="events" data-caption="Main Academic Block & Campus Grounds">
+          <img src="assets/images/institutejpeg-400x284.jpeg" alt="Academic Block" class="gallery-thumb-img">
+          <div class="gallery-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+        </div>
+
+        <div class="gallery-thumb-item" data-category="events" data-caption="Meeting of the Institute Management Committee (IMC)">
+          <img src="assets/images/Meeting-of-IMC-400x284.jpeg" alt="IMC Meeting" class="gallery-thumb-img">
+          <div class="gallery-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+        </div>
+
+        <div class="gallery-thumb-item" data-category="events" data-caption="KP-TEVTA & KPBTE Leadership Official Visit">
+          <img src="assets/images/449190921_1217844769573697_7422068200401437323_n-400x250.jpg" alt="Official Delegation" class="gallery-thumb-img">
+          <div class="gallery-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+        </div>
+
+        <div class="gallery-thumb-item" data-category="events" data-caption="NAVTTC Center of Excellence National Skills Competition">
+          <img src="assets/images/449522244_1218430019515172_6731738602433747277_n-400x250.jpg" alt="NAVTTC Competition" class="gallery-thumb-img">
+          <div class="gallery-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+        </div>
+
+        <div class="gallery-thumb-item" data-category="events" data-caption="Industrial Linkages Visit to Small Industrial Estate">
+          <img src="assets/images/448899667_1215403989817775_8054180203156370662_n-400x250.jpg" alt="Industrial Estate Visit" class="gallery-thumb-img">
+          <div class="gallery-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+        </div>
+
+        <div class="gallery-thumb-item" data-category="events" data-caption="Classroom Theoretical Session & Orientation">
+          <img src="assets/images/be76076a-56e9-43b2-a23c-90571d1f8c02-400x284.jpg" alt="Classroom Session" class="gallery-thumb-img">
+          <div class="gallery-thumb-overlay"><i class="fas fa-search-plus"></i></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Modal Lightbox -->
+  <div class="lightbox-modal">
+    <div class="lightbox-content">
+      <button class="lightbox-close" aria-label="Close Lightbox">&times;</button>
+      <img src="" alt="Enlarged Campus View" class="lightbox-img">
+      <div class="lightbox-caption"></div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom-bar">
+        <div class="footer-bottom-flex">
+          <p>&copy; 2026 GTVC Dargai (KP-TEVTA). All Rights Reserved.</p>
+          <div class="footer-bottom-links">
+            <a href="index.html">Home</a>
+            <a href="programs.html">Programs</a>
+            <a href="contact.html">Contact</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+  <script src="assets/js/gallery.js"></script>
+  <script>
+    // Category filter functionality
+    document.addEventListener('DOMContentLoaded', () => {
+      const filterBtns = document.querySelectorAll('.filter-btn');
+      const galleryItems = document.querySelectorAll('.gallery-thumb-item');
+
+      filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          filterBtns.forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+
+          const filter = btn.getAttribute('data-filter');
+          galleryItems.forEach(item => {
+            if (filter === 'all' || item.getAttribute('data-category') === filter) {
+              item.style.display = 'block';
+            } else {
+              item.style.display = 'none';
+            }
+          });
+        });
+      });
+    });
+  </script>
+</body>
+</html>

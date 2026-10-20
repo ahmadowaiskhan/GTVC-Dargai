@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>About Us | Government Technical & Vocational Centre Dargai</title>
+  <meta name="description" content="Learn about GTVC Dargai Malakand, KP-TEVTA affiliation, NAVTTC accreditation, leadership, and our mission to provide world-class technical education.">
+  <link rel="icon" href="assets/images/GTVC-Logo.png" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/responsive.css">
+  <style>
+    .page-hero {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      color: var(--white);
+      padding: 5rem 0 3.5rem;
+      text-align: center;
+      position: relative;
+    }
+    .page-hero h1 {
+      font-family: var(--font-heading);
+      font-size: 2.8rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+    }
+    .breadcrumbs {
+      display: inline-flex;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--gray-400);
+    }
+    .breadcrumbs a { color: var(--accent); }
+    .about-lead-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      padding: 3rem;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--gray-200);
+      margin-bottom: 3.5rem;
+    }
+    .vm-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-bottom: 3.5rem;
+    }
+    .vm-card {
+      background: var(--white);
+      padding: 2.5rem;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+    }
+    .vm-card i {
+      font-size: 2.5rem;
+      color: var(--secondary);
+      margin-bottom: 1.25rem;
+    }
+    .vm-card h3 {
+      font-family: var(--font-heading);
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 0.75rem;
+    }
+    .principal-card {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      box-shadow: var(--shadow-md);
+      border: 1px solid var(--gray-200);
+      margin-bottom: 3.5rem;
+    }
+    .principal-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      min-height: 380px;
+    }
+    .principal-body {
+      padding: 3rem;
+    }
+    @media (max-width: 850px) {
+      .vm-grid { grid-template-columns: 1fr; }
+      .principal-card { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Alert Bar -->
+  <div class="top-alert-bar">
+    <div class="container alert-content">
+      <div class="alert-ticker">
+        <span class="alert-badge"><i class="fas fa-bullhorn"></i> New</span>
+        <span>ADMISSION OPEN NOW SESSION SPRING 2026 &bull; DIT, CBT Level II & III Courses &bull; Apply Today!</span>
+      </div>
+      <div class="alert-links">
+        <a href="admissions.html"><i class="fas fa-file-signature"></i> Apply Online</a>
+        <a href="https://alumni.kptevta.gov.pk/" target="_blank" rel="noopener"><i class="fas fa-user-graduate"></i> Alumni Portal</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Contact Bar -->
+  <header class="top-header-bar">
+    <div class="container top-bar-flex">
+      <div class="top-contact-items">
+        <a href="mailto:info@gtvcdargai.edu.pk"><i class="fas fa-envelope"></i> info@gtvcdargai.edu.pk</a>
+        <a href="tel:0932331966"><i class="fas fa-phone-alt"></i> 0932 331 966</a>
+        <span><i class="fas fa-map-marker-alt"></i> GTVC Dargai, Malakand, KP, Pakistan</span>
+      </div>
+      <div class="top-social-actions">
+        <div class="social-links">
+          <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
+          <a href="https://twitter.com" target="_blank"><i class="fab fa-x-twitter"></i></a>
+          <a href="https://youtube.com" target="_blank"><i class="fab fa-youtube"></i></a>
+          <a href="https://linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navbar -->
+  <nav class="main-navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="branding-wrap">
+        <div class="brand-logos">
+          <img src="assets/images/GTVC-Logo.png" alt="GTVC Dargai" class="brand-logo-img">
+          <img src="assets/images/Final-TEVTA-Logo.png" alt="KP-TEVTA" class="brand-logo-img">
+        </div>
+        <div class="branding-text">
+          <h1 class="brand-title">GTVC DARGAI</h1>
+          <span class="brand-sub">Model TEVT Institute &bull; KP-TEVTA</span>
+        </div>
+      </a>
+
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
+        <li class="nav-item active"><a href="about.html" class="nav-link">About Us</a></li>
+        <li class="nav-item"><a href="programs.html" class="nav-link">Programs</a></li>
+        <li class="nav-item"><a href="admissions.html" class="nav-link">Admissions</a></li>
+        <li class="nav-item"><a href="faculty.html" class="nav-link">Faculty</a></li>
+        <li class="nav-item"><a href="news-events.html" class="nav-link">News &amp; Events</a></li>
+        <li class="nav-item"><a href="gallery.html" class="nav-link">Gallery</a></li>
+        <li class="nav-item"><a href="downloads.html" class="nav-link">Downloads</a></li>
+        <li class="nav-item"><a href="contact.html" class="nav-link">Contact</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="admissions.html" class="btn-apply-header"><i class="fas fa-paper-plane"></i> Apply Online</a>
+        <button class="mobile-menu-btn" aria-label="Toggle Navigation"><i class="fas fa-bars"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page Hero -->
+  <div class="page-hero">
+    <div class="container">
+      <h1>About GTVC Dargai</h1>
+      <div class="breadcrumbs">
+        <a href="index.html">Home</a> &bull; <span>About Us</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Section -->
+  <section class="section">
+    <div class="container">
+      
+      <!-- Institutional Overview -->
+      <div class="about-lead-card">
+        <span class="badge-tag"><i class="fas fa-history"></i> Institutional History</span>
+        <h2 style="font-family: var(--font-heading); font-size: 2.2rem; color: var(--primary); margin-bottom: 1.25rem;">Building Tomorrow's Skilled Workforce Today</h2>
+        <p style="font-size: 1.1rem; line-height: 1.8; color: var(--gray-800); margin-bottom: 1.25rem;">
+          The establishment of the <strong>Government Technical &amp; Vocational Training Centre (GTVC) at Dargai, Malakand</strong> was realized to fulfill the outstanding demand of employers and industries across Khyber Pakhtunkhwa. Our core mandate is to produce high-tech, qualified, and disciplined technical workers who meet the rigorous standards of modern industry and represent Pakistan in global labor markets.
+        </p>
+        <p style="font-size: 1.05rem; line-height: 1.8; color: var(--gray-600);">
+          Recognized as a <strong>Model TEVT Institute (MI)</strong> and accredited by the <strong>National Vocational and Technical Training Commission (NAVTTC)</strong>, GTVC Dargai delivers modern Competency-Based Training (CBT) under the governance of the <strong>Khyber Pakhtunkhwa Technical Education and Vocational Training Authority (KP-TEVTA)</strong>.
+        </p>
+      </div>
+
+      <!-- Vision & Mission -->
+      <div class="vm-grid" id="vision">
+        <div class="vm-card">
+          <i class="fas fa-eye"></i>
+          <h3>Our Vision</h3>
+          <p style="color: var(--gray-600); line-height: 1.7;">
+            To be recognized as a premier center of technical excellence in Khyber Pakhtunkhwa, empowering youth with industry-aligned technical proficiencies, moral integrity, and entrepreneurial acumen to drive socioeconomic prosperity.
+          </p>
+        </div>
+        <div class="vm-card">
+          <i class="fas fa-bullseye"></i>
+          <h3>Our Mission</h3>
+          <p style="color: var(--gray-600); line-height: 1.7;">
+            Impart market-driven 80% practical technical education using state-of-the-art machinery, competent instructors, and active industry linkages to ensure every graduate is readily employable locally and internationally.
+          </p>
+        </div>
+      </div>
+
+      <!-- About KP-TEVTA -->
+      <div class="about-lead-card" id="tevta" style="background: linear-gradient(135deg, #f8fafc, #edf2f7);">
+        <span class="badge-tag" style="background: rgba(4, 120, 87, 0.15);"><i class="fas fa-landmark"></i> Governance &amp; Oversight</span>
+        <h2 style="font-family: var(--font-heading); font-size: 2rem; color: var(--primary); margin-bottom: 1rem;">About KP-TEVTA</h2>
+        <p style="font-size: 1.05rem; line-height: 1.8; color: var(--gray-800); margin-bottom: 1rem;">
+          In 2002, the Directorate of Technical Education and Manpower Training were merged to establish the Directorate General of Technical Education &amp; Manpower Training. Today, the <strong>Khyber Pakhtunkhwa Technical Education and Vocational Training Authority (KP-TEVTA)</strong> stands as the autonomous body leading vocational reforms.
+        </p>
+        <p style="font-size: 1.05rem; line-height: 1.8; color: var(--gray-600);">
+          The future of Pakistan is inextricably linked with our capacity to impart quality, market-oriented vocational skills to youth. Under KP-TEVTA's strategic roadmap, GTVC Dargai receives modern training curricula, high-standard workshop equipment, and subsidized training funds.
+        </p>
+      </div>
+
+      <!-- Principal's Message -->
+      <div class="principal-card" id="principal">
+        <img src="assets/images/Meeting-of-IMC-400x284.jpeg" alt="Principal and IMC Meeting" class="principal-img">
+        <div class="principal-body">
+          <span class="badge-tag"><i class="fas fa-user-tie"></i> Leadership</span>
+          <h2 style="font-family: var(--font-heading); font-size: 1.9rem; color: var(--primary); margin-bottom: 0.5rem;">Principal's Message</h2>
+          <h4 style="color: var(--secondary); margin-bottom: 1.25rem;">Engr. Muhammad Saleem Khan &bull; VC &amp; JP, Principal GTVC Dargai</h4>
+          <p style="color: var(--gray-600); line-height: 1.75; margin-bottom: 1.25rem;">
+            "Welcome to Government Technical &amp; Vocational Centre Dargai. In this era of rapid technological advancement, conventional academic degrees alone are not sufficient. Real, hands-on technical skills build nations. At GTVC Dargai, we operate strictly on an <strong>80% practical workshop and 20% theory</strong> model. Our students work on actual machinery, industrial switchgear, piping infrastructure, and IT software."
+          </p>
+          <p style="color: var(--gray-600); line-height: 1.75;">
+            "We have forged strong linkages with the Small Industrial Estate Dargai and national contractors to facilitate immediate apprenticeships and career placements. I welcome aspiring youths of Malakand to join us and secure a prosperous future."
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-top-grid">
+        <div class="footer-col">
+          <div class="footer-logos">
+            <img src="assets/images/GTVC-Logo.png" alt="GTVC Logo">
+            <img src="assets/images/Final-TEVTA-Logo.png" alt="TEVTA Logo">
+          </div>
+          <p class="footer-brand-desc">Government Technical &amp; Vocational Centre Dargai Malakand &bull; Model TEVT Institute under KP-TEVTA, accredited with NAVTTC.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Programs</h4>
+          <ul class="footer-links-list">
+            <li><a href="programs.html#electrician">Electrician CBT II &amp; III</a></li>
+            <li><a href="programs.html#plumbing">Plumbing CBT II &amp; III</a></li>
+            <li><a href="programs.html#welding">Welding CBT II</a></li>
+            <li><a href="programs.html#dit">DIT Diploma</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Quick Links</h4>
+          <ul class="footer-links-list">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="admissions.html">Admissions</a></li>
+            <li><a href="faculty.html">Faculty</a></li>
+            <li><a href="news-events.html">News &amp; Events</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact Us</h4>
+          <ul class="footer-contact-list">
+            <li><i class="fas fa-map-marker-alt"></i> GTVC Dargai, Malakand, KP</li>
+            <li><i class="fas fa-phone-alt"></i> 0932 331 966</li>
+            <li><i class="fas fa-envelope"></i> info@gtvcdargai.edu.pk</li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom-bar">
+        <div class="footer-bottom-flex">
+          <p>&copy; 2026 GTVC Dargai (KP-TEVTA). All Rights Reserved.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

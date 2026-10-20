@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admissions &amp; Online Application | GTVC Dargai</title>
+  <meta name="description" content="Apply online for GTVC Dargai admission session Spring 2026. Free technical education, DIT, Electrician, Plumbing, Welding, and AutoCAD.">
+  <link rel="icon" href="assets/images/GTVC-Logo.png" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/responsive.css">
+  <style>
+    .page-hero {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      color: var(--white);
+      padding: 5rem 0 3.5rem;
+      text-align: center;
+    }
+    .page-hero h1 {
+      font-family: var(--font-heading);
+      font-size: 2.8rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+    }
+    .breadcrumbs {
+      display: inline-flex;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--gray-400);
+    }
+    .breadcrumbs a { color: var(--accent); }
+    .admissions-grid {
+      display: grid;
+      grid-template-columns: 1.3fr 0.7fr;
+      gap: 3rem;
+    }
+    .admission-form-card {
+      background: var(--white);
+      padding: 3rem;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-md);
+    }
+    .form-group-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 0.4rem;
+    }
+    .form-group input, .form-group select, .form-group textarea {
+      width: 100%;
+      padding: 0.8rem 1rem;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      font-size: 0.95rem;
+      outline: none;
+      transition: var(--transition);
+      background-color: var(--gray-50);
+    }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+      border-color: var(--secondary);
+      background-color: var(--white);
+      box-shadow: 0 0 0 3px rgba(4, 120, 87, 0.15);
+    }
+    .sidebar-widget {
+      background: var(--white);
+      padding: 2rem;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 2rem;
+    }
+    .sidebar-widget h3 {
+      font-family: var(--font-heading);
+      font-size: 1.25rem;
+      color: var(--primary);
+      margin-bottom: 1.2rem;
+      position: relative;
+      padding-bottom: 0.5rem;
+    }
+    .sidebar-widget h3::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 32px;
+      height: 3px;
+      background: var(--secondary);
+      border-radius: var(--radius-full);
+    }
+    .checklist-items li {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      margin-bottom: 0.85rem;
+      font-size: 0.9rem;
+      color: var(--gray-800);
+    }
+    .checklist-items li i {
+      color: var(--secondary);
+      margin-top: 3px;
+    }
+    .success-alert {
+      display: none;
+      background: #ecfdf5;
+      border: 1px solid #10b981;
+      color: #065f46;
+      padding: 1.25rem;
+      border-radius: var(--radius-md);
+      margin-bottom: 1.5rem;
+      align-items: center;
+      gap: 1rem;
+    }
+    @media (max-width: 900px) {
+      .admissions-grid { grid-template-columns: 1fr; }
+      .form-group-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Alert Bar -->
+  <div class="top-alert-bar">
+    <div class="container alert-content">
+      <div class="alert-ticker">
+        <span class="alert-badge"><i class="fas fa-bullhorn"></i> New</span>
+        <span>ADMISSION OPEN NOW SESSION SPRING 2026 &bull; DIT, CBT Level II & III Courses &bull; Apply Today!</span>
+      </div>
+      <div class="alert-links">
+        <a href="admissions.html"><i class="fas fa-file-signature"></i> Apply Online</a>
+        <a href="https://alumni.kptevta.gov.pk/" target="_blank" rel="noopener"><i class="fas fa-user-graduate"></i> Alumni Portal</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Header Bar -->
+  <header class="top-header-bar">
+    <div class="container top-bar-flex">
+      <div class="top-contact-items">
+        <a href="mailto:info@gtvcdargai.edu.pk"><i class="fas fa-envelope"></i> info@gtvcdargai.edu.pk</a>
+        <a href="tel:0932331966"><i class="fas fa-phone-alt"></i> 0932 331 966</a>
+        <span><i class="fas fa-map-marker-alt"></i> GTVC Dargai, Malakand, KP, Pakistan</span>
+      </div>
+      <div class="top-social-actions">
+        <div class="social-links">
+          <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
+          <a href="https://twitter.com" target="_blank"><i class="fab fa-x-twitter"></i></a>
+          <a href="https://youtube.com" target="_blank"><i class="fab fa-youtube"></i></a>
+          <a href="https://linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navbar -->
+  <nav class="main-navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="branding-wrap">
+        <div class="brand-logos">
+          <img src="assets/images/GTVC-Logo.png" alt="GTVC Dargai" class="brand-logo-img">
+          <img src="assets/images/Final-TEVTA-Logo.png" alt="KP-TEVTA" class="brand-logo-img">
+        </div>
+        <div class="branding-text">
+          <h1 class="brand-title">GTVC DARGAI</h1>
+          <span class="brand-sub">Model TEVT Institute &bull; KP-TEVTA</span>
+        </div>
+      </a>
+
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
+        <li class="nav-item"><a href="about.html" class="nav-link">About Us</a></li>
+        <li class="nav-item"><a href="programs.html" class="nav-link">Programs</a></li>
+        <li class="nav-item active"><a href="admissions.html" class="nav-link">Admissions</a></li>
+        <li class="nav-item"><a href="faculty.html" class="nav-link">Faculty</a></li>
+        <li class="nav-item"><a href="news-events.html" class="nav-link">News &amp; Events</a></li>
+        <li class="nav-item"><a href="gallery.html" class="nav-link">Gallery</a></li>
+        <li class="nav-item"><a href="downloads.html" class="nav-link">Downloads</a></li>
+        <li class="nav-item"><a href="contact.html" class="nav-link">Contact</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="admissions.html" class="btn-apply-header"><i class="fas fa-paper-plane"></i> Apply Online</a>
+        <button class="mobile-menu-btn" aria-label="Toggle Navigation"><i class="fas fa-bars"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page Hero -->
+  <div class="page-hero">
+    <div class="container">
+      <h1>Online Admission Portal</h1>
+      <div class="breadcrumbs">
+        <a href="index.html">Home</a> &bull; <span>Admissions</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Section -->
+  <section class="section">
+    <div class="container">
+      <div class="admissions-grid">
+        
+        <!-- Form Left -->
+        <div>
+          <div class="admission-form-card">
+            <span class="badge-tag"><i class="fas fa-edit"></i> Registration Form</span>
+            <h2 style="font-family: var(--font-heading); font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem;">Session Spring 2026 Application</h2>
+            <p style="color: var(--gray-600); margin-bottom: 2rem;">Please fill out all required fields accurately. Once submitted, your registration reference will be generated.</p>
+
+            <div id="admissionSuccessMsg" class="success-alert">
+              <i class="fas fa-check-circle" style="font-size: 2rem; color: #10b981;"></i>
+              <div>
+                <strong>Application Submitted Successfully!</strong>
+                <p>Your registration reference number is <strong id="refNumber">GTVC-2026-4891</strong>. Please bring your original documents to the admission office.</p>
+              </div>
+            </div>
+
+            <form id="onlineAdmissionForm">
+              <div class="form-group-row">
+                <div class="form-group">
+                  <label for="fullName">Full Name (as per Matric / CNIC) *</label>
+                  <input type="text" id="fullName" required placeholder="e.g. Muhammad Owais">
+                </div>
+                <div class="form-group">
+                  <label for="fatherName">Father's Name *</label>
+                  <input type="text" id="fatherName" required placeholder="e.g. Khan Muhammad">
+                </div>
+              </div>
+
+              <div class="form-group-row">
+                <div class="form-group">
+                  <label for="cnic">CNIC / Form-B Number *</label>
+                  <input type="text" id="cnic" required placeholder="XXXXX-XXXXXXX-X">
+                </div>
+                <div class="form-group">
+                  <label for="dob">Date of Birth *</label>
+                  <input type="date" id="dob" required>
+                </div>
+              </div>
+
+              <div class="form-group-row">
+                <div class="form-group">
+                  <label for="phone">Active Mobile / WhatsApp Number *</label>
+                  <input type="tel" id="phone" required placeholder="03XXXXXXXXX">
+                </div>
+                <div class="form-group">
+                  <label for="email">Email Address</label>
+                  <input type="email" id="email" placeholder="student@example.com">
+                </div>
+              </div>
+
+              <div class="form-group-row">
+                <div class="form-group">
+                  <label for="desiredTrade">Desired Trade / Program *</label>
+                  <select id="desiredTrade" required>
+                    <option value="">-- Select Course --</option>
+                    <option value="electrician">Electrician CBT Level II &amp; III (6 Months)</option>
+                    <option value="plumbing">Plumbing CBT Level II &amp; III (6 Months)</option>
+                    <option value="welding">Welding CBT Level II (6 Months)</option>
+                    <option value="autocad">AutoCAD CBT Level II &amp; III (6 Months)</option>
+                    <option value="computer">Computer Applications (3-6 Months)</option>
+                    <option value="dit">DIT Diploma - 1 Year (KPBTE)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="qualification">Highest Academic Qualification *</label>
+                  <select id="qualification" required>
+                    <option value="">-- Select Qualification --</option>
+                    <option value="middle">Middle (8th Class)</option>
+                    <option value="matric_science">Matric (Science)</option>
+                    <option value="matric_arts">Matric (Arts)</option>
+                    <option value="intermediate">Intermediate (F.Sc / FA / ICS)</option>
+                    <option value="higher">Graduate / Higher</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="permanentAddress">Permanent Residential Address *</label>
+                <textarea id="permanentAddress" rows="3" required placeholder="Village, Tehsil, District Malakand / KP..."></textarea>
+              </div>
+
+              <div style="margin-top: 1.5rem;">
+                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; font-size: 1.1rem; padding: 1rem;">
+                  <i class="fas fa-check-circle"></i> Submit Online Application
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Sidebar Right -->
+        <div>
+          <!-- Eligibility Widget -->
+          <div class="sidebar-widget">
+            <h3>Eligibility Criteria</h3>
+            <ul class="checklist-items">
+              <li><i class="fas fa-check"></i> Minimum qualification: Middle or Matriculation depending on trade.</li>
+              <li><i class="fas fa-check"></i> Age limit: 16 to 35 years (relaxation applies under special youth quotas).</li>
+              <li><i class="fas fa-check"></i> Candidates from Malakand and surrounding areas of KP given priority.</li>
+            </ul>
+          </div>
+
+          <!-- Required Documents -->
+          <div class="sidebar-widget">
+            <h3>Required Documents</h3>
+            <ul class="checklist-items">
+              <li><i class="fas fa-file-alt"></i> 3 Attested copies of Matric / Middle Certificate.</li>
+              <li><i class="fas fa-id-card"></i> 2 Copies of CNIC or B-Form.</li>
+              <li><i class="fas fa-image"></i> 4 Passport size photographs with blue background.</li>
+              <li><i class="fas fa-home"></i> Domicile Certificate of KP / Malakand.</li>
+            </ul>
+          </div>
+
+          <!-- Stipend & Benefits -->
+          <div class="sidebar-widget" style="background: #f0fdf4; border-color: #bbf7d0;">
+            <h3 style="color: #166534;">Student Benefits</h3>
+            <ul class="checklist-items">
+              <li><i class="fas fa-gift" style="color: #16a34a;"></i> 100% Free Tuition under KP-TEVTA &amp; NAVTTC projects.</li>
+              <li><i class="fas fa-tools" style="color: #16a34a;"></i> Free toolkits &amp; safety overalls provided.</li>
+              <li><i class="fas fa-money-bill-wave" style="color: #16a34a;"></i> Monthly stipend for eligible enrolled trainees.</li>
+              <li><i class="fas fa-graduation-cap" style="color: #16a34a;"></i> Government certified certificates recognized overseas.</li>
+            </ul>
+          </div>
+
+          <!-- Support Hotline -->
+          <div class="sidebar-widget">
+            <h3>Admission Helpdesk</h3>
+            <p style="color: var(--gray-600); margin-bottom: 1rem; font-size: 0.95rem;">Have questions regarding trade selection or application?</p>
+            <p style="font-weight: 700; color: var(--primary);"><i class="fas fa-phone-alt" style="color: var(--secondary);"></i> 0932 331 966</p>
+            <p style="font-weight: 600; color: var(--gray-600); font-size: 0.88rem; margin-top: 0.3rem;"><i class="fas fa-envelope" style="color: var(--secondary);"></i> info@gtvcdargai.edu.pk</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom-bar">
+        <div class="footer-bottom-flex">
+          <p>&copy; 2026 GTVC Dargai (KP-TEVTA). All Rights Reserved.</p>
+          <div class="footer-bottom-links">
+            <a href="index.html">Home</a>
+            <a href="programs.html">Programs</a>
+            <a href="contact.html">Contact</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Pre-select trade if url parameter exists
+      const urlParams = new URLSearchParams(window.location.search);
+      const tradeParam = urlParams.get('trade');
+      if (tradeParam) {
+        const tradeSelect = document.getElementById('desiredTrade');
+        if (tradeSelect) tradeSelect.value = tradeParam;
+      }
+
+      // Handle admission form submission
+      const form = document.getElementById('onlineAdmissionForm');
+      const successMsg = document.getElementById('admissionSuccessMsg');
+      const refNumber = document.getElementById('refNumber');
+
+      if (form) {
+        form.addEventListener('submit', (e) => {
+          e.preventDefault();
+          const randomId = 'GTVC-' + Math.floor(1000 + Math.random() * 9000);
+          refNumber.textContent = randomId;
+          successMsg.style.display = 'flex';
+          form.reset();
+          successMsg.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        });
+      }
+    });
+  </script>
+</body>
+</html>

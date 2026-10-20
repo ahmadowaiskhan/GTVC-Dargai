@@ -1,0 +1,47 @@
+[
+  {
+    "id": 1,
+    "title": "Admission Open Spring Session 2026",
+    "category": "Admissions",
+    "date": "January 2026",
+    "image": "assets/images/WhatsApp-Image-2024-08-03-at-5.04.53-AM-400x250.jpeg",
+    "summary": "Experience Excellence in Technical Education. Admissions are open for DIT, Electrician CBT, Plumbing CBT, Welding CBT, AutoCAD, and Computer Applications. Limited seats available with free tuition and stipend under special projects.",
+    "isFeatured": true
+  },
+  {
+    "id": 2,
+    "title": "Surprise Visit by KP-TEVTA Leadership & Secretary KPBTE",
+    "category": "Visits",
+    "date": "June 29, 2024",
+    "image": "assets/images/449190921_1217844769573697_7422068200401437323_n-400x250.jpg",
+    "summary": "Honorable Director M&E and Academic KP-TEVTA and Secretary KPBTE Peshawar paid a surprise inspection visit to GTVC Dargai. They highly commended the dedicated presence of teachers and practical workshop standards.",
+    "isFeatured": false
+  },
+  {
+    "id": 3,
+    "title": "GTVC Students Represent Institute at NAVTTC Center of Excellence Islamabad",
+    "category": "Achievements",
+    "date": "June 28, 2024",
+    "image": "assets/images/449522244_1218430019515172_6731738602433747277_n-400x250.jpg",
+    "summary": "Mr. Rahman Ullah and Mr. Muhammad Numan proudly represented GTVC Dargai at the prestigious Center of Excellence (CoE) National Skills Competition at NAVTTC Islamabad.",
+    "isFeatured": false
+  },
+  {
+    "id": 4,
+    "title": "Industrial Visit & On-Job Training Linkages at Small Industrial Estate",
+    "category": "Placements",
+    "date": "June 2024",
+    "image": "assets/images/448899667_1215403989817775_8054180203156370662_n-400x250.jpg",
+    "summary": "Principal Muhammad Saleem Khan, VC & JP, along with senior faculty members visited the Small Industrial Estate Dargai to formalize apprenticeship linkages and direct job placements for pass-out students.",
+    "isFeatured": false
+  },
+  {
+    "id": 5,
+    "title": "DIT Examination Results Announced (KPBTE)",
+    "category": "Examinations",
+    "date": "June 13, 2024",
+    "image": "assets/images/417427159_1207879047236936_1883778463494068379_n-400x250.jpg",
+    "summary": "The results of the Diploma in Information Technology (DIT) 1st & 2nd Term Examinations have been officially declared by KPBTE Peshawar with outstanding pass percentages.",
+    "isFeatured": false
+  }
+]

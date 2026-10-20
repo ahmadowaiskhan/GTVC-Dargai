@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>News, Events &amp; Official Notifications | GTVC Dargai</title>
+  <meta name="description" content="Official notifications, examination schedules, KPBTE DIT results, and events at Government Technical & Vocational Centre Dargai.">
+  <link rel="icon" href="assets/images/GTVC-Logo.png" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/responsive.css">
+  <style>
+    .page-hero {
+      background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+      color: var(--white);
+      padding: 5rem 0 3.5rem;
+      text-align: center;
+    }
+    .page-hero h1 {
+      font-family: var(--font-heading);
+      font-size: 2.8rem;
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+    }
+    .breadcrumbs {
+      display: inline-flex;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      color: var(--gray-400);
+    }
+    .breadcrumbs a { color: var(--accent); }
+    .news-detail-row {
+      background: var(--white);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      border: 1px solid var(--gray-200);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 2.5rem;
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      transition: var(--transition);
+    }
+    .news-detail-row:hover {
+      box-shadow: var(--shadow-md);
+      border-color: var(--secondary-light);
+    }
+    .news-detail-img {
+      width: 100%;
+      height: 100%;
+      min-height: 250px;
+      object-fit: cover;
+    }
+    .news-detail-content {
+      padding: 2.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    @media (max-width: 800px) {
+      .news-detail-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Alert Bar -->
+  <div class="top-alert-bar">
+    <div class="container alert-content">
+      <div class="alert-ticker">
+        <span class="alert-badge"><i class="fas fa-bullhorn"></i> New</span>
+        <span>ADMISSION OPEN NOW SESSION SPRING 2026 &bull; DIT, CBT Level II & III Courses &bull; Apply Today!</span>
+      </div>
+      <div class="alert-links">
+        <a href="admissions.html"><i class="fas fa-file-signature"></i> Apply Online</a>
+        <a href="https://alumni.kptevta.gov.pk/" target="_blank" rel="noopener"><i class="fas fa-user-graduate"></i> Alumni Portal</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Header Bar -->
+  <header class="top-header-bar">
+    <div class="container top-bar-flex">
+      <div class="top-contact-items">
+        <a href="mailto:info@gtvcdargai.edu.pk"><i class="fas fa-envelope"></i> info@gtvcdargai.edu.pk</a>
+        <a href="tel:0932331966"><i class="fas fa-phone-alt"></i> 0932 331 966</a>
+        <span><i class="fas fa-map-marker-alt"></i> GTVC Dargai, Malakand, KP, Pakistan</span>
+      </div>
+      <div class="top-social-actions">
+        <div class="social-links">
+          <a href="https://facebook.com" target="_blank"><i class="fab fa-facebook-f"></i></a>
+          <a href="https://twitter.com" target="_blank"><i class="fab fa-x-twitter"></i></a>
+          <a href="https://youtube.com" target="_blank"><i class="fab fa-youtube"></i></a>
+          <a href="https://linkedin.com" target="_blank"><i class="fab fa-linkedin-in"></i></a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Navbar -->
+  <nav class="main-navbar">
+    <div class="container nav-container">
+      <a href="index.html" class="branding-wrap">
+        <div class="brand-logos">
+          <img src="assets/images/GTVC-Logo.png" alt="GTVC Dargai" class="brand-logo-img">
+          <img src="assets/images/Final-TEVTA-Logo.png" alt="KP-TEVTA" class="brand-logo-img">
+        </div>
+        <div class="branding-text">
+          <h1 class="brand-title">GTVC DARGAI</h1>
+          <span class="brand-sub">Model TEVT Institute &bull; KP-TEVTA</span>
+        </div>
+      </a>
+
+      <ul class="nav-menu">
+        <li class="nav-item"><a href="index.html" class="nav-link">Home</a></li>
+        <li class="nav-item"><a href="about.html" class="nav-link">About Us</a></li>
+        <li class="nav-item"><a href="programs.html" class="nav-link">Programs</a></li>
+        <li class="nav-item"><a href="admissions.html" class="nav-link">Admissions</a></li>
+        <li class="nav-item"><a href="faculty.html" class="nav-link">Faculty</a></li>
+        <li class="nav-item active"><a href="news-events.html" class="nav-link">News &amp; Events</a></li>
+        <li class="nav-item"><a href="gallery.html" class="nav-link">Gallery</a></li>
+        <li class="nav-item"><a href="downloads.html" class="nav-link">Downloads</a></li>
+        <li class="nav-item"><a href="contact.html" class="nav-link">Contact</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <a href="admissions.html" class="btn-apply-header"><i class="fas fa-paper-plane"></i> Apply Online</a>
+        <button class="mobile-menu-btn" aria-label="Toggle Navigation"><i class="fas fa-bars"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Page Hero -->
+  <div class="page-hero">
+    <div class="container">
+      <h1>News &amp; Official Notifications</h1>
+      <div class="breadcrumbs">
+        <a href="index.html">Home</a> &bull; <span>News &amp; Events</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Content Section -->
+  <section class="section">
+    <div class="container">
+
+      <!-- Item 1: Admission Open 2026 -->
+      <article class="news-detail-row">
+        <img src="assets/images/WhatsApp-Image-2024-08-03-at-5.04.53-AM-400x250.jpeg" alt="Admissions Open 2026" class="news-detail-img">
+        <div class="news-detail-content">
+          <div>
+            <span class="badge-tag" style="margin-bottom: 0.5rem;"><i class="fas fa-bullhorn"></i> Official Admission Notice</span>
+            <span style="font-size: 0.85rem; color: var(--gray-400); margin-left: 0.75rem;"><i class="far fa-calendar-alt"></i> Session Spring 2026</span>
+          </div>
+          <h2 style="font-family: var(--font-heading); font-size: 1.6rem; color: var(--primary); margin: 0.75rem 0;">ADMISSION OPEN NOW SESSION SPRING 2026</h2>
+          <p style="color: var(--gray-600); line-height: 1.7; margin-bottom: 1.25rem;">
+            "Experience Excellence in Education" &mdash; Admissions are officially invited for DIT (1-year and 2-year), Electrician CBT Level II &amp; III, Plumbing &amp; Sanitary, Welding CBT Level II, AutoCAD, Revit &amp; Sketchup, and Computer Applications. Free education opportunities under Khyber Pakhtunkhwa Technical Education and Vocational Training Authority (KP-TEVTA).
+          </p>
+          <div>
+            <a href="admissions.html" class="btn-primary" style="padding: 0.6rem 1.4rem; font-size: 0.9rem;"><i class="fas fa-user-plus"></i> Apply Online Now</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Item 2: KP-TEVTA Leadership Visit -->
+      <article class="news-detail-row">
+        <img src="assets/images/449190921_1217844769573697_7422068200401437323_n-400x250.jpg" alt="KP TEVTA Leadership Visit" class="news-detail-img">
+        <div class="news-detail-content">
+          <div>
+            <span class="badge-tag" style="background: rgba(14, 165, 233, 0.15); color: #0284c7; margin-bottom: 0.5rem;"><i class="fas fa-eye"></i> Institutional Review</span>
+            <span style="font-size: 0.85rem; color: var(--gray-400); margin-left: 0.75rem;"><i class="far fa-calendar-alt"></i> June 29, 2024</span>
+          </div>
+          <h2 style="font-family: var(--font-heading); font-size: 1.6rem; color: var(--primary); margin: 0.75rem 0;">Surprise Visit Alert &mdash; KP-TEVTA &amp; KPBTE Leadership Inspect GTVC Dargai</h2>
+          <p style="color: var(--gray-600); line-height: 1.7;">
+            Honorable Director Monitoring &amp; Evaluation (M&amp;E) and Academic KP-TEVTA and Secretary KPBTE Peshawar paid a surprise visit to GTVC Dargai at 1:30 PM. Director Monitoring and Evaluation highly appreciated the dedicated presence of teachers and trainees, inspected production-cum-service setups, and commended our adherence to strict CBT training parameters.
+          </p>
+        </div>
+      </article>
+
+      <!-- Item 3: NAVTTC CoE Competition -->
+      <article class="news-detail-row">
+        <img src="assets/images/449522244_1218430019515172_6731738602433747277_n-400x250.jpg" alt="NAVTTC Islamabad" class="news-detail-img">
+        <div class="news-detail-content">
+          <div>
+            <span class="badge-tag" style="background: rgba(245, 158, 11, 0.15); color: #d97706; margin-bottom: 0.5rem;"><i class="fas fa-trophy"></i> National Skills Contest</span>
+            <span style="font-size: 0.85rem; color: var(--gray-400); margin-left: 0.75rem;"><i class="far fa-calendar-alt"></i> June 28, 2024</span>
+          </div>
+          <h2 style="font-family: var(--font-heading); font-size: 1.6rem; color: var(--primary); margin: 0.75rem 0;">Proud Moment for GTVC Boys Dargai Malakand</h2>
+          <p style="color: var(--gray-600); line-height: 1.7;">
+            Mr. Rahman Ullah and Mr. Muhammad Numan represented our esteemed institution at the prestigious Center of Excellence (CoE) competition held at NAVTTC Islamabad from June 26-28, 2024. Their high technical competence and practical trade discipline were lauded by federal evaluators.
+          </p>
+        </div>
+      </article>
+
+      <!-- Item 4: Industrial Linkages -->
+      <article class="news-detail-row">
+        <img src="assets/images/448899667_1215403989817775_8054180203156370662_n-400x250.jpg" alt="Industrial Placement Visit" class="news-detail-img">
+        <div class="news-detail-content">
+          <div>
+            <span class="badge-tag" style="margin-bottom: 0.5rem;"><i class="fas fa-briefcase"></i> On-Job Training (OJT)</span>
+            <span style="font-size: 0.85rem; color: var(--gray-400); margin-left: 0.75rem;"><i class="far fa-calendar-alt"></i> June 2024</span>
+          </div>
+          <h2 style="font-family: var(--font-heading); font-size: 1.6rem; color: var(--primary); margin: 0.75rem 0;">Industrial Placement Visit to Small Industrial Estate Dargai</h2>
+          <p style="color: var(--gray-600); line-height: 1.7;">
+            Principal Muhammad Saleem Khan, VC &amp; JP, along with senior faculty members from GTVC Dargai visited the Small Industrial Estate in Dargai to facilitate direct on-the-job training (OJT) and permanent employment placements for pass-out students across electrical, plumbing, and welding manufacturing units.
+          </p>
+        </div>
+      </article>
+
+      <!-- Item 5: DIT Results -->
+      <article class="news-detail-row">
+        <img src="assets/images/417427159_1207879047236936_1883778463494068379_n-400x250.jpg" alt="DIT Results Announcement" class="news-detail-img">
+        <div class="news-detail-content">
+          <div>
+            <span class="badge-tag" style="background: rgba(16, 185, 129, 0.15); color: #059669; margin-bottom: 0.5rem;"><i class="fas fa-graduation-cap"></i> KPBTE Results</span>
+            <span style="font-size: 0.85rem; color: var(--gray-400); margin-left: 0.75rem;"><i class="far fa-calendar-alt"></i> Official Gazette</span>
+          </div>
+          <h2 style="font-family: var(--font-heading); font-size: 1.6rem; color: var(--primary); margin: 0.75rem 0;">DIT 1st &amp; 2nd Term Examination Results Available</h2>
+          <p style="color: var(--gray-600); line-height: 1.7; margin-bottom: 1.25rem;">
+            The results of the Diploma in Information Technology (DIT) examinations are officially live. Students are advised to verify their roll numbers and DMC scorecards on the official KPBTE portal.
+          </p>
+          <div>
+            <a href="https://www.kpbte.edu.pk/pages/result.aspx" target="_blank" rel="noopener" class="btn-primary" style="padding: 0.6rem 1.4rem; font-size: 0.9rem;">
+              <i class="fas fa-external-link-alt"></i> Check Results on KPBTE Portal
+            </a>
+          </div>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-bottom-bar">
+        <div class="footer-bottom-flex">
+          <p>&copy; 2026 GTVC Dargai (KP-TEVTA). All Rights Reserved.</p>
+          <div class="footer-bottom-links">
+            <a href="index.html">Home</a>
+            <a href="admissions.html">Admissions</a>
+            <a href="contact.html">Contact</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

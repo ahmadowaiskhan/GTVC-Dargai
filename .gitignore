@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+database/gtvc.db
+
+# Uploaded assets (keep structure)
+uploads/students/photos/*
+uploads/teachers/photos/*
+uploads/documents/**/*
+uploads/temp/*
+!uploads/**/.gitkeep
+
+# System and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

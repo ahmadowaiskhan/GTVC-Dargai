@@ -1,0 +1,68 @@
+[
+  {
+    "id": "electrician",
+    "title": "Electrician Course CBT Level II & III",
+    "level": "CBT Level II & III",
+    "duration": "6 Months",
+    "accreditation": "KP-TEVTA / NAVTTC",
+    "description": "Comprehensive practical training covering residential wiring, industrial motor controls, circuit breakers, safety protocols, and renewable solar PV installation. Electrician's work is physically demanding, preparing students for high-demand local and overseas job markets.",
+    "icon": "fas fa-bolt",
+    "tags": ["High Demand", "Practical 80%", "Solar Ready"],
+    "image": "assets/images/WhatsApp-Image-2022-02-12-at-11.18.44-AM-3-12-400x284.jpeg"
+  },
+  {
+    "id": "plumbing",
+    "title": "Plumbing Course CBT Level II & III",
+    "level": "CBT Level II & III",
+    "duration": "6 Months",
+    "accreditation": "KP-TEVTA / NAVTTC",
+    "description": "Learn modern plumbing systems, sanitary installations, piping layout, pipe threading, PVC/PPR fittings, booster pump maintenance, and water supply infrastructure. 80% hands-on workshop experience.",
+    "icon": "fas fa-faucet",
+    "tags": ["Technical Skills", "Gulf Standard", "Hands-on"],
+    "image": "assets/images/WhatsApp-Image-2022-02-12-at-11.18.46-AM-15-400x284.jpeg"
+  },
+  {
+    "id": "welding",
+    "title": "Welding Course CBT Level II",
+    "level": "CBT Level II",
+    "duration": "6 Months",
+    "accreditation": "KP-TEVTA / NAVTTC",
+    "description": "Enhance industrial welding capabilities with SMAW (Shielded Metal Arc Welding), MIG/MAG, oxy-acetylene cutting, structural joint fabrication, and strict industrial safety standards.",
+    "icon": "fas fa-fire",
+    "tags": ["Industrial Trade", "Structural", "Certification"],
+    "image": "assets/images/WhatsApp-Image-2022-02-12-at-11.18.43-AM-14-400x284.jpeg"
+  },
+  {
+    "id": "computer",
+    "title": "Computer Applications Course",
+    "level": "Certificate",
+    "duration": "3 to 6 Months",
+    "accreditation": "KP-TEVTA",
+    "description": "Enable trainees to master the modern computer world: Microsoft Office Suite, Operating Systems, Internet research, digital documentation, typing speed, and foundational computer troubleshooting.",
+    "icon": "fas fa-desktop",
+    "tags": ["Digital Skills", "Office Mastery", "Job Ready"],
+    "image": "assets/images/WhatsApp-Image-2020-04-28-at-10.58.45-PM-400x284.jpeg"
+  },
+  {
+    "id": "autocad",
+    "title": "AutoCAD Course CBT Level II & III",
+    "level": "CBT Level II & III",
+    "duration": "6 Months",
+    "accreditation": "KP-TEVTA / NAVTTC",
+    "description": "Enable trainees to perform routine skilled and semi-skilled tasks in engineering and architectural design. Master 2D drafting, 3D modelling, structural blueprints, elevations, and CAD workflows.",
+    "icon": "fas fa-drafting-compass",
+    "tags": ["CAD Design", "Engineering", "Architecture"],
+    "image": "assets/images/WhatsApp-Image-2020-04-28-at-10.58.46-PM-400x284.jpeg"
+  },
+  {
+    "id": "dit",
+    "title": "DIT Diploma (Information Technology)",
+    "level": "1-Year & 2-Year Diploma",
+    "duration": "1 Year (2 Semesters)",
+    "accreditation": "KPBTE Peshawar & KP-TEVTA",
+    "description": "Comprehensive Diploma in Information Technology accredited by Khyber Pakhtunkhwa Board of Technical Education (KPBTE). Includes Web Design, Databases, Networking, C++/OOP Programming, and Graphic Software.",
+    "icon": "fas fa-laptop-code",
+    "tags": ["Board Certified", "KPBTE", "Career Booster"],
+    "image": "assets/images/WhatsApp-Image-2020-04-28-at-1.57.57-PM-400x284.jpeg"
+  }
+]
