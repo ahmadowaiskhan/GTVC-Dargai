@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Students — GTVC Dargai</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="app-sidebar"></aside>
+    <div class="app-main">
+      <header class="app-navbar"></header>
+      <main class="app-content">
+
+        <div class="page-header">
+          <h1>Manage Students</h1>
+          <p>Register, edit, and manage student records.</p>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-box">
+            <input type="text" id="searchStudents" placeholder="Search by name, ID, CNIC..." oninput="filterStudents()">
+          </div>
+          <div class="btn-group">
+            <select id="filterStatus" class="form-select" style="width:auto;" onchange="filterStudents()">
+              <option value="">All Status</option>
+              <option value="active">Active</option>
+              <option value="passed">Passed</option>
+              <option value="dropped">Dropped</option>
+              <option value="absent">Absent</option>
+            </select>
+            <button class="btn btn-primary" onclick="openAddStudentModal()">Add Student</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Student ID</th>
+                  <th>Full Name</th>
+                  <th>Father Name</th>
+                  <th>CNIC</th>
+                  <th>Phone</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="studentsTableBody">
+                <tr><td colspan="8" class="text-center text-muted" style="padding:32px;">Loading students...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+      <footer class="app-footer"></footer>
+    </div>
+  </div>
+
+  <!-- Add/Edit Student Modal -->
+  <div class="modal-overlay" id="studentModal">
+    <div class="modal" style="max-width:650px;">
+      <div class="modal-header">
+        <h3 id="studentModalTitle">Register New Student</h3>
+        <button class="modal-close" onclick="closeStudentModal()">✕</button>
+      </div>
+      <form id="studentForm" onsubmit="saveStudent(event)">
+        <input type="hidden" id="sId">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" id="sFullName" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Father Name</label>
+            <input type="text" id="sFatherName" class="form-input">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">CNIC</label>
+            <input type="text" id="sCnic" class="form-input" placeholder="XXXXX-XXXXXXX-X">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gender</label>
+            <select id="sGender" class="form-select">
+              <option value="">Select</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Date of Birth</label>
+            <input type="date" id="sDob" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input type="text" id="sPhone" class="form-input">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">District</label>
+            <input type="text" id="sDistrict" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Admission Date</label>
+            <input type="date" id="sAdmissionDate" class="form-input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Address</label>
+          <textarea id="sAddress" class="form-textarea" rows="2"></textarea>
+        </div>
+        <div class="btn-group" style="margin-top:8px;">
+          <button type="submit" class="btn btn-primary">Save Student</button>
+          <button type="button" class="btn btn-outline" onclick="closeStudentModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let allStudents = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!requireAuth(['admin'])) return;
+      renderLayout('admin', 'Manage Students', 'manage-students.html');
+      loadStudents();
+    });
+
+    async function loadStudents() {
+      try {
+        const data = await apiCall('/api/admin/students');
+        allStudents = data || [];
+        renderStudents(allStudents);
+      } catch (e) {
+        document.getElementById('studentsTableBody').innerHTML =
+          '<tr><td colspan="8" class="text-center text-muted" style="padding:32px;">Could not load students.</td></tr>';
+      }
+    }
+
+    function renderStudents(students) {
+      const tbody = document.getElementById('studentsTableBody');
+      if (!students.length) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted" style="padding:32px;">No students found.</td></tr>';
+        return;
+      }
+      const statusBadge = s => {
+        const map = { active: 'badge-green', passed: 'badge-blue', dropped: 'badge-red', absent: 'badge-yellow' };
+        return `<span class="badge ${map[s] || 'badge-blue'}">${s}</span>`;
+      };
+      tbody.innerHTML = students.map((s, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${s.student_id || '—'}</td>
+          <td>${s.full_name}</td>
+          <td>${s.father_name || '—'}</td>
+          <td>${s.cnic || '—'}</td>
+          <td>${s.phone || '—'}</td>
+          <td>${statusBadge(s.status)}</td>
+          <td>
+            <div class="btn-group">
+              <button class="btn btn-outline btn-sm" onclick="editStudent(${s.id})">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteStudent(${s.id})">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filterStudents() {
+      const q = document.getElementById('searchStudents').value.toLowerCase();
+      const status = document.getElementById('filterStatus').value;
+      const filtered = allStudents.filter(s => {
+        const matchText = s.full_name.toLowerCase().includes(q) ||
+          (s.student_id || '').toLowerCase().includes(q) ||
+          (s.cnic || '').toLowerCase().includes(q);
+        const matchStatus = !status || s.status === status;
+        return matchText && matchStatus;
+      });
+      renderStudents(filtered);
+    }
+
+    function openAddStudentModal() {
+      document.getElementById('studentModalTitle').textContent = 'Register New Student';
+      document.getElementById('studentForm').reset();
+      document.getElementById('sId').value = '';
+      document.getElementById('studentModal').classList.add('active');
+    }
+
+    function closeStudentModal() {
+      document.getElementById('studentModal').classList.remove('active');
+    }
+
+    function editStudent(id) {
+      const s = allStudents.find(x => x.id === id);
+      if (!s) return;
+      document.getElementById('studentModalTitle').textContent = 'Edit Student';
+      document.getElementById('sId').value = s.id;
+      document.getElementById('sFullName').value = s.full_name;
+      document.getElementById('sFatherName').value = s.father_name || '';
+      document.getElementById('sCnic').value = s.cnic || '';
+      document.getElementById('sGender').value = s.gender || '';
+      document.getElementById('sDob').value = s.date_of_birth ? s.date_of_birth.split('T')[0] : '';
+      document.getElementById('sPhone').value = s.phone || '';
+      document.getElementById('sDistrict').value = s.district || '';
+      document.getElementById('sAdmissionDate').value = s.admission_date ? s.admission_date.split('T')[0] : '';
+      document.getElementById('sAddress').value = s.address || '';
+      document.getElementById('studentModal').classList.add('active');
+    }
+
+    async function saveStudent(e) {
+      e.preventDefault();
+      const id = document.getElementById('sId').value;
+      const body = {
+        full_name: document.getElementById('sFullName').value,
+        father_name: document.getElementById('sFatherName').value,
+        cnic: document.getElementById('sCnic').value,
+        gender: document.getElementById('sGender').value,
+        date_of_birth: document.getElementById('sDob').value,
+        phone: document.getElementById('sPhone').value,
+        district: document.getElementById('sDistrict').value,
+        admission_date: document.getElementById('sAdmissionDate').value,
+        address: document.getElementById('sAddress').value,
+      };
+      try {
+        if (id) {
+          await apiCall(`/api/admin/students/${id}`, 'PUT', body);
+          showToast('Student updated successfully');
+        } else {
+          await apiCall('/api/admin/students', 'POST', body);
+          showToast('Student registered successfully');
+        }
+        closeStudentModal();
+        loadStudents();
+      } catch (e) { showToast('Error saving student', 'danger'); }
+    }
+
+    async function deleteStudent(id) {
+      if (!confirmAction('Delete this student record?')) return;
+      try {
+        await apiCall(`/api/admin/students/${id}`, 'DELETE');
+        showToast('Student deleted');
+        loadStudents();
+      } catch (e) { showToast('Error deleting student', 'danger'); }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Accounting Dashboard — GTVC Dargai</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="app-sidebar"></aside>
+    <div class="app-main">
+      <header class="app-navbar"></header>
+      <main class="app-content">
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="totalStudents">0</div>
+            <div class="stat-label">Total Students</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="totalFees">—</div>
+            <div class="stat-label">Fees Collected</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="pendingFees">—</div>
+            <div class="stat-label">Pending Fees</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Accounting Overview</h3>
+          </div>
+          <div class="empty-state">
+            <p>Accounting module is under development.</p>
+            <p style="font-size:0.85rem; color:var(--text-muted);">Fee management and financial reports will be available in future updates.</p>
+          </div>
+        </div>
+
+      </main>
+      <footer class="app-footer"></footer>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!requireAuth(['accounting', 'admin'])) return;
+      renderLayout('accounting', 'Dashboard', 'dashboard.html');
+    });
+  </script>
+</body>
+</html>

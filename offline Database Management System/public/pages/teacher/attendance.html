@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance — GTVC Dargai</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="app-sidebar"></aside>
+    <div class="app-main">
+      <header class="app-navbar"></header>
+      <main class="app-content">
+
+        <div class="page-header">
+          <h1>Mark Attendance</h1>
+          <p>Select a class and date to mark daily attendance.</p>
+        </div>
+
+        <!-- Attendance Controls -->
+        <div class="card mb-3">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Select Class</label>
+              <select id="attendanceClass" class="form-select" onchange="loadAttendanceStudents()">
+                <option value="">— Choose class —</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Date</label>
+              <input type="date" id="attendanceDate" class="form-input" onchange="loadAttendanceStudents()">
+            </div>
+          </div>
+        </div>
+
+        <!-- Attendance Table -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Student List</h3>
+            <button class="btn btn-primary" onclick="submitAttendance()" id="submitBtn" disabled>✅ Submit Attendance</button>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Student ID</th>
+                  <th>Name</th>
+                  <th>Roll No</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="attendanceTableBody">
+                <tr><td colspan="5" class="text-center text-muted" style="padding:32px;">Select a class and date to load students.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+      <footer class="app-footer"></footer>
+    </div>
+  </div>
+
+  <script>
+    let attendanceData = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!requireAuth(['teacher'])) return;
+      renderLayout('teacher', 'Mark Attendance', 'attendance.html');
+      // Set today's date
+      document.getElementById('attendanceDate').value = new Date().toISOString().split('T')[0];
+      loadClasses();
+    });
+
+    async function loadClasses() {
+      try {
+        const data = await apiCall('/api/teacher/my-classes');
+        const sel = document.getElementById('attendanceClass');
+        (data || []).forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c.id;
+          opt.textContent = c.class_name;
+          sel.appendChild(opt);
+        });
+      } catch (e) { /* */ }
+    }
+
+    async function loadAttendanceStudents() {
+      const classId = document.getElementById('attendanceClass').value;
+      const date = document.getElementById('attendanceDate').value;
+      const tbody = document.getElementById('attendanceTableBody');
+      const btn = document.getElementById('submitBtn');
+
+      if (!classId || !date) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding:32px;">Select a class and date.</td></tr>';
+        btn.disabled = true;
+        return;
+      }
+
+      try {
+        const data = await apiCall(`/api/teacher/attendance/students?class_id=${classId}&date=${date}`);
+        attendanceData = (data || []).map(s => ({ ...s, attendance_status: s.attendance_status || 'present' }));
+        renderAttendanceTable();
+        btn.disabled = false;
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding:32px;">Could not load students.</td></tr>';
+        btn.disabled = true;
+      }
+    }
+
+    function renderAttendanceTable() {
+      const tbody = document.getElementById('attendanceTableBody');
+      if (!attendanceData.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted" style="padding:32px;">No students in this class.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = attendanceData.map((s, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${s.student_id || '—'}</td>
+          <td>${s.full_name}</td>
+          <td>${s.roll_number || '—'}</td>
+          <td>
+            <div style="display:flex; gap:0;">
+              <button class="attendance-status-btn ${s.attendance_status === 'present' ? 'present' : ''}" onclick="setStatus(${i}, 'present')">Present</button>
+              <button class="attendance-status-btn ${s.attendance_status === 'absent' ? 'absent' : ''}" onclick="setStatus(${i}, 'absent')">Absent</button>
+              <button class="attendance-status-btn ${s.attendance_status === 'late' ? 'late' : ''}" onclick="setStatus(${i}, 'late')">Late</button>
+              <button class="attendance-status-btn ${s.attendance_status === 'leave' ? 'leave' : ''}" onclick="setStatus(${i}, 'leave')">Leave</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function setStatus(index, status) {
+      attendanceData[index].attendance_status = status;
+      renderAttendanceTable();
+    }
+
+    async function submitAttendance() {
+      const classId = document.getElementById('attendanceClass').value;
+      const date = document.getElementById('attendanceDate').value;
+      const records = attendanceData.map(s => ({
+        student_id: s.id,
+        status: s.attendance_status
+      }));
+
+      try {
+        await apiCall('/api/teacher/attendance', 'POST', { class_id: classId, date, records });
+        showToast('Attendance submitted successfully!');
+      } catch (e) {
+        showToast('Error submitting attendance', 'danger');
+      }
+    }
+  </script>
+</body>
+</html>

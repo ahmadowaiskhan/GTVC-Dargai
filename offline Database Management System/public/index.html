@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="GTVC Dargai - Offline Database Management System Login">
+  <title>Login — GTVC Dargai</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-logo">G</div>
+      <h1>GTVC Dargai</h1>
+      <p class="subtitle">Government Technical & Vocational Centre, Malakand</p>
+
+      <div id="loginError" class="alert alert-danger hidden" style="text-align:left;"></div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label" for="username">Username</label>
+          <input type="text" id="username" class="form-input" placeholder="Enter your username" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="password">Password</label>
+          <input type="password" id="password" class="form-input" placeholder="Enter your password" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary" id="loginBtn">Login</button>
+      </form>
+
+      <div class="login-footer">
+        <p style="margin-bottom: 12px; font-size: 0.9rem;">
+          Don't have an account? <a href="/signup.html" style="font-weight: 600; color: var(--color-primary);">Create Account</a>
+        </p>
+        <button class="theme-toggle" onclick="toggleTheme()" style="margin: 8px auto 0;" title="Toggle theme">Theme</button>
+        <p style="margin-top:8px;">Offline Database Management System</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // If already logged in, redirect to dashboard
+    (function() {
+      const user = getUser();
+      const token = getToken();
+      if (user && token) {
+        redirectToDashboard(user.role);
+        return;
+      }
+      // Check for success param from signup
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('registered') === 'true') {
+        const errDiv = document.getElementById('loginError');
+        errDiv.className = 'alert alert-success';
+        errDiv.textContent = 'Account created successfully! Please log in with your credentials.';
+        errDiv.classList.remove('hidden');
+      }
+    })();
+
+    function redirectToDashboard(role) {
+      const paths = {
+        admin: '/pages/admin/dashboard.html',
+        principal: '/pages/principal/dashboard.html',
+        teacher: '/pages/teacher/dashboard.html',
+        accounting: '/pages/accounting/dashboard.html'
+      };
+      window.location.href = paths[role] || '/index.html';
+    }
+
+    async function handleLogin(e) {
+      e.preventDefault();
+      const btn = document.getElementById('loginBtn');
+      const errorDiv = document.getElementById('loginError');
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      btn.textContent = 'Logging in...';
+      btn.disabled = true;
+      errorDiv.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.token) {
+          setAuth(data.token, data.user);
+          redirectToDashboard(data.user.role);
+        } else {
+          errorDiv.textContent = data.message || 'Invalid username or password.';
+          errorDiv.classList.remove('hidden');
+        }
+      } catch (err) {
+        errorDiv.textContent = 'Cannot connect to server. Make sure the server is running.';
+        errorDiv.classList.remove('hidden');
+      }
+
+      btn.textContent = 'Login';
+      btn.disabled = false;
+    }
+  </script>
+</body>
+</html>

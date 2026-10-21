@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>View Attendance — GTVC Dargai</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="app-sidebar"></aside>
+    <div class="app-main">
+      <header class="app-navbar"></header>
+      <main class="app-content">
+
+        <div class="page-header">
+          <h1>View Attendance</h1>
+          <p>Attendance records across all classes (read-only).</p>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchAttendance" placeholder="Search by student name..." oninput="filterRecords()">
+          </div>
+          <div class="btn-group">
+            <input type="date" id="filterDate" class="form-input" style="width:auto;" onchange="filterRecords()">
+            <select id="filterAttStatus" class="form-select" style="width:auto;" onchange="filterRecords()">
+              <option value="">All Status</option>
+              <option value="present">Present</option>
+              <option value="absent">Absent</option>
+              <option value="late">Late</option>
+              <option value="leave">Leave</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Student Name</th>
+                  <th>Class</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Marked By</th>
+                </tr>
+              </thead>
+              <tbody id="attendanceTableBody">
+                <tr><td colspan="6" class="text-center text-muted" style="padding:32px;">Loading attendance records...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+      <footer class="app-footer"></footer>
+    </div>
+  </div>
+
+  <script>
+    let allRecords = [];
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!requireAuth(['principal'])) return;
+      renderLayout('principal', 'View Attendance', 'view-attendance.html');
+      loadAttendance();
+    });
+
+    async function loadAttendance() {
+      try {
+        const data = await apiCall('/api/principal/attendance');
+        allRecords = data || [];
+        renderRecords(allRecords);
+      } catch (e) {
+        document.getElementById('attendanceTableBody').innerHTML =
+          '<tr><td colspan="6" class="text-center text-muted" style="padding:32px;">Could not load attendance.</td></tr>';
+      }
+    }
+
+    function renderRecords(records) {
+      const tbody = document.getElementById('attendanceTableBody');
+      if (!records.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:32px;">No attendance records found.</td></tr>';
+        return;
+      }
+      const statusBadge = s => {
+        const map = { present: 'badge-green', absent: 'badge-red', late: 'badge-yellow', leave: 'badge-blue' };
+        return `<span class="badge ${map[s] || 'badge-blue'}">${s}</span>`;
+      };
+      tbody.innerHTML = records.map((r, i) => `
+        <tr>
+          <td>${i + 1}</td>
+          <td>${r.student_name || '—'}</td>
+          <td>${r.class_name || '—'}</td>
+          <td>${formatDate(r.date)}</td>
+          <td>${statusBadge(r.status)}</td>
+          <td>${r.marked_by_name || '—'}</td>
+        </tr>
+      `).join('');
+    }
+
+    function filterRecords() {
+      const q = document.getElementById('searchAttendance').value.toLowerCase();
+      const date = document.getElementById('filterDate').value;
+      const status = document.getElementById('filterAttStatus').value;
+      renderRecords(allRecords.filter(r => {
+        const matchName = (r.student_name || '').toLowerCase().includes(q);
+        const matchDate = !date || (r.date && r.date.startsWith(date));
+        const matchStatus = !status || r.status === status;
+        return matchName && matchDate && matchStatus;
+      }));
+    }
+  </script>
+</body>
+</html>

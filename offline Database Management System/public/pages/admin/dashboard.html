@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard — GTVC Dargai</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="app-sidebar"></aside>
+    <div class="app-main">
+      <header class="app-navbar"></header>
+      <main class="app-content">
+
+        <!-- Stats -->
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+          <div class="stat-card">
+            <div class="stat-value" id="totalStudents">0</div>
+            <div class="stat-label">Total Students</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="totalTeachers">0</div>
+            <div class="stat-label">Total Teachers</div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card mb-3">
+          <div class="card-header">
+            <h3 class="card-title">Quick Actions</h3>
+          </div>
+          <div class="btn-group">
+            <a href="manage-students.html" class="btn btn-primary">Add Student</a>
+            <a href="manage-teachers.html" class="btn btn-success">Add Teacher</a>
+            <a href="notices.html" class="btn btn-outline">Post Notice</a>
+          </div>
+        </div>
+
+        <!-- Recent Notices -->
+        <div class="card">
+          <div class="card-header">
+            <h3 class="card-title">Recent Notices</h3>
+            <a href="notices.html" class="btn btn-outline btn-sm">View All</a>
+          </div>
+          <div id="recentNotices">
+            <div class="empty-state">
+              <p>No notices posted yet.</p>
+            </div>
+          </div>
+        </div>
+
+      </main>
+      <footer class="app-footer"></footer>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!requireAuth(['admin'])) return;
+      renderLayout('admin', 'Dashboard', 'dashboard.html');
+      loadDashboardData();
+    });
+
+    async function loadDashboardData() {
+      try {
+        const data = await apiCall('/api/admin/dashboard');
+        if (data) {
+          document.getElementById('totalStudents').textContent = data.totalStudents || 0;
+          document.getElementById('totalTeachers').textContent = data.totalTeachers || 0;
+        }
+      } catch (e) { /* API not ready yet */ }
+    }
+  </script>
+</body>
+</html>
