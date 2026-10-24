@@ -3,9 +3,151 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard — GTVC Dargai</title>
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('gtvc_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+  <title>Admin Database Control Center — GTVC Dargai</title>
   <link rel="stylesheet" href="/assets/style.css">
   <script src="/app.js" defer></script>
+  <style>
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .control-card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+    .control-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+      border-color: var(--primary);
+    }
+    .control-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .control-card-icon {
+      font-size: 1.6rem;
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg-surface-secondary, rgba(0,0,0,0.04));
+    }
+    .control-card-count {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text-color);
+      line-height: 1.1;
+    }
+    .control-card-label {
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .control-card-actions {
+      margin-top: 14px;
+      display: flex;
+      gap: 6px;
+    }
+
+    .safeguard-banner {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(16, 185, 129, 0.08));
+      border: 1px solid rgba(59, 130, 246, 0.25);
+      border-radius: var(--radius);
+      padding: 18px 22px;
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .admission-banner-preview {
+      background: linear-gradient(135deg, #1e3a8a, #047857);
+      color: white;
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin-top: 14px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+      position: relative;
+    }
+    .admission-banner-preview h3 {
+      color: white;
+      margin: 0 0 6px;
+      font-size: 1.25rem;
+    }
+    .admission-banner-preview p {
+      color: rgba(255, 255, 255, 0.9);
+      margin: 0 0 10px;
+      font-size: 0.92rem;
+      line-height: 1.4;
+    }
+    .admission-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 0.85rem;
+      color: rgba(255, 255, 255, 0.85);
+    }
+    .switch-toggle {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 26px;
+    }
+    .switch-toggle input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #ccc;
+      transition: .3s;
+      border-radius: 26px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+    input:checked + .slider {
+      background-color: #22c55e;
+    }
+    input:checked + .slider:before {
+      transform: translateX(22px);
+    }
+  </style>
 </head>
 <body>
   <div class="app-layout">
@@ -14,40 +156,220 @@
       <header class="app-navbar"></header>
       <main class="app-content">
 
-        <!-- Stats -->
-        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
-          <div class="stat-card">
-            <div class="stat-value" id="totalStudents">0</div>
-            <div class="stat-label">Total Students</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value" id="totalTeachers">0</div>
-            <div class="stat-label">Total Teachers</div>
-          </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="card mb-3">
-          <div class="card-header">
-            <h3 class="card-title">Quick Actions</h3>
+        <!-- Page Header -->
+        <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+          <div>
+            <h1>Admin Database Control Center</h1>
+            <p>Master database oversight: create, edit, delete, rollback, and configure admissions for GTVC Dargai.</p>
           </div>
           <div class="btn-group">
-            <a href="manage-students.html" class="btn btn-primary">Add Student</a>
-            <a href="manage-teachers.html" class="btn btn-success">Add Teacher</a>
-            <a href="notices.html" class="btn btn-outline">Post Notice</a>
+            <span class="badge" style="background:rgba(34,197,94,0.15); color:#22c55e; border:1px solid rgba(34,197,94,0.3); padding:6px 12px; font-weight:600;">
+              🟢 MySQL Database Online
+            </span>
+            <button class="btn btn-outline" onclick="loadAllAdminData()">↻ Refresh All</button>
           </div>
         </div>
 
-        <!-- Recent Notices -->
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title">Recent Notices</h3>
-            <a href="notices.html" class="btn btn-outline btn-sm">View All</a>
-          </div>
-          <div id="recentNotices">
-            <div class="empty-state">
-              <p>No notices posted yet.</p>
+        <!-- Safeguard & Disaster Recovery Banner -->
+        <div class="safeguard-banner">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:1.3rem;">🛡️</span>
+              <h3 style="margin:0; font-size:1.05rem; color:var(--text-color);">Database Protection & Disaster Recovery Active</h3>
             </div>
+            <p style="margin:4px 0 0; font-size:0.86rem; color:var(--text-muted);">
+              All database changes are automatically tracked. Deleted items can be restored in 1 click from <b>Recycle Bin</b>. Unwanted updates can be reverted from <b>Edit History</b>.
+            </p>
+          </div>
+          <div class="btn-group">
+            <a href="recycle-bin.html" class="btn btn-outline btn-sm">
+              🗑️ Recycle Bin (<span id="countRecycle">0</span>)
+            </a>
+            <a href="edit-history.html" class="btn btn-outline btn-sm">
+              📝 Edit History (<span id="countEdits">0</span>)
+            </a>
+          </div>
+        </div>
+
+        <!-- 1-Click Action Hub -->
+        <div class="card mb-3" style="padding:16px 20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+            <h3 class="card-title" style="margin:0; font-size:0.95rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted);">
+              ⚡ Quick Database Entry (Add Data Directly)
+            </h3>
+          </div>
+          <div class="btn-group" style="flex-wrap:wrap; gap:10px;">
+            <button class="btn btn-primary" onclick="openModal('modalAddStudent')">➕ Add New Student</button>
+            <button class="btn btn-success" onclick="openModal('modalAddTeacher')">➕ Add New Teacher</button>
+            <button class="btn btn-outline" onclick="openModal('modalAddCourse')">➕ Add New Course</button>
+            <button class="btn btn-outline" onclick="openModal('modalAddResult')">➕ Add Exam Result</button>
+            <button class="btn btn-outline" onclick="openModal('modalAddNotice')">📢 Post Notice</button>
+            <a href="accounting.html" class="btn btn-outline">💰 Record Bill / Expense</a>
+          </div>
+        </div>
+
+        <!-- Master Database Table Counters -->
+        <div class="control-grid">
+          <!-- Students -->
+          <div class="control-card">
+            <div>
+              <div class="control-card-header">
+                <span class="control-card-icon">🎓</span>
+                <span class="badge" style="background:rgba(59,130,246,0.15); color:#3b82f6;">Active</span>
+              </div>
+              <div class="control-card-count" id="countStudents">0</div>
+              <div class="control-card-label">Registered Students</div>
+            </div>
+            <div class="control-card-actions">
+              <a href="student-details.html" class="btn btn-outline btn-sm" style="flex:1; justify-content:center;">Details</a>
+              <a href="manage-students.html" class="btn btn-outline btn-sm" style="flex:1; justify-content:center;">Manage</a>
+            </div>
+          </div>
+
+          <!-- Teachers -->
+          <div class="control-card">
+            <div>
+              <div class="control-card-header">
+                <span class="control-card-icon">👨‍🏫</span>
+                <span class="badge" style="background:rgba(16,185,129,0.15); color:#10b981;">Faculty</span>
+              </div>
+              <div class="control-card-count" id="countTeachers">0</div>
+              <div class="control-card-label">Faculty Teachers</div>
+            </div>
+            <div class="control-card-actions">
+              <a href="manage-teachers.html" class="btn btn-outline btn-sm" style="flex:1; justify-content:center;">Manage Faculty</a>
+            </div>
+          </div>
+
+          <!-- Courses -->
+          <div class="control-card">
+            <div>
+              <div class="control-card-header">
+                <span class="control-card-icon">📚</span>
+                <span class="badge" style="background:rgba(245,158,11,0.15); color:#f59e0b;">Trades</span>
+              </div>
+              <div class="control-card-count" id="countCourses">0</div>
+              <div class="control-card-label">Technical Trades / Courses</div>
+            </div>
+            <div class="control-card-actions">
+              <a href="manage-courses.html" class="btn btn-outline btn-sm" style="flex:1; justify-content:center;">Manage Courses</a>
+            </div>
+          </div>
+
+          <!-- Results -->
+          <div class="control-card">
+            <div>
+              <div class="control-card-header">
+                <span class="control-card-icon">📊</span>
+                <span class="badge" style="background:rgba(139,92,246,0.15); color:#8b5cf6;">Exams</span>
+              </div>
+              <div class="control-card-count" id="countResults">0</div>
+              <div class="control-card-label">Exam Results Logged</div>
+            </div>
+            <div class="control-card-actions">
+              <a href="view-results.html" class="btn btn-outline btn-sm" style="flex:1; justify-content:center;">View Results</a>
+            </div>
+          </div>
+
+          <!-- Accounting & Funds -->
+          <div class="control-card">
+            <div>
+              <div class="control-card-header">
+                <span class="control-card-icon">💰</span>
+                <span class="badge" style="background:rgba(34,197,94,0.15); color:#22c55e;">Finance</span>
+              </div>
+              <div class="control-card-count" id="countBalance" style="font-size:1.4rem;">PKR 0</div>
+              <div class="control-card-label">Available College Funds</div>
+            </div>
+            <div class="control-card-actions">
+              <a href="accounting.html" class="btn btn-outline btn-sm" style="flex:1; justify-content:center;">College Accounting</a>
+            </div>
+          </div>
+
+          <!-- System Users -->
+          <div class="control-card">
+            <div>
+              <div class="control-card-header">
+                <span class="control-card-icon">👥</span>
+                <span class="badge" style="background:rgba(107,114,128,0.15); color:#6b7280;">Logins</span>
+              </div>
+              <div class="control-card-count" id="countUsers">0</div>
+              <div class="control-card-label">System User Accounts</div>
+            </div>
+            <div class="control-card-actions">
+              <a href="manage-users.html" class="btn btn-outline btn-sm" style="flex:1; justify-content:center;">Manage Users</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admission Advertisement & Notification Controller -->
+        <div class="card mb-3">
+          <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div>
+              <h3 class="card-title" style="margin:0;">📢 Admission Advertisement & Notice Controller</h3>
+              <p style="margin:4px 0 0; font-size:0.85rem; color:var(--text-muted);">
+                Open or close college admissions advertisement and broadcast updates to prospective students.
+              </p>
+            </div>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <span id="admissionStatusBadge" class="badge" style="font-size:0.85rem; padding:6px 12px; font-weight:600;">
+                Checking...
+              </span>
+              <label class="switch-toggle" title="Toggle Admissions Open / Closed">
+                <input type="checkbox" id="toggleAdmissionOpen" onchange="handleAdmissionToggleChange()">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div style="padding:20px;">
+            <form id="admissionForm" onsubmit="saveAdmissionSettings(event)">
+              <div class="form-row">
+                <div class="form-group" style="flex:2;">
+                  <label class="form-label">Advertisement Banner Title *</label>
+                  <input type="text" id="admTitle" class="form-input" required placeholder="e.g. Admissions Open for Session 2026-2027 — Apply Today!">
+                </div>
+                <div class="form-group" style="flex:1;">
+                  <label class="form-label">Last Date to Apply (Deadline) *</label>
+                  <input type="date" id="admDeadline" class="form-input" required>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Advertisement Description / Offered Trades *</label>
+                <textarea id="admDescription" class="form-input" rows="3" required placeholder="Describe technical trades, eligibility, and scholarship benefits..."></textarea>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label class="form-label">Admission Inquiry Phone Number</label>
+                  <input type="text" id="admPhone" class="form-input" placeholder="0932-XXXXXX / 03XX-XXXXXXX">
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Admission Inquiry Email</label>
+                  <input type="email" id="admEmail" class="form-input" placeholder="admissions@gtvcdargai.edu.pk">
+                </div>
+              </div>
+
+              <!-- Live Banner Preview -->
+              <div style="margin-top:10px;">
+                <label class="form-label">Live Advertisement Banner Preview:</label>
+                <div class="admission-banner-preview" id="bannerPreview">
+                  <span id="bannerStatusPill" class="badge" style="background:#22c55e; color:white; margin-bottom:8px; display:inline-block;">🟢 ADMISSIONS OPEN</span>
+                  <h3 id="prevTitle">Admissions Open for Session 2026-2027 — Apply Today!</h3>
+                  <p id="prevDesc">Government Technical & Vocational Centre Dargai announces admissions for Technical & Vocational Courses.</p>
+                  <div class="admission-meta">
+                    <span id="prevDeadline">📅 Deadline: 2026-11-30</span>
+                    <span id="prevPhone">📞 0932-411234</span>
+                    <span id="prevEmail">✉️ admissions@gtvcdargai.edu.pk</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="margin-top:18px; display:flex; justify-content:flex-end;">
+                <button type="submit" class="btn btn-primary" id="saveAdmBtn">💾 Save Admission Settings</button>
+              </div>
+            </form>
           </div>
         </div>
 
@@ -56,21 +378,525 @@
     </div>
   </div>
 
+  <!-- Modal 1: Add New Teacher -->
+  <div class="modal-overlay" id="modalAddTeacher">
+    <div class="modal" style="max-width:650px;">
+      <div class="modal-header">
+        <h3>Add New Teacher / Faculty</h3>
+        <button class="modal-close" onclick="closeModal('modalAddTeacher')">✕</button>
+      </div>
+      <form onsubmit="saveTeacherDirect(event)" style="padding:20px;">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" id="tFullname" class="form-input" required placeholder="Instructor full name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Employee ID</label>
+            <input type="text" id="tEmpId" class="form-input" placeholder="e.g. EMP-101">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Qualification *</label>
+            <input type="text" id="tQual" class="form-input" placeholder="e.g. DAE / B.Tech / BS Electrical" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Specialization / Trade</label>
+            <input type="text" id="tSpec" class="form-input" placeholder="e.g. Electrician, Plumbing, IT">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input type="text" id="tPhone" class="form-input" placeholder="03XX-XXXXXXX">
+          </div>
+          <div class="form-group">
+            <label class="form-label">CNIC</label>
+            <input type="text" id="tCnic" class="form-input" placeholder="XXXXX-XXXXXXX-X">
+          </div>
+        </div>
+        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modalAddTeacher')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveTeacher">Save Teacher</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Add New Course -->
+  <div class="modal-overlay" id="modalAddCourse">
+    <div class="modal" style="max-width:550px;">
+      <div class="modal-header">
+        <h3>Add New Technical Course / Trade</h3>
+        <button class="modal-close" onclick="closeModal('modalAddCourse')">✕</button>
+      </div>
+      <form onsubmit="saveCourseDirect(event)" style="padding:20px;">
+        <div class="form-group">
+          <label class="form-label">Course / Trade Name *</label>
+          <input type="text" id="cName" class="form-input" required placeholder="e.g. Solar Energy Technician">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Course Code *</label>
+            <input type="text" id="cCode" class="form-input" required placeholder="e.g. SET">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Duration (Months) *</label>
+            <input type="number" id="cDuration" class="form-input" value="6" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea id="cDesc" class="form-input" rows="2" placeholder="Course outline, practical training scope..."></textarea>
+        </div>
+        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modalAddCourse')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveCourse">Save Course</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Add Exam Result -->
+  <div class="modal-overlay" id="modalAddResult">
+    <div class="modal" style="max-width:600px;">
+      <div class="modal-header">
+        <h3>Record Student Exam Result</h3>
+        <button class="modal-close" onclick="closeModal('modalAddResult')">✕</button>
+      </div>
+      <form onsubmit="saveResultDirect(event)" style="padding:20px;">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Select Student *</label>
+            <select id="rStudentSelect" class="form-select" required>
+              <option value="">Loading students...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Select Class / Trade *</label>
+            <select id="rClassSelect" class="form-select" required>
+              <option value="">Loading classes...</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Subject *</label>
+            <select id="rSubjectSelect" class="form-select" required>
+              <option value="">Loading subjects...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Exam Type *</label>
+            <select id="rExamType" class="form-select" required>
+              <option value="final">Final Exam</option>
+              <option value="midterm">Midterm Exam</option>
+              <option value="practical">Practical Evaluation</option>
+              <option value="monthly">Monthly Test</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Marks Obtained *</label>
+            <input type="number" step="0.5" id="rMarksObt" class="form-input" required placeholder="e.g. 85">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Total Marks *</label>
+            <input type="number" id="rTotalMarks" class="form-input" value="100" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Grade</label>
+            <input type="text" id="rGrade" class="form-input" placeholder="A, B, C...">
+          </div>
+        </div>
+        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modalAddResult')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveResult">Save Result</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: Post Notice -->
+  <div class="modal-overlay" id="modalAddNotice">
+    <div class="modal" style="max-width:600px;">
+      <div class="modal-header">
+        <h3>Post Official College Notice</h3>
+        <button class="modal-close" onclick="closeModal('modalAddNotice')">✕</button>
+      </div>
+      <form onsubmit="saveNoticeDirect(event)" style="padding:20px;">
+        <div class="form-group">
+          <label class="form-label">Notice Title *</label>
+          <input type="text" id="nTitle" class="form-input" required placeholder="e.g. Commencement of Practical Examinations">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target Audience *</label>
+          <select id="nTarget" class="form-select" required>
+            <option value="all">Everyone (All Students & Teachers)</option>
+            <option value="student">Students Only</option>
+            <option value="teacher">Teachers & Staff Only</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Notice Announcement Body *</label>
+          <textarea id="nContent" class="form-input" rows="4" required placeholder="Type the full notice announcement here..."></textarea>
+        </div>
+        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modalAddNotice')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveNotice">Publish Notice</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 5: Quick Add Student -->
+  <div class="modal-overlay" id="modalAddStudent">
+    <div class="modal" style="max-width:650px;">
+      <div class="modal-header">
+        <h3>Quick Add Student</h3>
+        <button class="modal-close" onclick="closeModal('modalAddStudent')">✕</button>
+      </div>
+      <form onsubmit="saveQuickStudent(event)" style="padding:20px;">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" id="qsName" class="form-input" required placeholder="Student name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Father Name *</label>
+            <input type="text" id="qsFather" class="form-input" required placeholder="Father name">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">CNIC *</label>
+            <input type="text" id="qsCnic" class="form-input" required placeholder="XXXXX-XXXXXXX-X">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone Number *</label>
+            <input type="text" id="qsPhone" class="form-input" required placeholder="03XX-XXXXXXX">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Applied Trade / Course *</label>
+            <select id="qsCourse" class="form-select" required>
+              <option value="">Select Trade Course</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Degree Status</label>
+            <select id="qsDegreeStatus" class="form-select">
+              <option value="enrolled">Enrolled</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="degree_awarded">Degree Awarded</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+          <a href="student-details.html" class="btn btn-outline" style="margin-right:auto;">Full Profile Form ↗</a>
+          <button type="button" class="btn btn-outline" onclick="closeModal('modalAddStudent')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveQuickStudent">Register Student</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    let globalCourses = [];
+    let globalStudents = [];
+    let globalClasses = [];
+    let globalSubjects = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
       if (!requireAuth(['admin'])) return;
-      renderLayout('admin', 'Dashboard', 'dashboard.html');
-      loadDashboardData();
+      renderLayout('admin', 'Admin Database Control', 'dashboard.html');
+
+      // Bind input live preview
+      ['admTitle', 'admDeadline', 'admDescription', 'admPhone', 'admEmail'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('input', updateBannerPreview);
+      });
+
+      await loadAllAdminData();
+      await loadDropdownData();
     });
 
-    async function loadDashboardData() {
+    async function loadAllAdminData() {
       try {
-        const data = await apiCall('/api/admin/dashboard');
-        if (data) {
-          document.getElementById('totalStudents').textContent = data.totalStudents || 0;
-          document.getElementById('totalTeachers').textContent = data.totalTeachers || 0;
+        const res = await apiCall('/api/admin/control/stats');
+        if (res) {
+          // Table counts
+          const c = res.counts || {};
+          document.getElementById('countStudents').textContent = c.students || 0;
+          document.getElementById('countTeachers').textContent = c.teachers || 0;
+          document.getElementById('countCourses').textContent = c.courses || 0;
+          document.getElementById('countResults').textContent = c.results || 0;
+          document.getElementById('countUsers').textContent = c.users || 0;
+          document.getElementById('countRecycle').textContent = c.recycleBin || 0;
+          document.getElementById('countEdits').textContent = c.editLog || 0;
+
+          // Financial balance
+          const fin = res.finance || {};
+          document.getElementById('countBalance').textContent = 'PKR ' + Number(fin.balance || 0).toLocaleString();
+
+          // Admission settings
+          const s = res.settings || {};
+          const isOpen = s.admission_open === '1';
+          document.getElementById('toggleAdmissionOpen').checked = isOpen;
+          document.getElementById('admTitle').value = s.admission_title || '';
+          document.getElementById('admDeadline').value = s.admission_deadline || '';
+          document.getElementById('admDescription').value = s.admission_description || '';
+          document.getElementById('admPhone').value = s.admission_phone || '';
+          document.getElementById('admEmail').value = s.admission_email || '';
+
+          updateAdmissionBadge(isOpen);
+          updateBannerPreview();
         }
-      } catch (e) { /* API not ready yet */ }
+      } catch (err) {
+        console.error('Failed to load stats', err);
+      }
+    }
+
+    async function loadDropdownData() {
+      try {
+        const [courses, students, classes, subjects] = await Promise.all([
+          apiCall('/api/courses'),
+          apiCall('/api/admin/students'),
+          apiCall('/api/classes'),
+          apiCall('/api/subjects')
+        ]);
+
+        globalCourses = courses || [];
+        globalStudents = students || [];
+        globalClasses = classes || [];
+        globalSubjects = subjects || [];
+
+        // Populate quick student course
+        const qsCourse = document.getElementById('qsCourse');
+        qsCourse.innerHTML = '<option value="">Select Trade Course</option>';
+        globalCourses.forEach(c => {
+          qsCourse.innerHTML += `<option value="${c.id}">${c.course_name}</option>`;
+        });
+
+        // Populate results dropdowns
+        const rStudent = document.getElementById('rStudentSelect');
+        rStudent.innerHTML = '<option value="">Select Student</option>';
+        globalStudents.forEach(s => {
+          rStudent.innerHTML += `<option value="${s.id}">${s.full_name} (${s.student_id || s.cnic || ('#' + s.id)})</option>`;
+        });
+
+        const rClass = document.getElementById('rClassSelect');
+        rClass.innerHTML = '<option value="">Select Class</option>';
+        globalClasses.forEach(cl => {
+          rClass.innerHTML += `<option value="${cl.id}">${cl.class_name || ('Class #' + cl.id)}</option>`;
+        });
+
+        const rSub = document.getElementById('rSubjectSelect');
+        rSub.innerHTML = '<option value="">Select Subject</option>';
+        globalSubjects.forEach(sb => {
+          rSub.innerHTML += `<option value="${sb.id}">${sb.subject_name}</option>`;
+        });
+
+      } catch (e) {
+        console.error('Failed to load dropdowns', e);
+      }
+    }
+
+    function updateAdmissionBadge(isOpen) {
+      const badge = document.getElementById('admissionStatusBadge');
+      const pill = document.getElementById('bannerStatusPill');
+      if (isOpen) {
+        badge.textContent = '🟢 Admissions Open';
+        badge.style.background = 'rgba(34, 197, 94, 0.15)';
+        badge.style.color = '#22c55e';
+        badge.style.border = '1px solid rgba(34, 197, 94, 0.3)';
+
+        pill.textContent = '🟢 ADMISSIONS OPEN';
+        pill.style.background = '#22c55e';
+        document.getElementById('bannerPreview').style.opacity = '1';
+      } else {
+        badge.textContent = '🔴 Admissions Closed';
+        badge.style.background = 'rgba(239, 68, 68, 0.15)';
+        badge.style.color = '#ef4444';
+        badge.style.border = '1px solid rgba(239, 68, 68, 0.3)';
+
+        pill.textContent = '🔴 ADMISSIONS CLOSED';
+        pill.style.background = '#ef4444';
+        document.getElementById('bannerPreview').style.opacity = '0.65';
+      }
+    }
+
+    function handleAdmissionToggleChange() {
+      const isOpen = document.getElementById('toggleAdmissionOpen').checked;
+      updateAdmissionBadge(isOpen);
+    }
+
+    function updateBannerPreview() {
+      const title = document.getElementById('admTitle').value.trim() || 'Admissions Open';
+      const desc = document.getElementById('admDescription').value.trim() || 'No description entered.';
+      const dl = document.getElementById('admDeadline').value;
+      const ph = document.getElementById('admPhone').value.trim();
+      const em = document.getElementById('admEmail').value.trim();
+
+      document.getElementById('prevTitle').textContent = title;
+      document.getElementById('prevDesc').textContent = desc;
+      document.getElementById('prevDeadline').textContent = '📅 Deadline: ' + (dl ? new Date(dl).toLocaleDateString() : 'N/A');
+      document.getElementById('prevPhone').textContent = ph ? '📞 ' + ph : '';
+      document.getElementById('prevEmail').textContent = em ? '✉️ ' + em : '';
+    }
+
+    async function saveAdmissionSettings(e) {
+      e.preventDefault();
+      const isOpen = document.getElementById('toggleAdmissionOpen').checked;
+      const payload = {
+        admission_open: isOpen ? '1' : '0',
+        admission_title: document.getElementById('admTitle').value.trim(),
+        admission_deadline: document.getElementById('admDeadline').value,
+        admission_description: document.getElementById('admDescription').value.trim(),
+        admission_phone: document.getElementById('admPhone').value.trim(),
+        admission_email: document.getElementById('admEmail').value.trim()
+      };
+
+      const btn = document.getElementById('saveAdmBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        const res = await apiCall('/api/admin/settings', 'POST', payload);
+        if (res && res.success) {
+          alert('✅ Admission advertisement settings saved successfully!');
+          await loadAllAdminData();
+        } else {
+          alert('Could not save admission settings.');
+        }
+      } catch (err) {
+        alert('Error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '💾 Save Admission Settings';
+      }
+    }
+
+    // Modal Helpers
+    function openModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    // Direct Add Handlers
+    async function saveTeacherDirect(e) {
+      e.preventDefault();
+      const payload = {
+        full_name: document.getElementById('tFullname').value.trim(),
+        employee_id: document.getElementById('tEmpId').value.trim() || null,
+        qualification: document.getElementById('tQual').value.trim(),
+        specialization: document.getElementById('tSpec').value.trim() || null,
+        phone: document.getElementById('tPhone').value.trim() || null,
+        cnic: document.getElementById('tCnic').value.trim() || null,
+        is_active: 1
+      };
+      try {
+        const res = await apiCall('/api/admin/teachers', 'POST', payload);
+        if (res && res.success) {
+          alert('✅ Teacher added successfully!');
+          closeModal('modalAddTeacher');
+          await loadAllAdminData();
+        } else {
+          alert(res && res.message ? res.message : 'Failed to add teacher');
+        }
+      } catch (err) { alert(err.message); }
+    }
+
+    async function saveCourseDirect(e) {
+      e.preventDefault();
+      const payload = {
+        course_name: document.getElementById('cName').value.trim(),
+        course_code: document.getElementById('cCode').value.trim(),
+        duration_months: parseInt(document.getElementById('cDuration').value),
+        description: document.getElementById('cDesc').value.trim() || null
+      };
+      try {
+        const res = await apiCall('/api/admin/courses', 'POST', payload);
+        if (res && res.success) {
+          alert('✅ Course created successfully!');
+          closeModal('modalAddCourse');
+          await loadAllAdminData();
+          await loadDropdownData();
+        } else {
+          alert(res && res.message ? res.message : 'Failed to create course');
+        }
+      } catch (err) { alert(err.message); }
+    }
+
+    async function saveResultDirect(e) {
+      e.preventDefault();
+      const payload = {
+        student_id: parseInt(document.getElementById('rStudentSelect').value),
+        class_id: parseInt(document.getElementById('rClassSelect').value),
+        subject_id: parseInt(document.getElementById('rSubjectSelect').value),
+        exam_type: document.getElementById('rExamType').value,
+        marks_obtained: parseFloat(document.getElementById('rMarksObt').value),
+        total_marks: parseFloat(document.getElementById('rTotalMarks').value),
+        grade: document.getElementById('rGrade').value.trim() || null
+      };
+      try {
+        const res = await apiCall('/api/admin/results', 'POST', payload);
+        if (res && res.success) {
+          alert('✅ Exam result logged successfully!');
+          closeModal('modalAddResult');
+          await loadAllAdminData();
+        } else {
+          alert(res && res.message ? res.message : 'Failed to record result');
+        }
+      } catch (err) { alert(err.message); }
+    }
+
+    async function saveNoticeDirect(e) {
+      e.preventDefault();
+      const payload = {
+        title: document.getElementById('nTitle').value.trim(),
+        target_role: document.getElementById('nTarget').value,
+        content: document.getElementById('nContent').value.trim()
+      };
+      try {
+        const res = await apiCall('/api/notices', 'POST', payload);
+        if (res && res.success) {
+          alert('📢 Notice published successfully!');
+          closeModal('modalAddNotice');
+          await loadAllAdminData();
+        } else {
+          alert(res && res.message ? res.message : 'Failed to post notice');
+        }
+      } catch (err) { alert(err.message); }
+    }
+
+    async function saveQuickStudent(e) {
+      e.preventDefault();
+      const payload = {
+        full_name: document.getElementById('qsName').value.trim(),
+        father_name: document.getElementById('qsFather').value.trim(),
+        cnic: document.getElementById('qsCnic').value.trim(),
+        phone: document.getElementById('qsPhone').value.trim(),
+        applied_course_id: parseInt(document.getElementById('qsCourse').value),
+        degree_status: document.getElementById('qsDegreeStatus').value,
+        status: 'active'
+      };
+      try {
+        const res = await apiCall('/api/admin/students', 'POST', payload);
+        if (res && res.success) {
+          alert('✅ Student registered successfully!');
+          closeModal('modalAddStudent');
+          await loadAllAdminData();
+        } else {
+          alert(res && res.message ? res.message : 'Failed to register student');
+        }
+      } catch (err) { alert(err.message); }
     }
   </script>
 </body>

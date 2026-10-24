@@ -95,15 +95,25 @@
 html {
   font-size: 16px;
   scroll-behavior: smooth;
+  background-color: var(--bg-body);
+  color: var(--text-primary);
+  color-scheme: light dark;
 }
 
 body {
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
-  background: var(--bg-body);
+  background-color: var(--bg-body);
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
-  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Smooth transition only applied during user toggle, not on initial page load */
+body.theme-transition,
+body.theme-transition *,
+body.theme-transition *::before,
+body.theme-transition *::after {
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease !important;
 }
 
 a {
@@ -224,48 +234,148 @@ h4 { font-size: 1.1rem; }
 
 .sidebar-nav {
   flex: 1;
-  padding: 12px 0;
+  padding: 8px 0;
   overflow-y: auto;
 }
 
-.sidebar-nav a {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 20px;
-  color: var(--text-secondary);
-  font-size: 0.9rem;
-  text-decoration: none;
-  transition: var(--transition);
-  border-left: 3px solid transparent;
+/* ---------- VS Code-style Tree ---------- */
+.tree-section-title {
+  padding: 8px 12px 4px;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-muted);
+  font-weight: 700;
 }
 
-.sidebar-nav a:hover {
+.tree-node {
+  position: relative;
+  user-select: none;
+}
+
+.tree-node-header {
+  display: flex;
+  align-items: center;
+  padding: 5px 0;
+  padding-left: 10px;
+  cursor: pointer;
+  font-size: 0.87rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  transition: background 0.12s ease, color 0.12s ease;
+  border-left: 2px solid transparent;
+  text-decoration: none;
+}
+
+.tree-node-header:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
   text-decoration: none;
 }
 
-.sidebar-nav a.active {
+.tree-chevron {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  transition: transform 0.15s ease;
+  margin-right: 2px;
+}
+
+.tree-chevron svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.tree-node.expanded > .tree-node-header .tree-chevron {
+  transform: rotate(90deg);
+}
+
+.tree-node-label {
+  flex: 1;
+  padding: 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Children container */
+.tree-children {
+  display: none;
+  position: relative;
+}
+
+.tree-node.expanded > .tree-children {
+  display: block;
+}
+
+/* Indent guide lines — vertical */
+.tree-children::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 21px;
+  width: 1px;
+  background: var(--border-color);
+}
+
+/* Child leaf items */
+.tree-leaf {
+  display: flex;
+  align-items: center;
+  padding: 5px 0;
+  padding-left: 34px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.12s ease, color 0.12s ease;
+  border-left: 2px solid transparent;
+  position: relative;
+}
+
+.tree-leaf:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.tree-leaf.active {
   background: var(--color-primary-light);
   color: var(--color-primary);
   border-left-color: var(--color-primary);
   font-weight: 500;
 }
 
-.sidebar-nav a .nav-icon {
-  font-size: 1.1rem;
-  width: 20px;
-  text-align: center;
+/* Horizontal indent guide — connects to vertical line */
+.tree-leaf::before {
+  content: '';
+  position: absolute;
+  left: 21px;
+  top: 50%;
+  width: 8px;
+  height: 1px;
+  background: var(--border-color);
 }
 
-.sidebar-nav .nav-section {
-  padding: 12px 20px 6px;
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-muted);
-  font-weight: 600;
+/* Deeper nesting: level-2 children */
+.tree-children .tree-children::before {
+  left: 40px;
+}
+
+.tree-children .tree-leaf-l2 {
+  padding-left: 52px;
+}
+
+.tree-children .tree-leaf-l2::before {
+  left: 40px;
 }
 
 .sidebar-footer {
@@ -284,6 +394,47 @@ h4 { font-size: 1.1rem; }
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+/* Navbar navigation links / tabs */
+.navbar-nav-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nav-tab-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--border-radius);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: var(--transition);
+}
+
+.nav-tab-link:hover {
+  color: var(--text-primary);
+  background: var(--bg-hover);
+  border-color: var(--border-color);
+}
+
+.nav-tab-link.active {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  border-color: var(--border-color);
+  font-weight: 600;
+}
+
+.nav-tab-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
 }
 
 .navbar-title {
@@ -833,6 +984,72 @@ tbody tr:nth-child(even):hover {
   margin-top: 20px;
   font-size: 0.8rem;
   color: var(--text-muted);
+}
+.login-card-wide {
+  max-width: 520px;
+}
+
+/* ---------- Auth Tabs ---------- */
+.auth-tabs {
+  display: flex;
+  background: var(--bg-body);
+  border-radius: var(--border-radius);
+  padding: 4px;
+  margin-bottom: 24px;
+  border: 1px solid var(--border-color);
+}
+
+.auth-tab-btn {
+  flex: 1;
+  padding: 8px 16px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: calc(var(--border-radius) - 2px);
+  transition: var(--transition);
+}
+
+.auth-tab-btn:hover {
+  color: var(--text-primary);
+}
+
+.auth-tab-btn.active {
+  background: var(--bg-card);
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+  font-weight: 600;
+}
+.login-alert {
+  text-align: left;
+  margin-bottom: 16px;
+}
+.login-footer-link {
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+.login-footer-link a {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+.login-footer .theme-toggle {
+  margin: 8px auto 0;
+}
+.login-footer-system {
+  margin-top: 8px;
+}
+.required-star {
+  color: var(--color-danger);
+}
+.form-row-2col {
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 0;
+}
+.signup-btn {
+  margin-top: 8px;
 }
 
 /* ---------- Settings Panel ---------- */

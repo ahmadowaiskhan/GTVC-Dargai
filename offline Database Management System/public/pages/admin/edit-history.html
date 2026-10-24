@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('gtvc_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+  <title>Edit History — GTVC Dargai</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="app-sidebar"></aside>
+    <div class="app-main">
+      <header class="app-navbar"></header>
+      <main class="app-content">
+
+        <div class="page-header flex-between">
+          <div>
+            <h1>Edit History & Audit Log</h1>
+            <p>Track all database modifications and restore previous values in case of accidental errors (Admin only).</p>
+          </div>
+          <div class="flex gap-1">
+            <button class="btn btn-outline" onclick="loadEditLogs()">Refresh</button>
+            <button class="btn btn-outline btn-danger" onclick="clearEditLogs()">Clear History</button>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search edit logs..." oninput="filterLogs()">
+          </div>
+          <div class="flex gap-1" style="align-items:center;">
+            <select id="actionFilter" class="form-control" style="width:130px; padding:6px 10px;" onchange="filterLogs()">
+              <option value="">All Actions</option>
+              <option value="update">Update</option>
+              <option value="delete">Delete</option>
+              <option value="restore">Restore</option>
+            </select>
+            <select id="tableFilter" class="form-control" style="width:140px; padding:6px 10px;" onchange="filterLogs()">
+              <option value="">All Tables</option>
+              <option value="users">Users</option>
+              <option value="teachers">Teachers</option>
+              <option value="students">Students</option>
+              <option value="courses">Courses</option>
+            </select>
+            <span class="badge badge-gray" id="logCount">0 logs</span>
+          </div>
+        </div>
+
+        <!-- Edit Log Table -->
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Action</th>
+                  <th>Target Table</th>
+                  <th>Description</th>
+                  <th>Edited By</th>
+                  <th>Date & Time</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="logsTableBody">
+                <tr><td colspan="7" class="text-center text-muted" style="padding:32px;">Loading edit history...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+      <footer class="app-footer"></footer>
+    </div>
+  </div>
+
+  <!-- Changes / Diff Modal -->
+  <div class="modal-overlay" id="changesModal">
+    <div class="modal" style="max-width: 720px;">
+      <div class="modal-header">
+        <h3 id="changesModalTitle">Comparison: Before vs After</h3>
+        <button class="modal-close" onclick="closeChangesModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <div id="changesModalDesc" style="margin-bottom: 12px; font-weight: 500; color: var(--text-secondary);"></div>
+        <div id="changesComparison" style="max-height: 420px; overflow-y: auto;"></div>
+      </div>
+      <div class="modal-footer" style="padding: 16px 20px; border-top: 1px solid var(--border-color); display:flex; justify-content:space-between; align-items:center;">
+        <button id="rollbackModalBtn" class="btn btn-primary" onclick="rollbackFromModal()">Restore Previous State</button>
+        <button class="btn btn-outline" onclick="closeChangesModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allLogs = [];
+    let selectedLog = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!requireAuth(['admin'])) return;
+      renderLayout('admin', 'Edit History', 'edit-history.html');
+      loadEditLogs();
+    });
+
+    async function loadEditLogs() {
+      try {
+        const data = await apiCall('/api/admin/edit-log');
+        allLogs = data || [];
+        renderLogs(allLogs);
+      } catch (e) {
+        document.getElementById('logsTableBody').innerHTML =
+          '<tr><td colspan="7" class="text-center text-muted" style="padding:32px;">Could not load edit history. Server may be offline.</td></tr>';
+      }
+    }
+
+    function parseJson(str) {
+      if (!str) return null;
+      if (typeof str === 'object') return str;
+      try {
+        return JSON.parse(str);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function renderLogs(logs) {
+      const tbody = document.getElementById('logsTableBody');
+      document.getElementById('logCount').textContent = `${logs.length} log${logs.length === 1 ? '' : 's'}`;
+
+      if (!logs.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted" style="padding:32px;">No edit records found. Any future update or delete will be tracked here automatically.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = logs.map((log, idx) => {
+        const createdAt = log.created_at ? new Date(log.created_at).toLocaleString() : '—';
+        const editedBy = log.edited_by_name || 'Admin';
+
+        let actionBadge = 'badge-blue';
+        if (log.action === 'delete') actionBadge = 'badge-red';
+        else if (log.action === 'restore') actionBadge = 'badge-green';
+        else if (log.action === 'update') actionBadge = 'badge-blue';
+
+        let tableBadge = 'badge-gray';
+        if (log.target_table === 'users') tableBadge = 'badge-blue';
+        else if (log.target_table === 'teachers') tableBadge = 'badge-purple';
+        else if (log.target_table === 'students') tableBadge = 'badge-green';
+        else if (log.target_table === 'courses') tableBadge = 'badge-yellow';
+
+        const canRestore = log.old_data != null;
+
+        return `
+          <tr>
+            <td>${idx + 1}</td>
+            <td><span class="badge ${actionBadge}">${log.action.toUpperCase()}</span></td>
+            <td><span class="badge ${tableBadge}">${log.target_table.toUpperCase()}</span></td>
+            <td>
+              <strong>${log.description || 'Database modification'}</strong>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">ID #${log.target_id || 'N/A'}</div>
+            </td>
+            <td>${editedBy}</td>
+            <td style="font-size:0.85rem; color:var(--text-secondary);">${createdAt}</td>
+            <td>
+              <div class="btn-group">
+                <button class="btn btn-outline btn-sm" onclick="viewChanges(${log.id})">Compare</button>
+                ${canRestore ? `
+                  <button class="btn btn-primary btn-sm" onclick="restoreFromLog(${log.id})">Rollback</button>
+                ` : `
+                  <span class="text-muted" style="font-size:0.8rem; padding:4px 8px;">—</span>
+                `}
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterLogs() {
+      const q = (document.getElementById('searchInput').value || '').toLowerCase();
+      const action = (document.getElementById('actionFilter').value || '').toLowerCase();
+      const table = (document.getElementById('tableFilter').value || '').toLowerCase();
+
+      const filtered = allLogs.filter(log => {
+        const matchesQuery = !q ||
+          (log.description && log.description.toLowerCase().includes(q)) ||
+          (log.target_table && log.target_table.toLowerCase().includes(q)) ||
+          (log.edited_by_name && log.edited_by_name.toLowerCase().includes(q)) ||
+          String(log.target_id).includes(q);
+
+        const matchesAction = !action || (log.action && log.action.toLowerCase() === action);
+        const matchesTable = !table || (log.target_table && log.target_table.toLowerCase() === table);
+        return matchesQuery && matchesAction && matchesTable;
+      });
+
+      renderLogs(filtered);
+    }
+
+    function viewChanges(id) {
+      selectedLog = allLogs.find(x => x.id === id);
+      if (!selectedLog) return;
+
+      const oldData = parseJson(selectedLog.old_data) || {};
+      const newData = parseJson(selectedLog.new_data) || {};
+
+      document.getElementById('changesModalTitle').textContent =
+        `Log #${selectedLog.id} — ${selectedLog.action.toUpperCase()} ${selectedLog.target_table.toUpperCase()} #${selectedLog.target_id}`;
+      document.getElementById('changesModalDesc').textContent = selectedLog.description || '';
+
+      const rollbackBtn = document.getElementById('rollbackModalBtn');
+      if (selectedLog.old_data) {
+        rollbackBtn.style.display = 'inline-block';
+      } else {
+        rollbackBtn.style.display = 'none';
+      }
+
+      // Collect all keys
+      const allKeys = Array.from(new Set([...Object.keys(oldData), ...Object.keys(newData)]));
+
+      if (allKeys.length === 0) {
+        document.getElementById('changesComparison').innerHTML = '<p class="text-muted text-center" style="padding:20px;">No detailed property data available for this log.</p>';
+      } else {
+        let rowsHtml = '';
+        allKeys.forEach(k => {
+          if (k === 'password') return; // Don't show password hashes
+          const oldVal = oldData[k] !== undefined ? oldData[k] : '—';
+          const newVal = newData[k] !== undefined ? newData[k] : '—';
+          const isDifferent = String(oldVal) !== String(newVal);
+
+          rowsHtml += `
+            <tr style="border-bottom:1px solid var(--border-color); ${isDifferent ? 'background:rgba(59, 130, 246, 0.05);' : ''}">
+              <td style="padding:8px 12px; font-weight:600; width:30%; color:var(--text-primary);">${k}</td>
+              <td style="padding:8px 12px; width:35%; word-break:break-word; color:${isDifferent ? 'var(--color-danger)' : 'var(--text-secondary)'};">
+                ${oldVal === null ? '<span class="text-muted">null</span>' : oldVal}
+              </td>
+              <td style="padding:8px 12px; width:35%; word-break:break-word; color:${isDifferent ? 'var(--color-success)' : 'var(--text-secondary)'}; font-weight:${isDifferent ? '600' : 'normal'};">
+                ${newVal === null ? '<span class="text-muted">null</span>' : newVal}
+              </td>
+            </tr>
+          `;
+        });
+
+        document.getElementById('changesComparison').innerHTML = `
+          <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+            <thead>
+              <tr style="background:var(--bg-hover); border-bottom:1px solid var(--border-color);">
+                <th style="padding:8px 12px; text-align:left;">Field</th>
+                <th style="padding:8px 12px; text-align:left; color:var(--color-danger);">Before (Old Data)</th>
+                <th style="padding:8px 12px; text-align:left; color:var(--color-success);">After (New Data)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rowsHtml}
+            </tbody>
+          </table>
+        `;
+      }
+
+      document.getElementById('changesModal').classList.add('active');
+    }
+
+    function closeChangesModal() {
+      document.getElementById('changesModal').classList.remove('active');
+    }
+
+    function rollbackFromModal() {
+      if (selectedLog) {
+        closeChangesModal();
+        restoreFromLog(selectedLog.id);
+      }
+    }
+
+    async function restoreFromLog(id) {
+      const log = allLogs.find(x => x.id === id);
+      const desc = log ? log.description : `Log #${id}`;
+      if (!confirm(`Are you sure you want to revert the changes and restore the previous state from: "${desc}"?`)) return;
+
+      try {
+        const res = await apiCall(`/api/admin/edit-log/${id}/restore`, 'POST');
+        if (res && res.success) {
+          alert('Previous state restored successfully!');
+          loadEditLogs();
+        } else {
+          alert('Failed to rollback: ' + (res?.message || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Rollback error: ' + e.message);
+      }
+    }
+
+    async function clearEditLogs() {
+      if (allLogs.length === 0) {
+        alert('Edit log is already empty.');
+        return;
+      }
+      if (!confirm('Are you sure you want to clear all edit history records?')) return;
+      try {
+        const res = await apiCall('/api/admin/edit-log', 'DELETE');
+        if (res && res.success) {
+          alert('Edit history cleared.');
+          loadEditLogs();
+        } else {
+          alert('Error: ' + (res?.message || 'Failed'));
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+  </script>
+</body>
+</html>

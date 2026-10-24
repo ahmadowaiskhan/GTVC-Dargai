@@ -3,9 +3,87 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('gtvc_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
   <title>Accounting Dashboard — GTVC Dargai</title>
   <link rel="stylesheet" href="/assets/style.css">
   <script src="/app.js" defer></script>
+  <style>
+    .badge-income {
+      background: rgba(34, 197, 94, 0.15);
+      color: #22c55e;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .badge-expense {
+      background: rgba(239, 68, 68, 0.15);
+      color: #ef4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.8rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .category-chip {
+      display: inline-block;
+      padding: 3px 8px;
+      background: var(--bg-surface-secondary, rgba(0,0,0,0.05));
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 0.76rem;
+      font-weight: 500;
+    }
+    .receipt-preview-thumbnail {
+      width: 44px;
+      height: 44px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .receipt-preview-thumbnail:hover {
+      transform: scale(1.08);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    .receipt-modal-img {
+      max-width: 100%;
+      max-height: 70vh;
+      object-fit: contain;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      display: block;
+      margin: 0 auto;
+    }
+    .dropzone {
+      border: 2px dashed var(--border-color);
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      background: var(--bg-surface-secondary, rgba(0,0,0,0.02));
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .dropzone:hover {
+      border-color: var(--primary);
+    }
+  </style>
 </head>
 <body>
   <div class="app-layout">
@@ -14,28 +92,102 @@
       <header class="app-navbar"></header>
       <main class="app-content">
 
-        <div class="stats-grid">
-          <div class="stat-card">
-            <div class="stat-value" id="totalStudents">0</div>
-            <div class="stat-label">Total Students</div>
+        <!-- Page Header -->
+        <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+          <div>
+            <h1>College Accounting, Funds & Expenses</h1>
+            <p>Manage college funds, incomings, outgoings, lab maintenance, machinery purchases, utility bills, and payment receipts.</p>
           </div>
-          <div class="stat-card">
-            <div class="stat-value" id="totalFees">—</div>
-            <div class="stat-label">Fees Collected</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-value" id="pendingFees">—</div>
-            <div class="stat-label">Pending Fees</div>
+          <div class="btn-group">
+            <button class="btn btn-outline" onclick="window.print()">🖨️ Print Financial Report</button>
+            <button class="btn btn-primary" onclick="openTransactionModal()">
+              ➕ Record Transaction / Bill
+            </button>
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-header">
-            <h3 class="card-title">Accounting Overview</h3>
+        <!-- Financial Summary Cards -->
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom:20px;">
+          <div class="stat-card">
+            <div class="stat-value" id="statBalance" style="color:var(--primary);">PKR 0</div>
+            <div class="stat-label">Net Available Funds / Balance</div>
           </div>
-          <div class="empty-state">
-            <p>Accounting module is under development.</p>
-            <p style="font-size:0.85rem; color:var(--text-muted);">Fee management and financial reports will be available in future updates.</p>
+          <div class="stat-card">
+            <div class="stat-value" id="statIncome" style="color:#22c55e;">PKR 0</div>
+            <div class="stat-label">Total Incomings & Funds Received</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statExpense" style="color:#ef4444;">PKR 0</div>
+            <div class="stat-label">Total Outgoings & Expenses Paid</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statTxnCount">0</div>
+            <div class="stat-label">Recorded Transactions & Receipts</div>
+          </div>
+        </div>
+
+        <!-- Categories Overview Bar -->
+        <div class="card mb-3" style="padding:14px 20px;">
+          <div style="font-weight:600; font-size:0.85rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:10px;">
+            Expense & Fund Allocations:
+          </div>
+          <div id="categoryChipsContainer" style="display:flex; flex-wrap:wrap; gap:10px;">
+            <span class="category-chip">🔬 Lab Maintenance</span>
+            <span class="category-chip">⚙️ Buy New Lab Machines</span>
+            <span class="category-chip">⚡ Electricity Bills</span>
+            <span class="category-chip">🌐 Internet Bills</span>
+            <span class="category-chip">🏛️ College Funds</span>
+            <span class="category-chip">🎓 Student Fees</span>
+            <span class="category-chip">📦 Other College Expenses</span>
+          </div>
+        </div>
+
+        <!-- Filters & Search Toolbar -->
+        <div class="toolbar" style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+          <div class="search-box" style="flex:1; min-width:240px;">
+            <input type="text" id="txSearch" placeholder="Search title, vendor/person, receipt #..." oninput="loadTransactions()">
+          </div>
+          <select id="filterType" class="form-select" style="width:auto; min-width:140px;" onchange="loadTransactions()">
+            <option value="">All Types</option>
+            <option value="income">Incomings (Funds/Fees)</option>
+            <option value="expense">Outgoings (Expenses)</option>
+          </select>
+          <select id="filterCategory" class="form-select" style="width:auto; min-width:180px;" onchange="loadTransactions()">
+            <option value="">All Categories</option>
+            <option value="lab_maintenance">🔬 Lab Maintenance</option>
+            <option value="lab_equipment">⚙️ Buy New Lab Machine</option>
+            <option value="electricity_bill">⚡ Electricity Bill</option>
+            <option value="internet_bill">🌐 Internet Bill</option>
+            <option value="college_fund">🏛️ College Funds</option>
+            <option value="student_fee">🎓 Student Fees</option>
+            <option value="salaries">👥 Salaries / Honorarium</option>
+            <option value="other">📦 Other Expenses</option>
+          </select>
+          <button class="btn btn-outline" onclick="loadAllAccountingData()">↻ Refresh</button>
+        </div>
+
+        <!-- Transactions Table Card -->
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Transaction & Purpose</th>
+                  <th>Category</th>
+                  <th>Type</th>
+                  <th>Amount (PKR)</th>
+                  <th>Date & Payment</th>
+                  <th>Bill / Receipt</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="accountingTbody">
+                <tr>
+                  <td colspan="8" class="text-center text-muted" style="padding:40px;">Loading accounting data...</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
 
@@ -44,11 +196,427 @@
     </div>
   </div>
 
+  <!-- View Receipt / Bill Image Modal -->
+  <div class="modal-overlay" id="receiptModal">
+    <div class="modal" style="max-width:700px;">
+      <div class="modal-header">
+        <h3 id="receiptModalTitle">Receipt / Bill Voucher</h3>
+        <button class="modal-close" onclick="closeModal('receiptModal')">✕</button>
+      </div>
+      <div class="modal-body" style="padding:20px; text-align:center;">
+        <div id="receiptImageContainer">
+          <img id="receiptModalImg" src="" alt="Bill Receipt" class="receipt-modal-img">
+        </div>
+        <div id="receiptDetailsText" style="margin-top:14px; text-align:left; background:var(--bg-surface-secondary); padding:12px; border-radius:6px; font-size:0.88rem;"></div>
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between; padding:14px 20px; border-top:1px solid var(--border-color);">
+        <button class="btn btn-outline" onclick="printReceiptVoucher()">🖨️ Print Voucher</button>
+        <button class="btn btn-secondary" onclick="closeModal('receiptModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add / Edit Transaction Modal -->
+  <div class="modal-overlay" id="txnModal">
+    <div class="modal" style="max-width:700px; max-height:90vh; overflow-y:auto;">
+      <div class="modal-header">
+        <h3 id="txnModalTitle">Record New Financial Transaction</h3>
+        <button class="modal-close" onclick="closeModal('txnModal')">✕</button>
+      </div>
+      <form id="txnForm" onsubmit="saveTransaction(event)" style="padding:20px;">
+        <input type="hidden" id="txnId">
+        <input type="hidden" id="txnReceiptBase64">
+
+        <div class="form-row">
+          <div class="form-group" style="flex:2;">
+            <label class="form-label">Title / Expense Description *</label>
+            <input type="text" id="tTitle" class="form-input" placeholder="e.g. Computer Lab AC Maintenance, Electricity Bill June 2026..." required>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Type *</label>
+            <select id="tType" class="form-select" required onchange="handleTypeChange()">
+              <option value="expense">Outgoing (Expense)</option>
+              <option value="income">Incoming (Fund / Fee)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Category *</label>
+            <select id="tCategory" class="form-select" required>
+              <option value="lab_maintenance">🔬 Lab Maintenance</option>
+              <option value="lab_equipment">⚙️ Buy New Lab Machine / Equipment</option>
+              <option value="electricity_bill">⚡ Electricity Bill</option>
+              <option value="internet_bill">🌐 Internet Bill</option>
+              <option value="college_fund">🏛️ College Funds / Grant</option>
+              <option value="student_fee">🎓 Student Fees</option>
+              <option value="salaries">👥 Salaries / Honorarium</option>
+              <option value="other">📦 Other College Expenses</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Amount (PKR) *</label>
+            <input type="number" step="0.01" id="tAmount" class="form-input" placeholder="0.00" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Transaction / Receipt Date *</label>
+            <input type="date" id="tDate" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Payment Method</label>
+            <select id="tPaymentMethod" class="form-select">
+              <option value="Cash">Cash</option>
+              <option value="Bank Transfer">Bank Transfer / Online</option>
+              <option value="Cheque">Official Cheque</option>
+              <option value="Treasury Challan">Govt Treasury Challan</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Receipt / Bill / Invoice Number</label>
+            <input type="text" id="tReceiptNumber" class="form-input" placeholder="e.g. BILL-9821, CHQ-4402">
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="lblPaidTo">Paid To / Vendor Name</label>
+            <input type="text" id="tPaidTo" class="form-input" placeholder="Vendor, technician, agency, or department">
+          </div>
+        </div>
+
+        <!-- Receipt / Bill Image Upload -->
+        <div class="form-group">
+          <label class="form-label">Attach Image of Bill or Payment Receipt</label>
+          <div class="dropzone" onclick="document.getElementById('receiptFileInput').click()">
+            <div id="dropzoneText">
+              📸 Click to upload Bill Image / Payment Receipt (JPG, PNG, WebP)
+            </div>
+            <img id="receiptFormPreview" src="" alt="Receipt Preview" style="max-height:120px; display:none; margin:10px auto; border-radius:6px; border:1px solid var(--border-color);">
+          </div>
+          <input type="file" id="receiptFileInput" accept="image/*" style="display:none;" onchange="handleReceiptFileSelect(event)">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Detailed Notes / Memo</label>
+          <textarea id="tDescription" class="form-input" rows="2" placeholder="Additional specifications, meter reading, serial numbers, warranty terms..."></textarea>
+        </div>
+
+        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px; padding-top:16px; border-top:1px solid var(--border-color);">
+          <button type="button" class="btn btn-outline" onclick="closeModal('txnModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveTxnBtn">Save Record</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
+    let currentTransactions = [];
+    let activeReceiptData = null;
+
+    document.addEventListener('DOMContentLoaded', async () => {
       if (!requireAuth(['accounting', 'admin'])) return;
-      renderLayout('accounting', 'Dashboard', 'dashboard.html');
+      const user = getUser();
+      renderLayout(user.role === 'accounting' ? 'accounting' : 'admin', 'Accounting & College Funds', 'dashboard.html');
+      
+      document.getElementById('tDate').value = new Date().toISOString().split('T')[0];
+      await loadAllAccountingData();
     });
+
+    async function loadAllAccountingData() {
+      await loadSummary();
+      await loadTransactions();
+    }
+
+    async function loadSummary() {
+      try {
+        const s = await apiCall('/api/accounting/summary');
+        if (s) {
+          const balance = s.net_balance || 0;
+          document.getElementById('statBalance').textContent = 'PKR ' + Number(balance).toLocaleString();
+          document.getElementById('statIncome').textContent = 'PKR ' + Number(s.total_income || 0).toLocaleString();
+          document.getElementById('statExpense').textContent = 'PKR ' + Number(s.total_expense || 0).toLocaleString();
+          document.getElementById('statTxnCount').textContent = s.total_transactions || 0;
+
+          if (Array.isArray(s.categoryBreakdown)) {
+            const container = document.getElementById('categoryChipsContainer');
+            container.innerHTML = s.categoryBreakdown.map(c => {
+              const icon = getCategoryIcon(c.category);
+              const name = formatCategoryName(c.category);
+              return `<span class="category-chip">${icon} <b>${name}</b>: PKR ${Number(c.total_amount).toLocaleString()}</span>`;
+            }).join('');
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load accounting summary', err);
+      }
+    }
+
+    async function loadTransactions() {
+      const tbody = document.getElementById('accountingTbody');
+      const search = document.getElementById('txSearch').value.trim();
+      const type = document.getElementById('filterType').value;
+      const cat = document.getElementById('filterCategory').value;
+
+      let url = '/api/accounting/transactions?';
+      if (search) url += `search=${encodeURIComponent(search)}&`;
+      if (type) url += `type=${encodeURIComponent(type)}&`;
+      if (cat) url += `category=${encodeURIComponent(cat)}&`;
+
+      try {
+        const data = await apiCall(url);
+        if (Array.isArray(data)) {
+          currentTransactions = data;
+          renderTransactions(data);
+        }
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-danger" style="padding:32px;">Error: ${e.message}</td></tr>`;
+      }
+    }
+
+    function renderTransactions(list) {
+      const tbody = document.getElementById('accountingTbody');
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted" style="padding:40px;">No accounting transactions found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map((t, idx) => {
+        const isIncome = t.type === 'income';
+        const badgeClass = isIncome ? 'badge-income' : 'badge-expense';
+        const typeLabel = isIncome ? '▲ Incoming Fund' : '▼ Outgoing Expense';
+        const icon = getCategoryIcon(t.category);
+        const catName = formatCategoryName(t.category);
+        const dateStr = t.receipt_date ? new Date(t.receipt_date).toLocaleDateString() : 'N/A';
+        const hasReceipt = t.receipt_image && t.receipt_image.length > 20;
+
+        return `
+          <tr>
+            <td>${idx + 1}</td>
+            <td>
+              <div style="font-weight:600; font-size:0.95rem; color:var(--text-color);">${escapeHtml(t.title)}</div>
+              ${t.paid_to_or_from ? `<div style="font-size:0.8rem; color:var(--text-muted);">${isIncome ? 'Received from:' : 'Paid to:'} <b>${escapeHtml(t.paid_to_or_from)}</b></div>` : ''}
+              ${t.description ? `<div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(t.description)}</div>` : ''}
+            </td>
+            <td>
+              <span class="category-chip">${icon} ${catName}</span>
+            </td>
+            <td>
+              <span class="${badgeClass}">${typeLabel}</span>
+            </td>
+            <td>
+              <span style="font-weight:700; font-size:1rem; color:${isIncome ? '#22c55e' : '#ef4444'};">
+                ${isIncome ? '+' : '-'} PKR ${Number(t.amount).toLocaleString()}
+              </span>
+            </td>
+            <td>
+              <div style="font-size:0.85rem; font-weight:600;">${dateStr}</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">${escapeHtml(t.payment_method || 'Cash')}</div>
+            </td>
+            <td>
+              ${hasReceipt ? `
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <img src="${t.receipt_image}" alt="Receipt" class="receipt-preview-thumbnail" onclick="viewReceipt(${t.id})">
+                  <button class="btn btn-outline btn-sm" style="padding:2px 8px; font-size:0.75rem;" onclick="viewReceipt(${t.id})">View Bill</button>
+                </div>
+              ` : `
+                <span style="font-size:0.75rem; color:var(--text-muted);">No bill image</span>
+              `}
+              ${t.receipt_number ? `<div style="font-size:0.72rem; color:var(--text-muted); margin-top:2px;"># ${escapeHtml(t.receipt_number)}</div>` : ''}
+            </td>
+            <td>
+              <div class="btn-group" style="gap:4px;">
+                <button class="btn btn-outline btn-sm" onclick="editTransaction(${t.id})" title="Edit Transaction">✏️</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteTransaction(${t.id}, '${escapeHtml(t.title)}', ${t.amount})" title="Delete to Recycle Bin">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function getCategoryIcon(cat) {
+      switch (cat) {
+        case 'lab_maintenance': return '🔬';
+        case 'lab_equipment': return '⚙️';
+        case 'electricity_bill': return '⚡';
+        case 'internet_bill': return '🌐';
+        case 'college_fund': return '🏛️';
+        case 'student_fee': return '🎓';
+        case 'salaries': return '👥';
+        default: return '📦';
+      }
+    }
+
+    function formatCategoryName(cat) {
+      if (!cat) return 'Other';
+      return cat.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+    }
+
+    function handleTypeChange() {
+      const type = document.getElementById('tType').value;
+      const lbl = document.getElementById('lblPaidTo');
+      lbl.textContent = type === 'income' ? 'Received From / Source' : 'Paid To / Vendor Name';
+    }
+
+    function handleReceiptFileSelect(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const base64 = evt.target.result;
+        document.getElementById('txnReceiptBase64').value = base64;
+        const preview = document.getElementById('receiptFormPreview');
+        preview.src = base64;
+        preview.style.display = 'block';
+        document.getElementById('dropzoneText').textContent = '✅ Image attached: ' + file.name + ' (Click to change)';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function openTransactionModal(isEdit = false) {
+      document.getElementById('txnModalTitle').textContent = isEdit ? 'Edit Transaction Details' : 'Record New Financial Transaction';
+      document.getElementById('saveTxnBtn').textContent = isEdit ? 'Update Transaction' : 'Save Record';
+      document.getElementById('txnModal').classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    function editTransaction(id) {
+      const t = currentTransactions.find(item => item.id === id);
+      if (!t) return;
+
+      document.getElementById('txnId').value = t.id;
+      document.getElementById('tTitle').value = t.title || '';
+      document.getElementById('tType').value = t.type || 'expense';
+      document.getElementById('tCategory').value = t.category || 'other';
+      document.getElementById('tAmount').value = t.amount || '';
+      document.getElementById('tDate').value = t.receipt_date ? t.receipt_date.split('T')[0] : '';
+      document.getElementById('tPaymentMethod').value = t.payment_method || 'Cash';
+      document.getElementById('tReceiptNumber').value = t.receipt_number || '';
+      document.getElementById('tPaidTo').value = t.paid_to_or_from || '';
+      document.getElementById('tDescription').value = t.description || '';
+      document.getElementById('txnReceiptBase64').value = t.receipt_image || '';
+
+      const preview = document.getElementById('receiptFormPreview');
+      if (t.receipt_image) {
+        preview.src = t.receipt_image;
+        preview.style.display = 'block';
+        document.getElementById('dropzoneText').textContent = '✅ Attached Bill Image (Click to replace)';
+      } else {
+        preview.style.display = 'none';
+        document.getElementById('dropzoneText').textContent = '📸 Click to upload Bill Image / Payment Receipt (JPG, PNG, WebP)';
+      }
+
+      handleTypeChange();
+      openTransactionModal(true);
+    }
+
+    async function saveTransaction(e) {
+      e.preventDefault();
+      const id = document.getElementById('txnId').value;
+      const payload = {
+        title: document.getElementById('tTitle').value.trim(),
+        type: document.getElementById('tType').value,
+        category: document.getElementById('tCategory').value,
+        amount: parseFloat(document.getElementById('tAmount').value),
+        receipt_date: document.getElementById('tDate').value,
+        payment_method: document.getElementById('tPaymentMethod').value,
+        receipt_number: document.getElementById('tReceiptNumber').value.trim() || null,
+        paid_to_or_from: document.getElementById('tPaidTo').value.trim() || null,
+        description: document.getElementById('tDescription').value.trim() || null,
+        receipt_image: document.getElementById('txnReceiptBase64').value || null
+      };
+
+      const btn = document.getElementById('saveTxnBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        let res;
+        if (id) {
+          res = await apiCall('/api/accounting/transactions/' + id, 'PUT', payload);
+        } else {
+          res = await apiCall('/api/accounting/transactions', 'POST', payload);
+        }
+
+        if (res && (res.success || res.id)) {
+          closeModal('txnModal');
+          document.getElementById('txnForm').reset();
+          document.getElementById('txnId').value = '';
+          document.getElementById('txnReceiptBase64').value = '';
+          document.getElementById('receiptFormPreview').style.display = 'none';
+          await loadAllAccountingData();
+        } else {
+          alert(res && res.message ? res.message : 'Failed to save transaction');
+        }
+      } catch (err) {
+        alert('Save error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = id ? 'Update Transaction' : 'Save Record';
+      }
+    }
+
+    function viewReceipt(id) {
+      const t = currentTransactions.find(item => item.id === id);
+      if (!t || !t.receipt_image) {
+        alert('No receipt image available for this transaction.');
+        return;
+      }
+      activeReceiptData = t;
+
+      document.getElementById('receiptModalTitle').textContent = `Receipt / Bill — ${t.title}`;
+      document.getElementById('receiptModalImg').src = t.receipt_image;
+      document.getElementById('receiptDetailsText').innerHTML = `
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <span><b>Amount:</b> PKR ${Number(t.amount).toLocaleString()}</span>
+          <span><b>Date:</b> ${new Date(t.receipt_date).toLocaleDateString()}</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <span><b>Category:</b> ${formatCategoryName(t.category)}</span>
+          <span><b>Receipt #:</b> ${escapeHtml(t.receipt_number || 'N/A')}</span>
+        </div>
+        <div><b>Paid To / From:</b> ${escapeHtml(t.paid_to_or_from || 'N/A')}</div>
+        ${t.description ? `<div style="margin-top:6px; color:var(--text-muted);"><b>Memo:</b> ${escapeHtml(t.description)}</div>` : ''}
+      `;
+
+      document.getElementById('receiptModal').classList.add('active');
+    }
+
+    function printReceiptVoucher() {
+      if (!activeReceiptData) return;
+      window.print();
+    }
+
+    async function deleteTransaction(id, title, amount) {
+      if (!confirm(`Are you sure you want to delete transaction "${title}" (PKR ${amount})?\n\nThis record will be moved safely to the Recycle Bin and can be restored.`)) {
+        return;
+      }
+      try {
+        const res = await apiCall('/api/accounting/transactions/' + id, 'DELETE');
+        if (res && res.success) {
+          await loadAllAccountingData();
+        } else {
+          alert('Delete failed');
+        }
+      } catch (e) {
+        alert('Delete error: ' + e.message);
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[m]);
+    }
   </script>
 </body>
 </html>

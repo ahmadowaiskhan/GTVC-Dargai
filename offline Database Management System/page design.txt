@@ -1,0 +1,32 @@
+in admin give me opstion to choolse the location or partion where the database will be store C: , D: , ect and multiple location like D:,F:/database ect folder . and a section where the admin can the the database folder location and how mach stroare it takes
+
+inside teacher/attendance.html :
+her the teacher will add attendance persantage of there class and the tottle studen also add the .elx file with it monthley if the teacher not submet it send the notifaction to the admin every month the teacher will add this any month.
+
+Remove this notifaction like open addmissition advertiesment or close it.. also remove the notices.html accounting/dashboard.html from my all website
+
+login Roles :
+when the teacher or accountent login in the user name they will fill there user name in password they enter the password afther that they will get remdomley 2 step verefication like enter date of birth , joining date , CNIC number or the Full Name this will be case sensitiv . conform this from database
+
+create a sessition page:
+in the page will store how many studen get addmissition and DIT, CCVT, GIT, etc the number of studen . how may sessition are completed and the tottle subject.
+
+
+student details page:
+this page will store data about student appleyed cources a time studen applied and get digre and completed cources. and studen projects and study plane. a studen contece like phone number and email and eddress CNIC number. 
+
+Accoundting page:
+this page will store data about the collge founds and collge expences and incomings and outgoings. the labs mantences and buy new labs machine internet bill eletricty bill and other collge related expanses. it will store image of bill and recive recpt of payment.
+
+admin page:
+can comrtoll the all database.. add delete edit restore the all data if any mistake happen. can add new teacher and new student and new course and new results and new notices.
+
+
+
+Navebar: create a navebar i want these pages in Navebar.
+
+
+Recycle Bin page : it will store the deleted data to only the admin will be abel to delete and retore 
+
+Edit page: this page will store the all eddit make in database. this will help to retore the previous data if any mistake happen in database.
+

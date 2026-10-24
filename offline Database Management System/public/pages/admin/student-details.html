@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('gtvc_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+  <title>Student Details & Academic Profiles — GTVC Dargai</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/app.js" defer></script>
+  <style>
+    .student-badge-status {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+    .status-enrolled { background: rgba(59, 130, 246, 0.15); color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); }
+    .status-in_progress { background: rgba(234, 179, 8, 0.15); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.3); }
+    .status-completed { background: rgba(34, 197, 94, 0.15); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
+    .status-degree_awarded { background: rgba(168, 85, 247, 0.15); color: #a855f7; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .status-dropped { background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+    .profile-card-header {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border-color);
+      margin-bottom: 20px;
+    }
+    .profile-avatar-large {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: 700;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .profile-info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .info-box {
+      background: var(--bg-surface-secondary, rgba(0,0,0,0.03));
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 10px 14px;
+    }
+    .info-box-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .info-box-value {
+      font-size: 0.92rem;
+      font-weight: 600;
+      color: var(--text-color);
+      word-break: break-word;
+    }
+    .profile-section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-color);
+      margin: 18px 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .plan-box, .project-box {
+      background: var(--bg-surface-secondary, rgba(0,0,0,0.02));
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="app-sidebar"></aside>
+    <div class="app-main">
+      <header class="app-navbar"></header>
+      <main class="app-content">
+
+        <!-- Page Header -->
+        <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+          <div>
+            <h1>Student Details & Academic Profiles</h1>
+            <p>Comprehensive tracking of student applications, degrees, study plans, projects, and contact data.</p>
+          </div>
+          <button class="btn btn-primary" onclick="openStudentModal()">
+            ➕ Add / Register Student
+          </button>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom:20px;">
+          <div class="stat-card">
+            <div class="stat-value" id="statTotalStudents">0</div>
+            <div class="stat-label">Total Registered Students</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statEnrolled">0</div>
+            <div class="stat-label">Currently Enrolled</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statCompleted">0</div>
+            <div class="stat-label">Completed / Degree Awarded</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="statProjects">0</div>
+            <div class="stat-label">Documented Projects</div>
+          </div>
+        </div>
+
+        <!-- Filters & Search Toolbar -->
+        <div class="toolbar" style="display:flex; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+          <div class="search-box" style="flex:1; min-width:240px;">
+            <input type="text" id="searchInput" placeholder="Search by name, Roll #, CNIC, phone, email..." oninput="filterStudents()">
+          </div>
+          <select id="courseFilter" class="form-select" style="width:auto; min-width:180px;" onchange="filterStudents()">
+            <option value="">All Applied Courses</option>
+          </select>
+          <select id="statusFilter" class="form-select" style="width:auto; min-width:160px;" onchange="filterStudents()">
+            <option value="">All Degree Status</option>
+            <option value="enrolled">Enrolled</option>
+            <option value="in_progress">In Progress</option>
+            <option value="completed">Completed</option>
+            <option value="degree_awarded">Degree Awarded</option>
+            <option value="dropped">Dropped</option>
+          </select>
+          <button class="btn btn-outline" onclick="loadStudents()">↻ Refresh</button>
+        </div>
+
+        <!-- Students Table Card -->
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Student Info</th>
+                  <th>CNIC & Contact</th>
+                  <th>Applied Course & Date</th>
+                  <th>Degree Status</th>
+                  <th>Study Plan & Projects</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="studentsTbody">
+                <tr>
+                  <td colspan="7" class="text-center text-muted" style="padding:40px;">Loading student records...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+      <footer class="app-footer"></footer>
+    </div>
+  </div>
+
+  <!-- Student Full Profile Modal -->
+  <div class="modal-overlay" id="profileModal">
+    <div class="modal" style="max-width:850px; max-height:90vh; overflow-y:auto;">
+      <div class="modal-header">
+        <h3 id="profileModalTitle">Student Profile & Academic Record</h3>
+        <button class="modal-close" onclick="closeModal('profileModal')">✕</button>
+      </div>
+      <div class="modal-body" id="profileModalBody" style="padding:20px;">
+        <!-- Injected via JavaScript -->
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:space-between; padding:16px 20px; border-top:1px solid var(--border-color);">
+        <button class="btn btn-outline" onclick="window.print()">🖨️ Print Student Card</button>
+        <button class="btn btn-secondary" onclick="closeModal('profileModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add / Edit Student Modal -->
+  <div class="modal-overlay" id="editStudentModal">
+    <div class="modal" style="max-width:800px; max-height:90vh; overflow-y:auto;">
+      <div class="modal-header">
+        <h3 id="formModalTitle">Register / Edit Student Details</h3>
+        <button class="modal-close" onclick="closeModal('editStudentModal')">✕</button>
+      </div>
+      <form id="studentDetailForm" onsubmit="saveStudentDetails(event)" style="padding:20px;">
+        <input type="hidden" id="studentDbId">
+
+        <!-- 1. Contact & Personal Info -->
+        <h4 style="margin:0 0 12px; color:var(--primary); font-size:0.95rem; border-bottom:1px solid var(--border-color); padding-bottom:6px;">
+          1. Student Personal & Contact Information
+        </h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Full Name *</label>
+            <input type="text" id="fFullName" class="form-input" required placeholder="Student's official name">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Father Name *</label>
+            <input type="text" id="fFatherName" class="form-input" required placeholder="Father's name">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">CNIC Number * (e.g. 15402-1234567-1)</label>
+            <input type="text" id="fCnic" class="form-input" placeholder="XXXXX-XXXXXXX-X" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Roll Number / Student ID</label>
+            <input type="text" id="fStudentId" class="form-input" placeholder="e.g. GTVC-2026-001">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Phone Number *</label>
+            <input type="text" id="fPhone" class="form-input" placeholder="03XX-XXXXXXX" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address</label>
+            <input type="email" id="fEmail" class="form-input" placeholder="student@example.com">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Address</label>
+            <input type="text" id="fAddress" class="form-input" placeholder="Village / Tehsil / City address">
+          </div>
+          <div class="form-group">
+            <label class="form-label">District</label>
+            <input type="text" id="fDistrict" class="form-input" value="Malakand">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Date of Birth</label>
+            <input type="date" id="fDob" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gender</label>
+            <select id="fGender" class="form-select">
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- 2. Course, Applied Date & Degree Status -->
+        <h4 style="margin:20px 0 12px; color:var(--primary); font-size:0.95rem; border-bottom:1px solid var(--border-color); padding-bottom:6px;">
+          2. Applied Course & Degree Information
+        </h4>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Applied Trade / Course *</label>
+            <select id="fAppliedCourse" class="form-select" required>
+              <option value="">Select Course</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Application Date (Time Applied)</label>
+            <input type="date" id="fAppliedDate" class="form-input">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Degree / Completion Status</label>
+            <select id="fDegreeStatus" class="form-select">
+              <option value="enrolled">Enrolled</option>
+              <option value="in_progress">In Progress</option>
+              <option value="completed">Completed</option>
+              <option value="degree_awarded">Degree / Diploma Awarded</option>
+              <option value="dropped">Dropped</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Degree Award / Course Completion Date</label>
+            <input type="date" id="fCompletionDate" class="form-input">
+          </div>
+        </div>
+
+        <!-- 3. Study Plan & Projects -->
+        <h4 style="margin:20px 0 12px; color:var(--primary); font-size:0.95rem; border-bottom:1px solid var(--border-color); padding-bottom:6px;">
+          3. Study Plan & Student Projects
+        </h4>
+        <div class="form-group">
+          <label class="form-label">Study Plan & Learning Schedule</label>
+          <textarea id="fStudyPlan" class="form-input" rows="3" placeholder="Outline the student's study timeline, semester targets, practical training schedule, and target milestones..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Student Projects</label>
+          <textarea id="fProjects" class="form-input" rows="3" placeholder="List projects completed or assigned (e.g. Project Name, Description, Tools Used, Hardware/Software implementation, Completion Status)..."></textarea>
+        </div>
+
+        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px; padding-top:16px; border-top:1px solid var(--border-color);">
+          <button type="button" class="btn btn-outline" onclick="closeModal('editStudentModal')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveStudentBtn">Save Student Details</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let allStudents = [];
+    let coursesList = [];
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!requireAuth(['admin', 'principal'])) return;
+      renderLayout('admin', 'Student Details', 'student-details.html');
+      await loadCourses();
+      await loadStudents();
+    });
+
+    async function loadCourses() {
+      try {
+        const res = await apiCall('/api/courses');
+        if (Array.isArray(res)) {
+          coursesList = res;
+          const select = document.getElementById('fAppliedCourse');
+          const filter = document.getElementById('courseFilter');
+          select.innerHTML = '<option value="">Select Course</option>';
+          filter.innerHTML = '<option value="">All Applied Courses</option>';
+
+          res.forEach(c => {
+            select.innerHTML += `<option value="${c.id}">${c.course_name} (${c.course_code || 'CODE'})</option>`;
+            filter.innerHTML += `<option value="${c.id}">${c.course_name}</option>`;
+          });
+        }
+      } catch (e) {
+        console.error('Failed to load courses', e);
+      }
+    }
+
+    async function loadStudents() {
+      const tbody = document.getElementById('studentsTbody');
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted" style="padding:32px;">Loading student records...</td></tr>';
+      try {
+        const data = await apiCall('/api/admin/students');
+        if (Array.isArray(data)) {
+          allStudents = data;
+          updateStats(data);
+          renderStudentsTable(data);
+        } else {
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger" style="padding:32px;">Failed to load records.</td></tr>';
+        }
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-danger" style="padding:32px;">Error: ${err.message}</td></tr>`;
+      }
+    }
+
+    function updateStats(list) {
+      document.getElementById('statTotalStudents').textContent = list.length;
+      document.getElementById('statEnrolled').textContent = list.filter(s => s.degree_status === 'enrolled' || s.degree_status === 'in_progress').length;
+      document.getElementById('statCompleted').textContent = list.filter(s => s.degree_status === 'completed' || s.degree_status === 'degree_awarded').length;
+      document.getElementById('statProjects').textContent = list.filter(s => s.projects && s.projects.trim().length > 0).length;
+    }
+
+    function renderStudentsTable(list) {
+      const tbody = document.getElementById('studentsTbody');
+      if (list.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted" style="padding:32px;">No student records found matching filters.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map((s, idx) => {
+        const statusClass = 'status-' + (s.degree_status || 'enrolled');
+        const statusText = (s.degree_status || 'enrolled').replace('_', ' ');
+        const appliedCourse = s.applied_course_name || s.course_name || 'Not Assigned';
+        const appliedDate = s.applied_date ? new Date(s.applied_date).toLocaleDateString() : (s.admission_date ? new Date(s.admission_date).toLocaleDateString() : 'N/A');
+        const hasProjects = s.projects && s.projects.trim().length > 0;
+        const hasPlan = s.study_plan && s.study_plan.trim().length > 0;
+
+        return `
+          <tr>
+            <td>${idx + 1}</td>
+            <td>
+              <div style="font-weight:600; font-size:0.95rem;">${escapeHtml(s.full_name)}</div>
+              <div style="font-size:0.8rem; color:var(--text-muted);">S/O: ${escapeHtml(s.father_name || 'N/A')}</div>
+              <div style="font-size:0.75rem; color:var(--primary); font-weight:600;">ID: ${escapeHtml(s.student_id || ('# ' + s.id))}</div>
+            </td>
+            <td>
+              <div style="font-size:0.85rem; font-weight:600;">🪪 ${escapeHtml(s.cnic || 'CNIC: N/A')}</div>
+              <div style="font-size:0.8rem; color:var(--text-muted);">📞 ${escapeHtml(s.phone || 'N/A')}</div>
+              ${s.email ? `<div style="font-size:0.78rem; color:var(--text-muted);">✉️ ${escapeHtml(s.email)}</div>` : ''}
+              <div style="font-size:0.75rem; color:var(--text-muted);">📍 ${escapeHtml(s.district || '')} ${escapeHtml(s.address || '')}</div>
+            </td>
+            <td>
+              <div style="font-weight:600; color:var(--text-color);">${escapeHtml(appliedCourse)}</div>
+              <div style="font-size:0.8rem; color:var(--text-muted);">Applied: ${appliedDate}</div>
+              ${s.completion_date ? `<div style="font-size:0.75rem; color:#22c55e;">Completed: ${new Date(s.completion_date).toLocaleDateString()}</div>` : ''}
+            </td>
+            <td>
+              <span class="student-badge-status ${statusClass}">${statusText}</span>
+            </td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:4px;">
+                <span style="font-size:0.78rem;">
+                  ${hasProjects ? '🚀 <b style="color:var(--primary);">Projects documented</b>' : '<span style="color:var(--text-muted);">No projects yet</span>'}
+                </span>
+                <span style="font-size:0.78rem;">
+                  ${hasPlan ? '📋 <span style="color:var(--text-color);">Study plan set</span>' : '<span style="color:var(--text-muted);">No plan set</span>'}
+                </span>
+              </div>
+            </td>
+            <td>
+              <div class="btn-group" style="gap:4px;">
+                <button class="btn btn-outline btn-sm" onclick="viewProfile(${s.id})" title="View Full Academic Profile">👁️ Details</button>
+                <button class="btn btn-outline btn-sm" onclick="editStudent(${s.id})" title="Edit Details">✏️</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteStudent(${s.id}, '${escapeHtml(s.full_name)}')" title="Delete to Recycle Bin">🗑️</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterStudents() {
+      const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+      const courseId = document.getElementById('courseFilter').value;
+      const status = document.getElementById('statusFilter').value;
+
+      const filtered = allStudents.filter(s => {
+        const matchesQuery = !q ||
+          (s.full_name && s.full_name.toLowerCase().includes(q)) ||
+          (s.father_name && s.father_name.toLowerCase().includes(q)) ||
+          (s.cnic && s.cnic.toLowerCase().includes(q)) ||
+          (s.phone && s.phone.toLowerCase().includes(q)) ||
+          (s.email && s.email.toLowerCase().includes(q)) ||
+          (s.student_id && s.student_id.toLowerCase().includes(q));
+
+        const matchesCourse = !courseId || String(s.applied_course_id) === String(courseId);
+        const matchesStatus = !status || s.degree_status === status;
+
+        return matchesQuery && matchesCourse && matchesStatus;
+      });
+
+      renderStudentsTable(filtered);
+    }
+
+    async function viewProfile(id) {
+      try {
+        const s = await apiCall('/api/admin/students/' + id);
+        if (!s) return;
+
+        const initials = (s.full_name || 'U').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+        const appliedCourse = s.applied_course_name || s.course_name || 'Not Assigned';
+        const statusText = (s.degree_status || 'enrolled').replace('_', ' ').toUpperCase();
+
+        const modalBody = document.getElementById('profileModalBody');
+        modalBody.innerHTML = `
+          <div class="profile-card-header">
+            <div class="profile-avatar-large">${initials}</div>
+            <div style="flex:1;">
+              <h2 style="margin:0 0 4px; font-size:1.4rem;">${escapeHtml(s.full_name)}</h2>
+              <div style="color:var(--text-muted); font-size:0.9rem;">Father Name: <b>${escapeHtml(s.father_name || 'N/A')}</b></div>
+              <div style="display:flex; gap:10px; margin-top:8px; align-items:center;">
+                <span class="student-badge-status status-${s.degree_status || 'enrolled'}">${statusText}</span>
+                <span style="font-size:0.85rem; color:var(--primary); font-weight:600;">Student ID: ${escapeHtml(s.student_id || ('# ' + s.id))}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-section-title">👤 Contact & Identity Information</div>
+          <div class="profile-info-grid">
+            <div class="info-box">
+              <div class="info-box-label">CNIC Number</div>
+              <div class="info-box-value">${escapeHtml(s.cnic || 'N/A')}</div>
+            </div>
+            <div class="info-box">
+              <div class="info-box-label">Phone Number</div>
+              <div class="info-box-value">${escapeHtml(s.phone || 'N/A')}</div>
+            </div>
+            <div class="info-box">
+              <div class="info-box-label">Email Address</div>
+              <div class="info-box-value">${escapeHtml(s.email || 'N/A')}</div>
+            </div>
+            <div class="info-box">
+              <div class="info-box-label">Gender / DOB</div>
+              <div class="info-box-value">${escapeHtml(s.gender || 'N/A')}, ${s.date_of_birth ? new Date(s.date_of_birth).toLocaleDateString() : 'N/A'}</div>
+            </div>
+            <div class="info-box" style="grid-column: span 2;">
+              <div class="info-box-label">Full Address & District</div>
+              <div class="info-box-value">${escapeHtml(s.address || 'N/A')}, District: ${escapeHtml(s.district || 'Malakand')}</div>
+            </div>
+          </div>
+
+          <div class="profile-section-title">🎓 Academic Course & Degree Status</div>
+          <div class="profile-info-grid">
+            <div class="info-box">
+              <div class="info-box-label">Applied Trade / Course</div>
+              <div class="info-box-value">${escapeHtml(appliedCourse)} ${s.applied_course_code ? '(' + s.applied_course_code + ')' : ''}</div>
+            </div>
+            <div class="info-box">
+              <div class="info-box-label">Application Date (Time Applied)</div>
+              <div class="info-box-value">${s.applied_date ? new Date(s.applied_date).toLocaleDateString() : (s.admission_date ? new Date(s.admission_date).toLocaleDateString() : 'N/A')}</div>
+            </div>
+            <div class="info-box">
+              <div class="info-box-label">Degree Status</div>
+              <div class="info-box-value">${statusText}</div>
+            </div>
+            <div class="info-box">
+              <div class="info-box-label">Degree Award / Completion Date</div>
+              <div class="info-box-value">${s.completion_date ? new Date(s.completion_date).toLocaleDateString() : 'Pending Completion'}</div>
+            </div>
+          </div>
+
+          <div class="profile-section-title">📋 Study Plan & Schedule</div>
+          <div class="plan-box">
+            ${s.study_plan ? escapeHtml(s.study_plan).replace(/\\n/g, '<br>') : '<span style="color:var(--text-muted);">No study plan registered for this student yet.</span>'}
+          </div>
+
+          <div class="profile-section-title">🚀 Student Projects & Practical Portfolio</div>
+          <div class="project-box">
+            ${s.projects ? escapeHtml(s.projects).replace(/\\n/g, '<br>') : '<span style="color:var(--text-muted);">No projects recorded for this student yet.</span>'}
+          </div>
+
+          ${s.attendance ? `
+            <div class="profile-section-title">📊 Attendance Summary</div>
+            <div class="profile-info-grid">
+              <div class="info-box">
+                <div class="info-box-label">Total Days Marked</div>
+                <div class="info-box-value">${s.attendance.totalDays}</div>
+              </div>
+              <div class="info-box">
+                <div class="info-box-label">Present Days</div>
+                <div class="info-box-value" style="color:#22c55e;">${s.attendance.presentDays}</div>
+              </div>
+              <div class="info-box">
+                <div class="info-box-label">Absent / Leave Days</div>
+                <div class="info-box-value" style="color:#ef4444;">${s.attendance.absentDays} / ${s.attendance.leaveDays}</div>
+              </div>
+            </div>
+          ` : ''}
+        `;
+
+        document.getElementById('profileModal').classList.add('active');
+      } catch (err) {
+        alert('Could not load student profile: ' + err.message);
+      }
+    }
+
+    function openStudentModal(isEdit = false) {
+      const modal = document.getElementById('editStudentModal');
+      document.getElementById('formModalTitle').textContent = isEdit ? 'Edit Student Academic Details' : 'Register New Student';
+      document.getElementById('saveStudentBtn').textContent = isEdit ? 'Update Student Details' : 'Register Student';
+      modal.classList.add('active');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('active');
+    }
+
+    function editStudent(id) {
+      const s = allStudents.find(item => item.id === id);
+      if (!s) return;
+
+      document.getElementById('studentDbId').value = s.id;
+      document.getElementById('fFullName').value = s.full_name || '';
+      document.getElementById('fFatherName').value = s.father_name || '';
+      document.getElementById('fCnic').value = s.cnic || '';
+      document.getElementById('fStudentId').value = s.student_id || '';
+      document.getElementById('fPhone').value = s.phone || '';
+      document.getElementById('fEmail').value = s.email || '';
+      document.getElementById('fAddress').value = s.address || '';
+      document.getElementById('fDistrict').value = s.district || 'Malakand';
+      document.getElementById('fDob').value = s.date_of_birth ? s.date_of_birth.split('T')[0] : '';
+      document.getElementById('fGender').value = s.gender || 'male';
+
+      document.getElementById('fAppliedCourse').value = s.applied_course_id || '';
+      document.getElementById('fAppliedDate').value = s.applied_date ? s.applied_date.split('T')[0] : (s.admission_date ? s.admission_date.split('T')[0] : '');
+      document.getElementById('fDegreeStatus').value = s.degree_status || 'enrolled';
+      document.getElementById('fCompletionDate').value = s.completion_date ? s.completion_date.split('T')[0] : '';
+      document.getElementById('fStudyPlan').value = s.study_plan || '';
+      document.getElementById('fProjects').value = s.projects || '';
+
+      openStudentModal(true);
+    }
+
+    async function saveStudentDetails(e) {
+      e.preventDefault();
+      const id = document.getElementById('studentDbId').value;
+      const payload = {
+        full_name: document.getElementById('fFullName').value.trim(),
+        father_name: document.getElementById('fFatherName').value.trim(),
+        cnic: document.getElementById('fCnic').value.trim(),
+        student_id: document.getElementById('fStudentId').value.trim() || null,
+        phone: document.getElementById('fPhone').value.trim(),
+        email: document.getElementById('fEmail').value.trim() || null,
+        address: document.getElementById('fAddress').value.trim() || null,
+        district: document.getElementById('fDistrict').value.trim() || null,
+        date_of_birth: document.getElementById('fDob').value || null,
+        gender: document.getElementById('fGender').value,
+        applied_course_id: document.getElementById('fAppliedCourse').value ? parseInt(document.getElementById('fAppliedCourse').value) : null,
+        applied_date: document.getElementById('fAppliedDate').value || null,
+        admission_date: document.getElementById('fAppliedDate').value || null,
+        degree_status: document.getElementById('fDegreeStatus').value,
+        completion_date: document.getElementById('fCompletionDate').value || null,
+        study_plan: document.getElementById('fStudyPlan').value.trim() || null,
+        projects: document.getElementById('fProjects').value.trim() || null
+      };
+
+      const btn = document.getElementById('saveStudentBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        let res;
+        if (id) {
+          res = await apiCall('/api/admin/students/' + id, 'PUT', payload);
+        } else {
+          res = await apiCall('/api/admin/students', 'POST', payload);
+        }
+
+        if (res && (res.success || res.id)) {
+          closeModal('editStudentModal');
+          document.getElementById('studentDetailForm').reset();
+          document.getElementById('studentDbId').value = '';
+          await loadStudents();
+        } else {
+          alert(res && res.message ? res.message : 'Failed to save student details');
+        }
+      } catch (err) {
+        alert('Save error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = id ? 'Update Student Details' : 'Register Student';
+      }
+    }
+
+    async function deleteStudent(id, name) {
+      if (!confirm(`Are you sure you want to delete student "${name}"?\n\nThe record will be moved safely to the Recycle Bin and can be restored at any time.`)) {
+        return;
+      }
+      try {
+        const res = await apiCall('/api/admin/students/' + id, 'DELETE');
+        if (res && res.success) {
+          await loadStudents();
+        } else {
+          alert('Delete failed');
+        }
+      } catch (e) {
+        alert('Delete error: ' + e.message);
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/[&<>"']/g, m => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+      })[m]);
+    }
+  </script>
+</body>
+</html>

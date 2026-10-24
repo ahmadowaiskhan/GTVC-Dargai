@@ -3,6 +3,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('gtvc_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
   <title>Manage Users — GTVC Dargai</title>
   <link rel="stylesheet" href="/assets/style.css">
   <script src="/app.js" defer></script>
@@ -77,8 +86,8 @@
             <select id="userRole" class="form-select" required>
               <option value="">Select Role</option>
               <option value="admin">Admin</option>
-              <option value="principal">Principal</option>
               <option value="teacher">Teacher</option>
+              <option value="accounting">Accounting</option>
             </select>
           </div>
         </div>

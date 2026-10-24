@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('gtvc_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+  <title>Time Line — GTVC Dargai</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/app.js" defer></script>
+  <style>
+    /* Security Gate Modal / Backdrop */
+    .timeline-gate-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 15, 29, 0.90);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      z-index: 99999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .timeline-gate-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+      border-radius: var(--border-radius-lg, 14px);
+      width: 100%;
+      max-width: 440px;
+      padding: 32px 28px;
+      text-align: center;
+      animation: gatePop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes gatePop {
+      0% { opacity: 0; transform: scale(0.92) translateY(12px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .gate-shield-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(59, 130, 246, 0.12);
+      border: 2px solid rgba(59, 130, 246, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      color: var(--color-primary, #3b82f6);
+    }
+    .gate-shield-icon svg {
+      width: 32px;
+      height: 32px;
+    }
+    .timeline-gate-card h2 {
+      font-size: 1.35rem;
+      margin-bottom: 8px;
+    }
+    .timeline-gate-card p {
+      color: var(--text-secondary);
+      font-size: 0.88rem;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+    .gate-form-group {
+      text-align: left;
+      margin-bottom: 16px;
+    }
+    .gate-form-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* Timeline presentation */
+    .timeline-stat-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .timeline-stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .timeline-stat-val {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.1;
+    }
+    .timeline-stat-lbl {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 4px;
+    }
+
+    /* Timeline Table Pill Badges */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .status-pill.active {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .status-pill.active .status-dot {
+      background: #10b981;
+      box-shadow: 0 0 6px #10b981;
+      animation: pulseDot 1.5s infinite;
+    }
+    .status-pill.logged_out {
+      background: rgba(107, 114, 128, 0.15);
+      color: #9ca3af;
+      border: 1px solid rgba(107, 114, 128, 0.25);
+    }
+    .status-pill.logged_out .status-dot {
+      background: #9ca3af;
+    }
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* Duration tag */
+    .duration-tag {
+      display: inline-block;
+      font-family: monospace;
+      font-size: 0.85rem;
+      padding: 2px 8px;
+      border-radius: 4px;
+      background: var(--bg-hover);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== SECURITY LOGIN GATE ==================== -->
+  <!-- Every time the user opens this page, it requires username & password to view -->
+  <div class="timeline-gate-backdrop" id="timelineGate">
+    <div class="timeline-gate-card">
+      <div class="gate-shield-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+      </div>
+      <h2>Protected Time Line</h2>
+      <p>Enter your administrator credentials to unlock and view user login/logout activity logs.</p>
+      
+      <div id="gateAlert" class="alert alert-danger hidden" style="margin-bottom:16px; font-size:0.85rem; padding:10px 14px;"></div>
+
+      <form id="gateForm" onsubmit="handleGateUnlock(event)">
+        <div class="gate-form-group">
+          <label for="gateUser">Username</label>
+          <input type="text" id="gateUser" class="form-control" placeholder="Enter username (e.g. admin)" required autocomplete="username" autofocus>
+        </div>
+        <div class="gate-form-group">
+          <label for="gatePass">Password</label>
+          <input type="password" id="gatePass" class="form-control" placeholder="Enter password" required autocomplete="current-password">
+        </div>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+          <a href="/pages/admin/dashboard.html" class="btn btn-outline" style="flex:1; justify-content:center;">Cancel</a>
+          <button type="submit" id="gateBtn" class="btn btn-primary" style="flex:2; justify-content:center;">
+            Unlock Time Line
+          </button>
+        </div>
+      </form>
+      <div style="margin-top:16px; font-size:0.75rem; color:var(--text-muted);">
+        🔒 Security Gate: Credentials are re-verified every time you open this page
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MAIN PAGE CONTENT ==================== -->
+  <div class="app-layout">
+    <aside class="app-sidebar"></aside>
+    <div class="app-main">
+      <header class="app-navbar"></header>
+      <main class="app-content">
+
+        <!-- Page Header -->
+        <div class="page-header flex-between" style="flex-wrap:wrap; gap:12px;">
+          <div>
+            <h1>User Time Line (Login & Usage Log)</h1>
+            <p>Monitors exact times users login, stay active, and log off/close the tool with user details.</p>
+          </div>
+          <div class="flex gap-1" style="align-items:center;">
+            <button class="btn btn-outline btn-sm" onclick="lockGate()" title="Lock this page immediately">
+              🔒 Lock Page
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="loadTimeline()">
+              🔄 Refresh
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="openManualLogModal()">
+              ➕ Add Manual Time Log
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Summary Cards -->
+        <div class="timeline-stat-row">
+          <div class="timeline-stat-card">
+            <div>
+              <div class="timeline-stat-val" id="statTotalSessions">0</div>
+              <div class="timeline-stat-lbl">Total Recorded Sessions</div>
+            </div>
+            <div style="font-size:2rem; opacity:0.6;">⏱️</div>
+          </div>
+          <div class="timeline-stat-card">
+            <div>
+              <div class="timeline-stat-val" style="color:#10b981;" id="statActiveSessions">0</div>
+              <div class="timeline-stat-lbl">Currently Active Now</div>
+            </div>
+            <div style="font-size:2rem; opacity:0.6;">🟢</div>
+          </div>
+          <div class="timeline-stat-card">
+            <div>
+              <div class="timeline-stat-val" id="statTodayLogins">0</div>
+              <div class="timeline-stat-lbl">Today's Logins</div>
+            </div>
+            <div style="font-size:2rem; opacity:0.6;">📅</div>
+          </div>
+          <div class="timeline-stat-card">
+            <div>
+              <div class="timeline-stat-val" style="color:var(--color-primary);" id="statUniqueUsers">0</div>
+              <div class="timeline-stat-lbl">Unique Users Tracked</div>
+            </div>
+            <div style="font-size:2rem; opacity:0.6;">👤</div>
+          </div>
+        </div>
+
+        <!-- Filter Toolbar -->
+        <div class="toolbar" style="display:flex; flex-wrap:wrap; gap:12px; align-items:center;">
+          <div class="search-box" style="flex:1; min-width:220px;">
+            <input type="text" id="searchInput" placeholder="Search by username, full name, or IP..." oninput="filterTimeline()">
+          </div>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <select id="scopeFilter" class="form-control" style="width:170px; padding:6px 10px;" onchange="filterTimeline()">
+              <option value="users_only">Standard Users Only</option>
+              <option value="all">All Accounts (Inc. Admin & Teachers)</option>
+              <option value="admin_only">Admin Logins Only</option>
+              <option value="teacher_only">Teacher Logins Only</option>
+            </select>
+            <select id="statusFilter" class="form-control" style="width:140px; padding:6px 10px;" onchange="filterTimeline()">
+              <option value="">All Statuses</option>
+              <option value="active">Active Now</option>
+              <option value="logged_out">Logged Off</option>
+            </select>
+            <input type="date" id="dateFilter" class="form-control" style="width:150px; padding:6px 10px;" onchange="filterTimeline()">
+            <button class="btn btn-outline btn-sm" onclick="clearFilters()">Clear</button>
+            <span class="badge badge-gray" id="timelineCount">0 sessions</span>
+          </div>
+        </div>
+
+        <!-- Timeline Records Table -->
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:45px;">#</th>
+                  <th>User & Account</th>
+                  <th>Role</th>
+                  <th>Login Time</th>
+                  <th>Logout / Off Time</th>
+                  <th>Usage Duration</th>
+                  <th>Status</th>
+                  <th>IP / Device</th>
+                  <th style="text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="timelineTableBody">
+                <tr><td colspan="9" class="text-center text-muted" style="padding:32px;">Please authenticate to load time line records...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+      <footer class="app-footer"></footer>
+    </div>
+  </div>
+
+  <!-- Manual Log Entry Modal -->
+  <div class="modal-overlay" id="manualModal">
+    <div class="modal" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3>Record Manual User Time Line</h3>
+        <button class="modal-close" onclick="closeManualModal()">&times;</button>
+      </div>
+      <form id="manualForm" onsubmit="handleManualSubmit(event)">
+        <div class="modal-body" style="padding: 20px;">
+          <div class="form-group" style="margin-bottom:14px;">
+            <label class="form-label">Username *</label>
+            <input type="text" id="man_username" class="form-control" required placeholder="e.g. owais, operator1">
+          </div>
+          <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+            <div>
+              <label class="form-label">Full Name</label>
+              <input type="text" id="man_fullname" class="form-control" placeholder="User Full Name">
+            </div>
+            <div>
+              <label class="form-label">Role</label>
+              <select id="man_role" class="form-control">
+                <option value="user">User</option>
+                <option value="admin">Admin</option>
+                <option value="teacher">Teacher</option>
+                <option value="accounting">Accounting</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+            <div>
+              <label class="form-label">Login Time *</label>
+              <input type="datetime-local" id="man_login_time" class="form-control" required>
+            </div>
+            <div>
+              <label class="form-label">Logout / Off Time</label>
+              <input type="datetime-local" id="man_logout_time" class="form-control">
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notes / Purpose</label>
+            <input type="text" id="man_notes" class="form-control" placeholder="e.g. Lab session, student registration">
+          </div>
+        </div>
+        <div class="modal-footer" style="padding: 16px 20px; border-top: 1px solid var(--border-color); display:flex; justify-content:flex-end; gap:8px;">
+          <button type="button" class="btn btn-outline" onclick="closeManualModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Time Log</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    let allTimelineLogs = [];
+    let isGateUnlocked = false;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!requireAuth(['admin'])) return;
+      renderLayout('admin', 'Time Line', 'time-line.html');
+
+      // The security gate modal is always displayed when this page is opened
+      const gate = document.getElementById('timelineGate');
+      if (gate) gate.style.display = 'flex';
+      
+      // Focus username input
+      setTimeout(() => {
+        const u = document.getElementById('gateUser');
+        if (u) u.focus();
+      }, 100);
+    });
+
+    // Gate Unlock Handler
+    async function handleGateUnlock(e) {
+      e.preventDefault();
+      const userVal = document.getElementById('gateUser').value.trim();
+      const passVal = document.getElementById('gatePass').value;
+      const alertDiv = document.getElementById('gateAlert');
+      const btn = document.getElementById('gateBtn');
+
+      if (!userVal || !passVal) {
+        alertDiv.textContent = 'Please enter both username and password';
+        alertDiv.classList.remove('hidden');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Verifying...';
+      if (alertDiv) alertDiv.classList.add('hidden');
+
+      try {
+        const res = await fetch('/api/auth/verify-gate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: userVal, password: passVal })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+          isGateUnlocked = true;
+          const gate = document.getElementById('timelineGate');
+          if (gate) gate.style.display = 'none';
+
+          // Reset gate fields for security
+          document.getElementById('gatePass').value = '';
+
+          // Load data
+          loadTimeline();
+        } else {
+          alertDiv.textContent = data.message || 'Invalid username or password.';
+          alertDiv.classList.remove('hidden');
+        }
+      } catch (err) {
+        alertDiv.textContent = 'Network or server error verifying credentials.';
+        alertDiv.classList.remove('hidden');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Unlock Time Line';
+    }
+
+    function lockGate() {
+      isGateUnlocked = false;
+      document.getElementById('gatePass').value = '';
+      const gate = document.getElementById('timelineGate');
+      if (gate) gate.style.display = 'flex';
+      document.getElementById('gatePass').focus();
+    }
+
+    // Load timeline data from server
+    async function loadTimeline() {
+      const tbody = document.getElementById('timelineTableBody');
+      tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted" style="padding:32px;">Loading time line activity records...</td></tr>';
+
+      try {
+        const data = await apiCall('/api/admin/time-line');
+        allTimelineLogs = data || [];
+        updateStats(allTimelineLogs);
+        filterTimeline();
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-danger" style="padding:32px;">Error loading time line data: ' + e.message + '</td></tr>';
+      }
+    }
+
+    function updateStats(items) {
+      document.getElementById('statTotalSessions').textContent = items.length;
+      const activeCount = items.filter(x => x.status === 'active' || !x.logout_time).length;
+      document.getElementById('statActiveSessions').textContent = activeCount;
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      const todayCount = items.filter(x => x.login_time && x.login_time.startsWith(todayStr)).length;
+      document.getElementById('statTodayLogins').textContent = todayCount;
+
+      const uniqueUsers = new Set(items.map(x => x.username)).size;
+      document.getElementById('statUniqueUsers').textContent = uniqueUsers;
+    }
+
+    function formatDateTime(str) {
+      if (!str) return '—';
+      const d = new Date(str);
+      if (isNaN(d.getTime())) return str;
+      return d.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      }) + ' ' + d.toLocaleTimeString(undefined, {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    }
+
+    function computeDuration(loginStr, logoutStr, durationMin) {
+      if (durationMin !== null && durationMin !== undefined && durationMin >= 0) {
+        const hrs = Math.floor(durationMin / 60);
+        const mins = durationMin % 60;
+        if (hrs > 0) return `${hrs}h ${mins}m`;
+        return `${mins} min`;
+      }
+      if (loginStr && logoutStr) {
+        const diffMs = new Date(logoutStr) - new Date(loginStr);
+        if (diffMs > 0) {
+          const totalMin = Math.round(diffMs / 60000);
+          const hrs = Math.floor(totalMin / 60);
+          const mins = totalMin % 60;
+          if (hrs > 0) return `${hrs}h ${mins}m`;
+          return `${mins} min`;
+        }
+      }
+      if (loginStr && !logoutStr) {
+        const diffMs = Date.now() - new Date(loginStr).getTime();
+        const mins = Math.max(0, Math.floor(diffMs / 60000));
+        const hrs = Math.floor(mins / 60);
+        if (hrs > 0) return `${hrs}h ${mins % 60}m (online)`;
+        return `${mins} min (online)`;
+      }
+      return '—';
+    }
+
+    function renderTimeline(items) {
+      const tbody = document.getElementById('timelineTableBody');
+      document.getElementById('timelineCount').textContent = `${items.length} session${items.length === 1 ? '' : 's'}`;
+
+      if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted" style="padding:32px;">No time line records found for selected filter.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = items.map((item, idx) => {
+        const isActive = item.status === 'active' || (!item.logout_time && !item.duration_minutes);
+        const statusHtml = isActive 
+          ? `<span class="status-pill active"><span class="status-dot"></span> Active Now</span>`
+          : `<span class="status-pill logged_out"><span class="status-dot"></span> Logged Off</span>`;
+
+        let roleBadge = 'badge-gray';
+        if (item.role === 'admin') roleBadge = 'badge-red';
+        else if (item.role === 'teacher') roleBadge = 'badge-purple';
+        else if (item.role === 'accounting') roleBadge = 'badge-blue';
+
+        const durationStr = computeDuration(item.login_time, item.logout_time, item.duration_minutes);
+
+        return `
+          <tr>
+            <td>${idx + 1}</td>
+            <td>
+              <div style="font-weight:600; color:var(--text-primary);">${item.full_name || item.username}</div>
+              <div style="font-size:0.75rem; color:var(--text-muted); font-family:monospace;">@${item.username}</div>
+            </td>
+            <td><span class="badge ${roleBadge}">${(item.role || 'user').toUpperCase()}</span></td>
+            <td>
+              <div style="font-weight:500;">${formatDateTime(item.login_time)}</div>
+            </td>
+            <td>
+              ${item.logout_time ? `<div style="font-weight:500;">${formatDateTime(item.logout_time)}</div>` : '<span style="color:#10b981; font-weight:600; font-size:0.85rem;">Currently Active (In Use)</span>'}
+            </td>
+            <td>
+              <span class="duration-tag">${durationStr}</span>
+            </td>
+            <td>${statusHtml}</td>
+            <td>
+              <div style="font-size:0.8rem; font-family:monospace;">${item.ip_address || '127.0.0.1'}</div>
+              <div style="font-size:0.7rem; color:var(--text-muted); max-width:140px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${item.user_agent || ''}">
+                ${item.user_agent || 'Browser'}
+              </div>
+            </td>
+            <td style="text-align:right;">
+              <button class="btn btn-outline btn-sm" style="color:var(--color-danger); padding:4px 8px;" onclick="deleteLog(${item.id})" title="Delete log">
+                🗑️
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterTimeline() {
+      const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+      const scope = document.getElementById('scopeFilter').value;
+      const status = document.getElementById('statusFilter').value;
+      const date = document.getElementById('dateFilter').value;
+
+      const filtered = allTimelineLogs.filter(item => {
+        const matchesQuery = !q ||
+          (item.username && item.username.toLowerCase().includes(q)) ||
+          (item.full_name && item.full_name.toLowerCase().includes(q)) ||
+          (item.ip_address && item.ip_address.toLowerCase().includes(q));
+
+        const isActive = item.status === 'active' || (!item.logout_time && !item.duration_minutes);
+        let matchesStatus = true;
+        if (status === 'active') matchesStatus = isActive;
+        else if (status === 'logged_out') matchesStatus = !isActive;
+
+        let matchesScope = true;
+        if (scope === 'users_only') {
+          matchesScope = item.role !== 'admin' && item.role !== 'teacher';
+        } else if (scope === 'admin_only') {
+          matchesScope = item.role === 'admin';
+        } else if (scope === 'teacher_only') {
+          matchesScope = item.role === 'teacher';
+        }
+
+        let matchesDate = true;
+        if (date && item.login_time) {
+          matchesDate = item.login_time.startsWith(date);
+        }
+
+        return matchesQuery && matchesStatus && matchesScope && matchesDate;
+      });
+
+      renderTimeline(filtered);
+    }
+
+    function clearFilters() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('scopeFilter').value = 'users_only';
+      document.getElementById('statusFilter').value = '';
+      document.getElementById('dateFilter').value = '';
+      filterTimeline();
+    }
+
+    async function deleteLog(id) {
+      if (!confirm('Are you sure you want to delete this time line log record?')) return;
+      try {
+        const res = await apiCall(`/api/admin/time-line/${id}`, 'DELETE');
+        if (res && res.success) {
+          loadTimeline();
+        } else {
+          alert('Delete failed: ' + (res?.message || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Delete error: ' + e.message);
+      }
+    }
+
+    // Manual Log Modal
+    function openManualLogModal() {
+      document.getElementById('manualForm').reset();
+      const now = new Date();
+      // Set default login time as now formatted for datetime-local
+      const isoNow = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      document.getElementById('man_login_time').value = isoNow;
+      document.getElementById('manualModal').classList.add('active');
+    }
+
+    function closeManualModal() {
+      document.getElementById('manualModal').classList.remove('active');
+    }
+
+    async function handleManualSubmit(e) {
+      e.preventDefault();
+      const username = document.getElementById('man_username').value.trim();
+      const full_name = document.getElementById('man_fullname').value.trim();
+      const role = document.getElementById('man_role').value;
+      const login_time = document.getElementById('man_login_time').value;
+      const logout_time = document.getElementById('man_logout_time').value || null;
+      const notes = document.getElementById('man_notes').value.trim();
+
+      if (!username || !login_time) {
+        alert('Username and login time are required');
+        return;
+      }
+
+      try {
+        const res = await apiCall('/api/admin/time-line', 'POST', {
+          username,
+          full_name,
+          role,
+          login_time,
+          logout_time,
+          notes
+        });
+        if (res && res.success) {
+          closeManualModal();
+          loadTimeline();
+        } else {
+          alert('Error saving record: ' + (res?.message || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+  </script>
+</body>
+</html>

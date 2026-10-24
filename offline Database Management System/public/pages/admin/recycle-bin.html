@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('gtvc_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+  <title>Recycle Bin — GTVC Dargai</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="app-sidebar"></aside>
+    <div class="app-main">
+      <header class="app-navbar"></header>
+      <main class="app-content">
+
+        <div class="page-header flex-between">
+          <div>
+            <h1>Recycle Bin</h1>
+            <p>Safely view, restore, or permanently remove deleted database records (Admin only).</p>
+          </div>
+          <div class="flex gap-1">
+            <button class="btn btn-outline" onclick="loadRecycleBin()">Refresh</button>
+            <button class="btn btn-danger" onclick="emptyRecycleBin()" id="emptyBtn">Empty Recycle Bin</button>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search deleted items..." oninput="filterBin()">
+          </div>
+          <div class="flex gap-1" style="align-items:center;">
+            <label style="font-size:0.85rem; color:var(--text-secondary);">Table:</label>
+            <select id="tableFilter" class="form-control" style="width:160px; padding:6px 10px;" onchange="filterBin()">
+              <option value="">All Tables</option>
+              <option value="users">Users</option>
+              <option value="teachers">Teachers</option>
+              <option value="students">Students</option>
+              <option value="courses">Courses</option>
+            </select>
+            <span class="badge badge-gray" id="binCount">0 items</span>
+          </div>
+        </div>
+
+        <!-- Recycle Bin Table -->
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Source Table</th>
+                  <th>Record Details</th>
+                  <th>Deleted By</th>
+                  <th>Deleted At</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="binTableBody">
+                <tr><td colspan="6" class="text-center text-muted" style="padding:32px;">Loading deleted records...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+      <footer class="app-footer"></footer>
+    </div>
+  </div>
+
+  <!-- Record Details Modal -->
+  <div class="modal-overlay" id="detailsModal">
+    <div class="modal" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 id="detailsModalTitle">Deleted Record Details</h3>
+        <button class="modal-close" onclick="closeDetailsModal()">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px;">
+        <div id="detailsContent" style="max-height: 400px; overflow-y: auto;"></div>
+      </div>
+      <div class="modal-footer" style="padding: 16px 20px; border-top: 1px solid var(--border-color); display:flex; justify-content:flex-end;">
+        <button class="btn btn-outline" onclick="closeDetailsModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allBinItems = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!requireAuth(['admin'])) return;
+      renderLayout('admin', 'Recycle Bin', 'recycle-bin.html');
+      loadRecycleBin();
+    });
+
+    async function loadRecycleBin() {
+      try {
+        const data = await apiCall('/api/admin/recycle-bin');
+        allBinItems = data || [];
+        renderBin(allBinItems);
+      } catch (e) {
+        document.getElementById('binTableBody').innerHTML =
+          '<tr><td colspan="6" class="text-center text-muted" style="padding:32px;">Could not load recycle bin. Server may be offline.</td></tr>';
+      }
+    }
+
+    function parseRecord(item) {
+      if (!item.record_data) return {};
+      if (typeof item.record_data === 'object') return item.record_data;
+      try {
+        return JSON.parse(item.record_data);
+      } catch (e) {
+        return {};
+      }
+    }
+
+    function getRecordDisplayName(table, rec) {
+      if (table === 'users') return (rec.full_name || 'User') + (rec.username ? ` (@${rec.username})` : '') + (rec.role ? ` [${rec.role}]` : '');
+      if (table === 'teachers') return (rec.full_name || 'Teacher') + (rec.employee_id ? ` (ID: ${rec.employee_id})` : '');
+      if (table === 'students') return (rec.full_name || 'Student') + (rec.student_id ? ` (Roll: ${rec.student_id})` : '');
+      if (table === 'courses') return (rec.course_name || 'Course') + (rec.course_code ? ` (${rec.course_code})` : '');
+      return rec.full_name || rec.name || rec.title || `ID #${rec.id || 'N/A'}`;
+    }
+
+    function renderBin(items) {
+      const tbody = document.getElementById('binTableBody');
+      document.getElementById('binCount').textContent = `${items.length} item${items.length === 1 ? '' : 's'}`;
+
+      if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:32px;">Recycle bin is empty. No deleted records found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = items.map((item, idx) => {
+        const rec = parseRecord(item);
+        const displayName = getRecordDisplayName(item.original_table, rec);
+        const deletedAt = item.deleted_at ? new Date(item.deleted_at).toLocaleString() : '—';
+        const deletedBy = item.deleted_by_name || 'Admin';
+
+        let tableBadgeClass = 'badge-gray';
+        if (item.original_table === 'users') tableBadgeClass = 'badge-blue';
+        else if (item.original_table === 'teachers') tableBadgeClass = 'badge-purple';
+        else if (item.original_table === 'students') tableBadgeClass = 'badge-green';
+        else if (item.original_table === 'courses') tableBadgeClass = 'badge-yellow';
+
+        return `
+          <tr>
+            <td>${idx + 1}</td>
+            <td><span class="badge ${tableBadgeClass}">${item.original_table.toUpperCase()}</span></td>
+            <td>
+              <strong>${displayName}</strong>
+              <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">Original ID: #${item.original_id}</div>
+            </td>
+            <td>${deletedBy}</td>
+            <td style="font-size:0.85rem; color:var(--text-secondary);">${deletedAt}</td>
+            <td>
+              <div class="btn-group">
+                <button class="btn btn-outline btn-sm" onclick="showDetails(${item.id})">Details</button>
+                <button class="btn btn-primary btn-sm" onclick="restoreRecord(${item.id}, '${item.original_table}')">Restore</button>
+                <button class="btn btn-danger btn-sm" onclick="permanentlyDelete(${item.id})">Delete</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function filterBin() {
+      const q = (document.getElementById('searchInput').value || '').toLowerCase();
+      const table = (document.getElementById('tableFilter').value || '').toLowerCase();
+
+      const filtered = allBinItems.filter(item => {
+        const rec = parseRecord(item);
+        const name = getRecordDisplayName(item.original_table, rec).toLowerCase();
+        const matchesQuery = !q || name.includes(q) || (item.original_table && item.original_table.toLowerCase().includes(q)) || (item.deleted_by_name && item.deleted_by_name.toLowerCase().includes(q));
+        const matchesTable = !table || item.original_table === table;
+        return matchesQuery && matchesTable;
+      });
+
+      renderBin(filtered);
+    }
+
+    function showDetails(id) {
+      const item = allBinItems.find(x => x.id === id);
+      if (!item) return;
+      const rec = parseRecord(item);
+
+      document.getElementById('detailsModalTitle').textContent = `Deleted ${item.original_table.toUpperCase()} #${item.original_id}`;
+
+      let rowsHtml = '';
+      for (const [key, value] of Object.entries(rec)) {
+        rowsHtml += `
+          <tr style="border-bottom:1px solid var(--border-color);">
+            <td style="padding:6px 12px; font-weight:600; color:var(--text-secondary); width:35%;">${key}</td>
+            <td style="padding:6px 12px; word-break:break-word;">${value === null || value === undefined ? '<span class="text-muted">null</span>' : value}</td>
+          </tr>
+        `;
+      }
+
+      document.getElementById('detailsContent').innerHTML = `
+        <table style="width:100%; border-collapse:collapse; font-size:0.85rem;">
+          ${rowsHtml}
+        </table>
+      `;
+
+      document.getElementById('detailsModal').classList.add('active');
+    }
+
+    function closeDetailsModal() {
+      document.getElementById('detailsModal').classList.remove('active');
+    }
+
+    async function restoreRecord(id, table) {
+      if (!confirm(`Are you sure you want to restore this ${table} record back to the database?`)) return;
+      try {
+        const res = await apiCall(`/api/admin/recycle-bin/${id}/restore`, 'POST');
+        if (res && res.success) {
+          alert('Record restored successfully!');
+          loadRecycleBin();
+        } else {
+          alert('Failed to restore: ' + (res?.message || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Restore error: ' + e.message);
+      }
+    }
+
+    async function permanentlyDelete(id) {
+      if (!confirm('Warning: This will PERMANENTLY remove this record from the database. It cannot be recovered. Continue?')) return;
+      try {
+        const res = await apiCall(`/api/admin/recycle-bin/${id}`, 'DELETE');
+        if (res && res.success) {
+          loadRecycleBin();
+        } else {
+          alert('Delete error: ' + (res?.message || 'Unknown error'));
+        }
+      } catch (e) {
+        alert('Delete error: ' + e.message);
+      }
+    }
+
+    async function emptyRecycleBin() {
+      if (allBinItems.length === 0) {
+        alert('Recycle bin is already empty.');
+        return;
+      }
+      if (!confirm('Are you sure you want to permanently delete ALL items in the Recycle Bin? This action is irreversible.')) return;
+      try {
+        const res = await apiCall('/api/admin/recycle-bin', 'DELETE');
+        if (res && res.success) {
+          alert('Recycle bin has been emptied.');
+          loadRecycleBin();
+        } else {
+          alert('Error: ' + (res?.message || 'Failed'));
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      }
+    }
+  </script>
+</body>
+</html>

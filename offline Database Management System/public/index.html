@@ -3,105 +3,119 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="GTVC Dargai - Offline Database Management System Login">
-  <title>Login — GTVC Dargai</title>
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('gtvc_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+  <meta name="description" content="GTVC Dargai - Offline Database Management System Portal">
+  <title>Portal — GTVC Dargai</title>
   <link rel="stylesheet" href="/assets/style.css">
   <script src="/app.js" defer></script>
+  <script src="/assets/login.js" defer></script>
 </head>
 <body>
   <div class="login-page">
-    <div class="login-card">
-      <div class="login-logo">G</div>
+    <div class="login-card login-card-wide">
+      <img src="/assets/logo/GTVC-Logo.png" alt="GTVC Dargai Logo" class="login-logo" style="width:80px; height:80px; border-radius:50%; object-fit:cover;">
       <h1>GTVC Dargai</h1>
       <p class="subtitle">Government Technical & Vocational Centre, Malakand</p>
 
-      <div id="loginError" class="alert alert-danger hidden" style="text-align:left;"></div>
+      <!-- Dynamic Admission Notice Banner -->
+      <div id="admissionNoticeBanner" style="display:none; margin: 14px 0 18px;"></div>
 
-      <form id="loginForm" onsubmit="handleLogin(event)">
-        <div class="form-group">
-          <label class="form-label" for="username">Username</label>
-          <input type="text" id="username" class="form-input" placeholder="Enter your username" required autocomplete="username">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="password">Password</label>
-          <input type="password" id="password" class="form-input" placeholder="Enter your password" required autocomplete="current-password">
-        </div>
-        <button type="submit" class="btn btn-primary" id="loginBtn">Login</button>
-      </form>
+      <!-- Auth Switcher Tabs -->
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab-btn active" id="tabLoginBtn">Sign In</button>
+        <button type="button" class="auth-tab-btn" id="tabSignupBtn">Sign Up</button>
+      </div>
 
-      <div class="login-footer">
-        <p style="margin-bottom: 12px; font-size: 0.9rem;">
-          Don't have an account? <a href="/signup.html" style="font-weight: 600; color: var(--color-primary);">Create Account</a>
+      <!-- Login Section -->
+      <div id="loginSection">
+        <div id="loginError" class="alert alert-danger login-alert hidden"></div>
+
+        <form id="loginForm">
+          <div class="form-group">
+            <label class="form-label" for="username">Username</label>
+            <input type="text" id="username" class="form-input" placeholder="Enter your username" required autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <input type="password" id="password" class="form-input" placeholder="Enter your password" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary" id="loginBtn">Login</button>
+        </form>
+
+        <p class="login-footer-link mt-2">
+          Don't have an account? <a href="#" id="toSignupLink">Create Account</a>
         </p>
-        <button class="theme-toggle" onclick="toggleTheme()" style="margin: 8px auto 0;" title="Toggle theme">Theme</button>
-        <p style="margin-top:8px;">Offline Database Management System</p>
+      </div>
+
+      <!-- Signup Section -->
+      <div id="signupSection" class="hidden">
+        <div id="signupAlert" class="alert login-alert hidden"></div>
+
+        <form id="signupForm">
+          <div class="form-row form-row-2col">
+            <div class="form-group">
+              <label class="form-label" for="signup_fullname">Full Name <span class="required-star">*</span></label>
+              <input type="text" id="signup_fullname" class="form-input" placeholder="e.g. Ahmad Khan" required autocomplete="name">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="signup_username">Username <span class="required-star">*</span></label>
+              <input type="text" id="signup_username" class="form-input" placeholder="e.g. ahmad_k" required autocomplete="username">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="signup_role">Account Role <span class="required-star">*</span></label>
+            <select id="signup_role" class="form-input" required>
+              <option value="admin" selected>Administrator</option>
+              <option value="teacher">Teacher / Instructor</option>
+              <option value="accounting">Accounting / Finance</option>
+            </select>
+          </div>
+
+          <div class="form-row form-row-2col">
+            <div class="form-group">
+              <label class="form-label" for="signup_email">Email Address</label>
+              <input type="email" id="signup_email" class="form-input" placeholder="name@gtvc.edu.pk" autocomplete="email">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="signup_phone">Phone Number</label>
+              <input type="text" id="signup_phone" class="form-input" placeholder="0300-1234567" autocomplete="tel">
+            </div>
+          </div>
+
+          <div class="form-row form-row-2col">
+            <div class="form-group">
+              <label class="form-label" for="signup_password">Password <span class="required-star">*</span></label>
+              <input type="password" id="signup_password" class="form-input" placeholder="Min. 6 characters" required autocomplete="new-password" minlength="6">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="signup_confirm_password">Confirm Password <span class="required-star">*</span></label>
+              <input type="password" id="signup_confirm_password" class="form-input" placeholder="Repeat password" required autocomplete="new-password" minlength="6">
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary signup-btn" id="signupBtn">Create Account</button>
+        </form>
+
+        <p class="login-footer-link mt-2">
+          Already have an account? <a href="#" id="toLoginLink">Log In</a>
+        </p>
+      </div>
+
+      <!-- Footer & Theme Toggle -->
+      <div class="login-footer">
+        <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">Theme</button>
+        <p class="login-footer-system">Offline Database Management System</p>
       </div>
     </div>
   </div>
-
-  <script>
-    // If already logged in, redirect to dashboard
-    (function() {
-      const user = getUser();
-      const token = getToken();
-      if (user && token) {
-        redirectToDashboard(user.role);
-        return;
-      }
-      // Check for success param from signup
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.get('registered') === 'true') {
-        const errDiv = document.getElementById('loginError');
-        errDiv.className = 'alert alert-success';
-        errDiv.textContent = 'Account created successfully! Please log in with your credentials.';
-        errDiv.classList.remove('hidden');
-      }
-    })();
-
-    function redirectToDashboard(role) {
-      const paths = {
-        admin: '/pages/admin/dashboard.html',
-        principal: '/pages/principal/dashboard.html',
-        teacher: '/pages/teacher/dashboard.html',
-        accounting: '/pages/accounting/dashboard.html'
-      };
-      window.location.href = paths[role] || '/index.html';
-    }
-
-    async function handleLogin(e) {
-      e.preventDefault();
-      const btn = document.getElementById('loginBtn');
-      const errorDiv = document.getElementById('loginError');
-      const username = document.getElementById('username').value.trim();
-      const password = document.getElementById('password').value;
-
-      btn.textContent = 'Logging in...';
-      btn.disabled = true;
-      errorDiv.classList.add('hidden');
-
-      try {
-        const res = await fetch('/api/auth/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-        const data = await res.json();
-
-        if (res.ok && data.token) {
-          setAuth(data.token, data.user);
-          redirectToDashboard(data.user.role);
-        } else {
-          errorDiv.textContent = data.message || 'Invalid username or password.';
-          errorDiv.classList.remove('hidden');
-        }
-      } catch (err) {
-        errorDiv.textContent = 'Cannot connect to server. Make sure the server is running.';
-        errorDiv.classList.remove('hidden');
-      }
-
-      btn.textContent = 'Login';
-      btn.disabled = false;
-    }
-  </script>
 </body>
 </html>

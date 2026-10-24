@@ -14,19 +14,75 @@ function getUser() {
   return u ? JSON.parse(u) : null;
 }
 
-function setAuth(token, user) {
+function getSessionId() {
+  return localStorage.getItem('gtvc_session_id');
+}
+
+function setSessionId(id) {
+  if (id) localStorage.setItem('gtvc_session_id', id);
+  else localStorage.removeItem('gtvc_session_id');
+}
+
+function setAuth(token, user, sessionId = null) {
   localStorage.setItem('gtvc_token', token);
   localStorage.setItem('gtvc_user', JSON.stringify(user));
+  if (sessionId) setSessionId(sessionId);
 }
 
 function clearAuth() {
   localStorage.removeItem('gtvc_token');
   localStorage.removeItem('gtvc_user');
+  localStorage.removeItem('gtvc_session_id');
 }
 
-function logout() {
+async function logout() {
+  const sessionId = getSessionId();
+  const user = getUser();
+  try {
+    if (sessionId || user) {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: sessionId || null,
+          userId: user?.id || null,
+          username: user?.username || ''
+        }),
+        keepalive: true
+      });
+    }
+  } catch (e) {}
   clearAuth();
   window.location.href = '/index.html';
+}
+
+// Periodic heartbeat so timeline has accurate duration even if user closes tab
+if (typeof window !== 'undefined') {
+  setInterval(() => {
+    const sId = getSessionId();
+    if (sId) {
+      fetch('/api/auth/session-heartbeat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: sId }),
+        keepalive: true
+      }).catch(() => {});
+    }
+  }, 60000); // every 1 min
+
+  // Also send logout on tab/browser close
+  window.addEventListener('beforeunload', () => {
+    const sId = getSessionId();
+    const u = getUser();
+    if (sId || u) {
+      const payload = JSON.stringify({
+        sessionId: sId || null,
+        userId: u?.id || null,
+        username: u?.username || ''
+      });
+      navigator.sendBeacon('/api/auth/logout', new Blob([payload], { type: 'application/json' }));
+    }
+  });
 }
 
 function requireAuth(allowedRoles) {
@@ -74,8 +130,12 @@ function setTheme(theme) {
 }
 
 function toggleTheme() {
+  document.body.classList.add('theme-transition');
   const current = getTheme();
   setTheme(current === 'light' ? 'dark' : 'light');
+  setTimeout(() => {
+    document.body.classList.remove('theme-transition');
+  }, 300);
 }
 
 function updateThemeIcon() {
@@ -122,53 +182,80 @@ function toggleSidebar() {
 }
 
 
-// ==================== NAVIGATION CONFIGS ====================
+// ==================== NAVIGATION CONFIGS (Tree Structure) ====================
+
+const CHEVRON_SVG = '<svg viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 
 const NAV_CONFIG = {
   admin: {
     title: 'Admin Panel',
     basePath: '/pages/admin/',
-    links: [
-      { label: 'Dashboard',       href: 'dashboard.html' },
-      { section: 'Management' },
-      { label: 'Manage Users',    href: 'manage-users.html' },
-      { label: 'Manage Teachers', href: 'manage-teachers.html' },
-      { label: 'Manage Students', href: 'manage-students.html' },
-      { section: 'Communication' },
-      { label: 'Notices',         href: 'notices.html' },
-      { label: 'Reports',         href: 'reports.html' },
-    ]
-  },
-  principal: {
-    title: 'Principal Panel',
-    basePath: '/pages/principal/',
-    links: [
-      { label: 'Dashboard',       href: 'dashboard.html' },
-      { section: 'View Data' },
-      { label: 'View Teachers',   href: 'view-teachers.html' },
-      { label: 'View Students',   href: 'view-students.html' },
-      { label: 'View Results',    href: 'view-results.html' },
-      { section: 'Communication' },
-      { label: 'Notices',         href: 'notices.html' },
-      { label: 'Reports',         href: 'reports.html' },
+    tree: [
+      { label: 'Admin Control', href: 'dashboard.html' },
+      {
+        label: 'Management',
+        expanded: true,
+        children: [
+          { label: 'Users',           href: 'manage-users.html' },
+          { label: 'Teachers',        href: 'manage-teachers.html' },
+          { label: 'Students',        href: 'manage-students.html' },
+          { label: 'Student Details', href: 'student-details.html' },
+          { label: 'Courses',         href: 'manage-courses.html' },
+          { label: 'Results',         href: 'view-results.html' },
+        ]
+      },
+      {
+        label: 'Finance',
+        expanded: true,
+        children: [
+          { label: 'Accounting & Funds', href: 'accounting.html' },
+        ]
+      },
+      {
+        label: 'Database History',
+        expanded: true,
+        children: [
+          { label: 'Time Line',    href: 'time-line.html' },
+          { label: 'Recycle Bin',  href: 'recycle-bin.html' },
+          { label: 'Edit History', href: 'edit-history.html' },
+        ]
+      },
+      {
+        label: 'Communication',
+        expanded: false,
+        children: [
+          { label: 'Notices', href: 'notices.html' },
+          { label: 'Reports', href: 'reports.html' },
+        ]
+      }
     ]
   },
   teacher: {
     title: 'Teacher Panel',
     basePath: '/pages/teacher/',
-    links: [
-      { label: 'Dashboard',   href: 'dashboard.html' },
-      { section: 'My Work' },
-      { label: 'My Students', href: 'my-students.html' },
-      { label: 'Results',     href: 'results.html' },
-      { section: 'Communication' },
-      { label: 'Notices',     href: 'notices.html' },
+    tree: [
+      { label: 'Dashboard', href: 'dashboard.html' },
+      {
+        label: 'My Work',
+        expanded: true,
+        children: [
+          { label: 'My Students', href: 'my-students.html' },
+          { label: 'Results',     href: 'results.html' },
+        ]
+      },
+      {
+        label: 'Communication',
+        expanded: false,
+        children: [
+          { label: 'Notices', href: 'notices.html' },
+        ]
+      }
     ]
   },
   accounting: {
     title: 'Accounting Panel',
     basePath: '/pages/accounting/',
-    links: [
+    tree: [
       { label: 'Dashboard', href: 'dashboard.html' },
     ]
   }
@@ -181,7 +268,7 @@ const NAV_CONFIG = {
  * Renders the complete page layout (sidebar + navbar + footer).
  * Call from every page's DOMContentLoaded.
  *
- * @param {string} role - 'admin' | 'principal' | 'teacher' | 'accounting'
+ * @param {string} role - 'admin' | 'teacher' | 'accounting'
  * @param {string} pageTitle - The title shown in the navbar
  * @param {string} activeHref - The filename of the active page (e.g. 'dashboard.html')
  */
@@ -192,18 +279,59 @@ function renderLayout(role, pageTitle, activeHref) {
 
   const currentFile = activeHref || window.location.pathname.split('/').pop();
 
-  // Build sidebar nav links
-  let navLinksHTML = '';
-  nav.links.forEach(item => {
-    if (item.section) {
-      navLinksHTML += `<div class="nav-section">${item.section}</div>`;
-    } else {
-      const isActive = currentFile === item.href ? 'active' : '';
-      navLinksHTML += `<a href="${nav.basePath}${item.href}" class="${isActive}">
-        ${item.label}
-      </a>`;
-    }
-  });
+  // Build tree HTML
+  function buildTreeHTML(items, basePath) {
+    let html = '';
+    items.forEach(item => {
+      if (item.children) {
+        // This is a folder / collapsible node
+        const hasActiveChild = item.children.some(c => c.href === currentFile);
+        const isExpanded = item.expanded || hasActiveChild;
+        html += `<div class="tree-node${isExpanded ? ' expanded' : ''}">`;
+        html += `<div class="tree-node-header" onclick="this.parentElement.classList.toggle('expanded')">`;
+        html += `<span class="tree-chevron">${CHEVRON_SVG}</span>`;
+        html += `<span class="tree-node-label">${item.label}</span>`;
+        html += `</div>`;
+        html += `<div class="tree-children">`;
+        item.children.forEach(child => {
+          if (child.children) {
+            // Nested folder (level 2)
+            const hasActiveL2 = child.children.some(c2 => c2.href === currentFile);
+            const isExpL2 = child.expanded || hasActiveL2;
+            html += `<div class="tree-node${isExpL2 ? ' expanded' : ''}">`;
+            html += `<div class="tree-node-header" style="padding-left:30px;" onclick="this.parentElement.classList.toggle('expanded')">`;
+            html += `<span class="tree-chevron">${CHEVRON_SVG}</span>`;
+            html += `<span class="tree-node-label">${child.label}</span>`;
+            html += `</div>`;
+            html += `<div class="tree-children">`;
+            child.children.forEach(leaf => {
+              const isActive = currentFile === leaf.href ? ' active' : '';
+              html += `<a href="${basePath}${leaf.href}" class="tree-leaf tree-leaf-l2${isActive}">`;
+              html += `<span class="tree-node-label">${leaf.label}</span>`;
+              html += `</a>`;
+            });
+            html += `</div></div>`;
+          } else {
+            // Leaf link
+            const isActive = currentFile === child.href ? ' active' : '';
+            html += `<a href="${basePath}${child.href}" class="tree-leaf${isActive}">`;
+            html += `<span class="tree-node-label">${child.label}</span>`;
+            html += `</a>`;
+          }
+        });
+        html += `</div></div>`;
+      } else {
+        // Top-level leaf (e.g. Dashboard)
+        const isActive = currentFile === item.href ? ' active' : '';
+        html += `<a href="${basePath}${item.href}" class="tree-leaf${isActive}" style="padding-left:12px;">`;
+        html += `<span class="tree-node-label">${item.label}</span>`;
+        html += `</a>`;
+      }
+    });
+    return html;
+  }
+
+  const treeHTML = buildTreeHTML(nav.tree, nav.basePath);
 
   // Initials for avatar
   const initials = user.full_name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
@@ -211,12 +339,13 @@ function renderLayout(role, pageTitle, activeHref) {
   // Sidebar HTML
   const sidebarHTML = `
     <div class="sidebar-header">
-      <div class="sidebar-logo">G</div>
+      <img src="/assets/logo/GTVC-Logo.png" alt="GTVC" class="sidebar-logo" style="width:48px; height:48px; border-radius:50%; object-fit:cover;">
       <div class="sidebar-title">GTVC Dargai</div>
       <div class="sidebar-subtitle">${nav.title}</div>
     </div>
     <nav class="sidebar-nav">
-      ${navLinksHTML}
+      <div class="tree-section-title">Explorer</div>
+      ${treeHTML}
     </nav>
     <div class="sidebar-footer">
       <a href="/index.html" onclick="logout(); return false;" class="btn btn-outline btn-sm" style="width:100%; justify-content:center;">
