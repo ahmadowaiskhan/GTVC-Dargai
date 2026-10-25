@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('gtvc_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+  <title>User & Staff Management — GTVC Dargai</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="app-sidebar"></aside>
+    <div class="app-main">
+      <header class="app-navbar"></header>
+      <main class="app-content">
+
+        <!-- Page Header -->
+        <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+          <div>
+            <h1>User & Faculty Management</h1>
+            <p>Unified database for Administrator, Teacher, and Accounting user credentials & detailed profiles.</p>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-primary" onclick="openAddUserModal()">
+              <img src="/assets/icons/plus.svg" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;" alt="add"> Add New User
+            </button>
+          </div>
+        </div>
+
+        <!-- Metric Stat Cards -->
+        <div class="user-stat-grid">
+          <div class="user-stat-card" id="cardAll" onclick="setRoleFilter('all')">
+            <div class="user-stat-icon" style="background:rgba(37,99,235,0.12); color:#2563eb;"><img src="/assets/icons/users.svg" style="width:26px;height:26px;filter:invert(30%) sepia(90%) saturate(500%) hue-rotate(200deg);" alt="users"></div>
+            <div>
+              <div class="user-stat-val" id="statTotalUsers">0</div>
+              <div class="user-stat-lbl">All System Users</div>
+            </div>
+          </div>
+          <div class="user-stat-card" id="cardAdmin" onclick="setRoleFilter('admin')">
+            <div class="user-stat-icon" style="background:rgba(99,102,241,0.12); color:#6366f1;"><img src="/assets/icons/shield.svg" style="width:24px;height:24px;filter:invert(40%) sepia(80%) saturate(600%) hue-rotate(220deg);" alt="admin"></div>
+            <div>
+              <div class="user-stat-val" id="statAdminUsers">0</div>
+              <div class="user-stat-lbl">Administrators</div>
+            </div>
+          </div>
+          <div class="user-stat-card" id="cardTeacher" onclick="setRoleFilter('teacher')">
+            <div class="user-stat-icon" style="background:rgba(16,185,129,0.12); color:#10b981;"><img src="/assets/icons/teacher.svg" style="width:24px;height:24px;filter:invert(40%) sepia(80%) saturate(400%) hue-rotate(120deg);" alt="teacher"></div>
+            <div>
+              <div class="user-stat-val" id="statTeacherUsers">0</div>
+              <div class="user-stat-lbl">Teachers / Faculty</div>
+            </div>
+          </div>
+          <div class="user-stat-card" id="cardAccounting" onclick="setRoleFilter('accounting')">
+            <div class="user-stat-icon" style="background:rgba(245,158,11,0.12); color:#d97706;"><img src="/assets/icons/money.svg" style="width:24px;height:24px;filter:invert(45%) sepia(80%) saturate(600%) hue-rotate(10deg);" alt="accounting"></div>
+            <div>
+              <div class="user-stat-val" id="statAccountingUsers">0</div>
+              <div class="user-stat-lbl">Accounting Staff</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Role Filter Tabs -->
+        <div class="filter-tabs">
+          <button class="filter-tab active" id="tabAll" onclick="setRoleFilter('all')">
+            All Users <span class="badge badge-blue" id="tabBadgeAll">0</span>
+          </button>
+          <button class="filter-tab" id="tabAdmin" onclick="setRoleFilter('admin')">
+            Administrators <span class="badge badge-blue" id="tabBadgeAdmin">0</span>
+          </button>
+          <button class="filter-tab" id="tabTeacher" onclick="setRoleFilter('teacher')">
+            Teachers / Faculty <span class="badge badge-green" id="tabBadgeTeacher">0</span>
+          </button>
+          <button class="filter-tab" id="tabAccounting" onclick="setRoleFilter('accounting')">
+            Accounting / Finance <span class="badge badge-yellow" id="tabBadgeAccounting">0</span>
+          </button>
+        </div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="toolbar" style="margin-bottom:16px;">
+          <div class="search-box" style="flex:1; max-width:400px;">
+            <input type="text" id="searchUsers" placeholder="Search by name, username, CNIC, phone, employee ID..." oninput="filterUsers()">
+          </div>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <select id="statusFilter" class="form-select" style="width:auto; padding:8px 12px;" onchange="filterUsers()">
+              <option value="all">All Statuses</option>
+              <option value="active">Active Accounts</option>
+              <option value="inactive">Inactive / Suspended</option>
+            </select>
+            <button class="btn btn-outline btn-sm" onclick="loadUsers()" title="Refresh users list">
+              <img src="/assets/icons/refresh.svg" style="width:15px;height:15px;vertical-align:middle;margin-right:4px;" alt="refresh"> Refresh
+            </button>
+          </div>
+        </div>
+
+        <!-- Users Table Card -->
+        <div class="card">
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th style="width:50px;">#</th>
+                  <th>User & Account</th>
+                  <th>Role</th>
+                  <th>Employee / Staff ID</th>
+                  <th>CNIC Number</th>
+                  <th>Contact Info</th>
+                  <th>Qualification / Trade</th>
+                  <th>Status</th>
+                  <th style="width:170px; text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="usersTableBody">
+                <tr><td colspan="9" class="text-center text-muted" style="padding:40px;">Loading users database...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+      <footer class="app-footer"></footer>
+    </div>
+  </div>
+
+  <!-- Add / Edit User Modal -->
+  <div class="modal-overlay" id="userModal">
+    <div class="modal" style="max-width:700px; max-height:92vh; overflow-y:auto;">
+      <div class="modal-header">
+        <h3 id="userModalTitle">Add New User</h3>
+        <button class="modal-close" onclick="closeUserModal()"><img src="/assets/icons/close.svg" style="width:16px;height:16px;" alt="close"></button>
+      </div>
+      <form id="userForm" onsubmit="saveUser(event)">
+        <input type="hidden" id="userId">
+
+        <!-- 1. Credentials & Account Role -->
+        <div class="form-section-title">
+          <img src="/assets/icons/lock.svg" style="width:15px;height:15px;" alt="login"> Account Login &amp; Role
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label" for="userRole">Account Role <span style="color:var(--color-danger)">*</span></label>
+            <select id="userRole" class="form-select" required onchange="handleRoleChange()">
+              <option value="">-- Select Role --</option>
+              <option value="admin">Administrator (Full Control)</option>
+              <option value="teacher">Teacher / Faculty</option>
+              <option value="accounting">Accounting / Finance Staff</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label" for="userStatus">Account Status</label>
+            <select id="userStatus" class="form-select">
+              <option value="1">Active</option>
+              <option value="0">Inactive / Suspended</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label" for="userFullName">Full Name <span style="color:var(--color-danger)">*</span></label>
+            <input type="text" id="userFullName" class="form-input" placeholder="e.g. Engr. Ahmad Khan" required>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label" for="userUsername">Username (Login ID) <span style="color:var(--color-danger)">*</span></label>
+            <input type="text" id="userUsername" class="form-input" placeholder="e.g. ahmad.khan" required autocomplete="username">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="userPassword" id="passwordLabel">Login Password <span style="color:var(--color-danger)">*</span></label>
+          <div class="password-input-wrap">
+            <input type="password" id="userPassword" class="form-input" placeholder="Enter secure password (min 6 characters)" autocomplete="new-password">
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('userPassword', this)" title="Toggle visibility"><img src="/assets/icons/eye.svg" style="width:17px;height:17px;" alt="show/hide"></button>
+          </div>
+          <div class="form-hint" id="passwordHint">Minimum 6 characters. This password is required for logging into the portal.</div>
+        </div>
+
+        <!-- 2. Contact Information -->
+        <div class="form-section-title">
+          <img src="/assets/icons/phone.svg" style="width:15px;height:15px;" alt="contact"> Contact Information
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label" for="userEmail">Email Address</label>
+            <input type="email" id="userEmail" class="form-input" placeholder="e.g. user@gtvcdargai.edu.pk">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label" for="userPhone">Phone / Mobile</label>
+            <input type="text" id="userPhone" class="form-input" placeholder="0300-1234567">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="userAddress">Residential / Postal Address</label>
+          <textarea id="userAddress" class="form-textarea" rows="2" placeholder="Full address, City, District..."></textarea>
+        </div>
+
+        <!-- 3. Official Staff Details (CNIC, DOB, Joining Date, Qualification) -->
+        <div class="form-section-title" id="staffSectionTitle">
+          <img src="/assets/icons/clipboard.svg" style="width:15px;height:15px;" alt="details"> Official Details &amp; 2FA Verification Data
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label" for="userEmployeeId">Employee / Staff ID</label>
+            <input type="text" id="userEmployeeId" class="form-input" placeholder="e.g. GTVC-T-101 / GTVC-ACC-01">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label" for="userCnic">CNIC Number</label>
+            <input type="text" id="userCnic" class="form-input" placeholder="15402-XXXXXXX-X">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label" for="userDob">Date of Birth</label>
+            <input type="date" id="userDob" class="form-input">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label" for="userJoiningDate">Joining Date</label>
+            <input type="date" id="userJoiningDate" class="form-input">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label" for="userGender">Gender</label>
+            <select id="userGender" class="form-select">
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label" for="userQualification">Qualification</label>
+            <input type="text" id="userQualification" class="form-input" placeholder="e.g. B.Sc Engg, DAE, M.Com, MBA">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label" for="userSpecialization">Specialization / Department</label>
+            <input type="text" id="userSpecialization" class="form-input" placeholder="e.g. Electrical, Computer, Accounts, RAC">
+          </div>
+        </div>
+
+        <div class="btn-group" style="margin-top:20px; justify-content:flex-end;">
+          <button type="button" class="btn btn-outline" onclick="closeUserModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveUserBtn">Save User Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- View User Profile Modal -->
+  <div class="modal-overlay" id="viewDetailsModal">
+    <div class="modal" style="max-width:620px;">
+      <div class="modal-header">
+        <h3 id="viewDetailsTitle">User Profile Details</h3>
+        <button class="modal-close" onclick="closeViewDetailsModal()"><img src="/assets/icons/close.svg" style="width:16px;height:16px;" alt="close"></button>
+      </div>
+      <div id="viewDetailsContent" style="padding:4px 0 16px;">
+        <!-- Filled dynamically -->
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:8px;">
+        <button type="button" class="btn btn-outline" onclick="closeViewDetailsModal()">Close</button>
+        <button type="button" class="btn btn-primary" id="viewEditBtn">Edit User</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let allUsers = [];
+    let currentRoleFilter = 'all';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!requireAuth(['admin'])) return;
+      renderLayout('admin', 'User Management', 'user.html');
+
+      // Check URL params for role filter (e.g. ?role=teacher from legacy links)
+      const urlParams = new URLSearchParams(window.location.search);
+      const roleParam = urlParams.get('role');
+      if (roleParam && ['admin', 'teacher', 'accounting'].includes(roleParam.toLowerCase())) {
+        currentRoleFilter = roleParam.toLowerCase();
+      }
+
+      loadUsers();
+    });
+
+    async function loadUsers() {
+      const tbody = document.getElementById('usersTableBody');
+      tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted" style="padding:40px;">Loading users database...</td></tr>';
+      try {
+        const data = await apiCall('/api/admin/users');
+        allUsers = data || [];
+        updateMetricCounts();
+        applyRoleTabUI();
+        filterUsers();
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="9" class="text-center text-danger" style="padding:40px;">Failed to load users. Backend server may be offline.</td></tr>';
+      }
+    }
+
+    function updateMetricCounts() {
+      const total = allUsers.length;
+      const admins = allUsers.filter(u => u.role === 'admin' || u.role === 'principal').length;
+      const teachers = allUsers.filter(u => u.role === 'teacher').length;
+      const accounting = allUsers.filter(u => u.role === 'accounting').length;
+
+      document.getElementById('statTotalUsers').textContent = total;
+      document.getElementById('statAdminUsers').textContent = admins;
+      document.getElementById('statTeacherUsers').textContent = teachers;
+      document.getElementById('statAccountingUsers').textContent = accounting;
+
+      document.getElementById('tabBadgeAll').textContent = total;
+      document.getElementById('tabBadgeAdmin').textContent = admins;
+      document.getElementById('tabBadgeTeacher').textContent = teachers;
+      document.getElementById('tabBadgeAccounting').textContent = accounting;
+    }
+
+    function setRoleFilter(role) {
+      currentRoleFilter = role;
+      applyRoleTabUI();
+      filterUsers();
+    }
+
+    function applyRoleTabUI() {
+      // Update Tab classes
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.user-stat-card').forEach(c => c.classList.remove('active-filter'));
+
+      if (currentRoleFilter === 'admin') {
+        document.getElementById('tabAdmin')?.classList.add('active');
+        document.getElementById('cardAdmin')?.classList.add('active-filter');
+      } else if (currentRoleFilter === 'teacher') {
+        document.getElementById('tabTeacher')?.classList.add('active');
+        document.getElementById('cardTeacher')?.classList.add('active-filter');
+      } else if (currentRoleFilter === 'accounting') {
+        document.getElementById('tabAccounting')?.classList.add('active');
+        document.getElementById('cardAccounting')?.classList.add('active-filter');
+      } else {
+        document.getElementById('tabAll')?.classList.add('active');
+        document.getElementById('cardAll')?.classList.add('active-filter');
+      }
+    }
+
+    function filterUsers() {
+      const q = (document.getElementById('searchUsers').value || '').trim().toLowerCase();
+      const status = document.getElementById('statusFilter').value;
+
+      const filtered = allUsers.filter(u => {
+        // Role match
+        if (currentRoleFilter !== 'all') {
+          if (currentRoleFilter === 'admin' && (u.role !== 'admin' && u.role !== 'principal')) return false;
+          if (currentRoleFilter === 'teacher' && u.role !== 'teacher') return false;
+          if (currentRoleFilter === 'accounting' && u.role !== 'accounting') return false;
+        }
+
+        // Status match
+        if (status === 'active' && !u.is_active) return false;
+        if (status === 'inactive' && u.is_active) return false;
+
+        // Search match
+        if (!q) return true;
+        return (
+          (u.full_name && u.full_name.toLowerCase().includes(q)) ||
+          (u.username && u.username.toLowerCase().includes(q)) ||
+          (u.email && u.email.toLowerCase().includes(q)) ||
+          (u.phone && u.phone.toLowerCase().includes(q)) ||
+          (u.employee_id && u.employee_id.toLowerCase().includes(q)) ||
+          (u.cnic && u.cnic.toLowerCase().includes(q)) ||
+          (u.specialization && u.specialization.toLowerCase().includes(q)) ||
+          (u.qualification && u.qualification.toLowerCase().includes(q))
+        );
+      });
+
+      renderUsers(filtered);
+    }
+
+    function getRoleBadge(role) {
+      const r = (role || '').toLowerCase();
+      if (r === 'admin') return '<span class="badge role-badge-admin">Admin</span>';
+      if (r === 'teacher') return '<span class="badge role-badge-teacher">Teacher</span>';
+      if (r === 'accounting') return '<span class="badge role-badge-accounting">Accounting</span>';
+      if (r === 'principal') return '<span class="badge role-badge-principal">Principal</span>';
+      return `<span class="badge badge-blue">${role}</span>`;
+    }
+
+    function renderUsers(users) {
+      const tbody = document.getElementById('usersTableBody');
+      if (!users.length) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="9" class="text-center text-muted" style="padding:40px;">
+              No users found matching current filters.
+            </td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = users.map((u, i) => {
+        const initials = (u.full_name || u.username || 'U')
+          .split(' ')
+          .map(w => w[0])
+          .slice(0, 2)
+          .join('');
+
+        return `
+          <tr>
+            <td>${i + 1}</td>
+            <td>
+              <div class="user-avatar-cell">
+                <div class="user-avatar">${initials}</div>
+                <div>
+                  <div class="user-name-title">${escapeHtml(u.full_name)}</div>
+                  <div class="user-username-sub">@${escapeHtml(u.username)}</div>
+                </div>
+              </div>
+            </td>
+            <td>${getRoleBadge(u.role)}</td>
+            <td>${u.employee_id ? `<code>${escapeHtml(u.employee_id)}</code>` : '<span class="text-muted">—</span>'}</td>
+            <td>${u.cnic ? escapeHtml(u.cnic) : '<span class="text-muted">—</span>'}</td>
+            <td>
+              <div style="font-size:0.88rem;">${u.phone ? `<img src="/assets/icons/phone.svg" style="width:12px;height:12px;vertical-align:middle;" alt="ph"> ${escapeHtml(u.phone)}` : ''}</div>
+              <div style="font-size:0.8rem; color:var(--text-muted);">${u.email ? `<img src="/assets/icons/mail.svg" style="width:12px;height:12px;vertical-align:middle;" alt="em"> ${escapeHtml(u.email)}` : '—'}</div>
+            </td>
+            <td>
+              <div style="font-size:0.88rem; font-weight:500;">${escapeHtml(u.specialization || u.qualification || '—')}</div>
+              <div style="font-size:0.75rem; color:var(--text-muted);">${u.qualification && u.specialization ? escapeHtml(u.qualification) : ''}</div>
+            </td>
+            <td>
+              <span class="badge ${u.is_active ? 'badge-green' : 'badge-red'}">
+                ${u.is_active ? 'Active' : 'Inactive'}
+              </span>
+            </td>
+            <td style="text-align:right;">
+              <div class="btn-group" style="justify-content:flex-end;">
+                <button class="btn btn-outline btn-sm" onclick="viewUserDetails(${u.id})" title="View complete details">View</button>
+                <button class="btn btn-outline btn-sm" onclick="editUser(${u.id})" title="Edit user details & password">Edit</button>
+                <button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})" title="Delete user">Delete</button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function togglePasswordVisibility(fieldId, btn) {
+      const input = document.getElementById(fieldId);
+      const img = btn.querySelector('img');
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (img) img.src = '/assets/icons/eye-off.svg';
+      } else {
+        input.type = 'password';
+        if (img) img.src = '/assets/icons/eye.svg';
+      }
+    }
+
+    function handleRoleChange() {
+      const role = document.getElementById('userRole').value;
+      const title = document.getElementById('staffSectionTitle');
+      if (role === 'teacher') {
+        title.innerHTML = '<img src="/assets/icons/teacher.svg" style="width:15px;height:15px;" alt="teacher"> Teacher Faculty Profile &amp; 2FA Data';
+      } else if (role === 'accounting') {
+        title.innerHTML = '<img src="/assets/icons/money.svg" style="width:15px;height:15px;" alt="accounting"> Accounting Staff Profile &amp; 2FA Data';
+      } else if (role === 'admin') {
+        title.innerHTML = '<img src="/assets/icons/shield.svg" style="width:15px;height:15px;" alt="admin"> Administrator Profile &amp; 2FA Data';
+      } else {
+        title.innerHTML = '<img src="/assets/icons/clipboard.svg" style="width:15px;height:15px;" alt="details"> Official Details &amp; 2FA Verification Data';
+      }
+    }
+
+    function openAddUserModal() {
+      document.getElementById('userModalTitle').textContent = 'Add New User';
+      document.getElementById('userForm').reset();
+      document.getElementById('userId').value = '';
+      document.getElementById('userRole').value = currentRoleFilter !== 'all' ? currentRoleFilter : '';
+      document.getElementById('userStatus').value = '1';
+      document.getElementById('userPassword').required = true;
+      document.getElementById('passwordLabel').innerHTML = 'Login Password <span style="color:var(--color-danger)">*</span>';
+      document.getElementById('passwordHint').textContent = 'Minimum 6 characters. Required for new user creation.';
+      handleRoleChange();
+      document.getElementById('userModal').classList.add('active');
+    }
+
+    function closeUserModal() {
+      document.getElementById('userModal').classList.remove('active');
+    }
+
+    function editUser(id) {
+      const u = allUsers.find(x => x.id === id);
+      if (!u) return;
+
+      document.getElementById('userModalTitle').textContent = `Edit User (${u.full_name})`;
+      document.getElementById('userId').value = u.id;
+      document.getElementById('userFullName').value = u.full_name || '';
+      document.getElementById('userUsername').value = u.username || '';
+      document.getElementById('userRole').value = u.role || 'teacher';
+      document.getElementById('userStatus').value = u.is_active ? '1' : '0';
+      document.getElementById('userEmail').value = u.email || '';
+      document.getElementById('userPhone').value = u.phone || '';
+      document.getElementById('userAddress').value = u.address || '';
+      document.getElementById('userEmployeeId').value = u.employee_id || '';
+      document.getElementById('userCnic').value = u.cnic || '';
+      document.getElementById('userGender').value = u.gender || '';
+      document.getElementById('userQualification').value = u.qualification || '';
+      document.getElementById('userSpecialization').value = u.specialization || '';
+
+      document.getElementById('userDob').value = u.date_of_birth ? u.date_of_birth.split('T')[0] : '';
+      document.getElementById('userJoiningDate').value = u.joining_date ? u.joining_date.split('T')[0] : '';
+
+      // Password is optional when editing
+      const pwField = document.getElementById('userPassword');
+      pwField.value = '';
+      pwField.required = false;
+      document.getElementById('passwordLabel').innerHTML = 'New Password (Optional)';
+      document.getElementById('passwordHint').textContent = 'Leave completely blank to keep the current login password. Enter new password to change.';
+
+      handleRoleChange();
+      closeViewDetailsModal();
+      document.getElementById('userModal').classList.add('active');
+    }
+
+    async function saveUser(e) {
+      e.preventDefault();
+      const id = document.getElementById('userId').value;
+      const role = document.getElementById('userRole').value;
+      const fullName = document.getElementById('userFullName').value.trim();
+      const username = document.getElementById('userUsername').value.trim();
+      const password = document.getElementById('userPassword').value;
+
+      if (!id && (!password || password.length < 6)) {
+        showToast('Password is required and must be at least 6 characters long.', 'danger');
+        return;
+      }
+      if (id && password && password.length < 6) {
+        showToast('New password must be at least 6 characters long.', 'danger');
+        return;
+      }
+
+      const body = {
+        role,
+        full_name: fullName,
+        username,
+        is_active: parseInt(document.getElementById('userStatus').value, 10),
+        email: document.getElementById('userEmail').value.trim() || null,
+        phone: document.getElementById('userPhone').value.trim() || null,
+        address: document.getElementById('userAddress').value.trim() || null,
+        employee_id: document.getElementById('userEmployeeId').value.trim() || null,
+        cnic: document.getElementById('userCnic').value.trim() || null,
+        gender: document.getElementById('userGender').value || null,
+        qualification: document.getElementById('userQualification').value.trim() || null,
+        specialization: document.getElementById('userSpecialization').value.trim() || null,
+        date_of_birth: document.getElementById('userDob').value || null,
+        joining_date: document.getElementById('userJoiningDate').value || null,
+      };
+
+      if (password && password.trim().length >= 6) {
+        body.password = password.trim();
+      }
+
+      const saveBtn = document.getElementById('saveUserBtn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+
+      try {
+        if (id) {
+          const res = await apiCall(`/api/admin/users/${id}`, 'PUT', body);
+          if (res && res.success) {
+            showToast('User account successfully updated');
+          } else {
+            showToast(res?.message || 'Error updating user', 'danger');
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save User Account';
+            return;
+          }
+        } else {
+          const res = await apiCall('/api/admin/users', 'POST', body);
+          if (res && res.success) {
+            showToast('New user account successfully created');
+          } else {
+            showToast(res?.message || 'Error creating user', 'danger');
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save User Account';
+            return;
+          }
+        }
+        closeUserModal();
+        await loadUsers();
+      } catch (err) {
+        showToast('Error communicating with server', 'danger');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Save User Account';
+      }
+    }
+
+    async function deleteUser(id) {
+      const u = allUsers.find(x => x.id === id);
+      const name = u ? `"${u.full_name}" (${u.username})` : 'this user';
+      if (!confirmAction(`Are you sure you want to delete user ${name}?\n\nThis will archive the account in the Recycle Bin.`)) {
+        return;
+      }
+      try {
+        const res = await apiCall(`/api/admin/users/${id}`, 'DELETE');
+        if (res && res.success) {
+          showToast('User account deleted and moved to recycle bin');
+          await loadUsers();
+        } else {
+          showToast(res?.message || 'Could not delete user', 'danger');
+        }
+      } catch (e) {
+        showToast('Server error while deleting user', 'danger');
+      }
+    }
+
+    function viewUserDetails(id) {
+      const u = allUsers.find(x => x.id === id);
+      if (!u) return;
+
+      document.getElementById('viewDetailsTitle').textContent = `${u.full_name} (${u.role.toUpperCase()})`;
+      document.getElementById('viewEditBtn').onclick = () => editUser(u.id);
+
+      const html = `
+        <div style="display:flex; align-items:center; gap:16px; margin-bottom:16px;">
+          <div class="user-avatar" style="width:54px; height:54px; font-size:1.3rem;">
+            ${(u.full_name || 'U').split(' ').map(w => w[0]).slice(0, 2).join('')}
+          </div>
+          <div>
+            <h3 style="margin:0 0 4px;">${escapeHtml(u.full_name)}</h3>
+            <div style="display:flex; gap:8px; align-items:center;">
+              ${getRoleBadge(u.role)}
+              <span class="badge ${u.is_active ? 'badge-green' : 'badge-red'}">${u.is_active ? 'Active' : 'Inactive'}</span>
+              <span style="font-size:0.82rem; color:var(--text-muted);">@${escapeHtml(u.username)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="details-grid">
+          <div class="details-item">
+            <div class="details-label">Employee / Staff ID</div>
+            <div class="details-value">${u.employee_id ? escapeHtml(u.employee_id) : '—'}</div>
+          </div>
+          <div class="details-item">
+            <div class="details-label">CNIC Number</div>
+            <div class="details-value">${u.cnic ? escapeHtml(u.cnic) : '—'}</div>
+          </div>
+          <div class="details-item">
+            <div class="details-label">Email Address</div>
+            <div class="details-value">${u.email ? escapeHtml(u.email) : '—'}</div>
+          </div>
+          <div class="details-item">
+            <div class="details-label">Phone Number</div>
+            <div class="details-value">${u.phone ? escapeHtml(u.phone) : '—'}</div>
+          </div>
+          <div class="details-item">
+            <div class="details-label">Qualification</div>
+            <div class="details-value">${u.qualification ? escapeHtml(u.qualification) : '—'}</div>
+          </div>
+          <div class="details-item">
+            <div class="details-label">Specialization / Trade</div>
+            <div class="details-value">${u.specialization ? escapeHtml(u.specialization) : '—'}</div>
+          </div>
+          <div class="details-item">
+            <div class="details-label">Date of Birth</div>
+            <div class="details-value">${u.date_of_birth ? formatDate(u.date_of_birth) : '—'}</div>
+          </div>
+          <div class="details-item">
+            <div class="details-label">Joining Date</div>
+            <div class="details-value">${u.joining_date ? formatDate(u.joining_date) : '—'}</div>
+          </div>
+          <div class="details-item">
+            <div class="details-label">Gender</div>
+            <div class="details-value" style="text-transform:capitalize;">${u.gender ? escapeHtml(u.gender) : '—'}</div>
+          </div>
+          <div class="details-item">
+            <div class="details-label">Account Created</div>
+            <div class="details-value">${u.created_at ? formatDateTime(u.created_at) : '—'}</div>
+          </div>
+          <div class="details-item" style="grid-column: span 2;">
+            <div class="details-label">Residential Address</div>
+            <div class="details-value">${u.address ? escapeHtml(u.address) : '—'}</div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('viewDetailsContent').innerHTML = html;
+      document.getElementById('viewDetailsModal').classList.add('active');
+    }
+
+    function closeViewDetailsModal() {
+      document.getElementById('viewDetailsModal').classList.remove('active');
+    }
+  </script>
+</body>
+</html>

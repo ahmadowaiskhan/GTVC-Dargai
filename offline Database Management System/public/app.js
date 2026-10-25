@@ -196,8 +196,8 @@ const NAV_CONFIG = {
         label: 'Management',
         expanded: true,
         children: [
-          { label: 'Users',           href: 'manage-users.html' },
-          { label: 'Teachers',        href: 'manage-teachers.html' },
+          { label: 'Sessions & Admissions', href: 'sessions.html' },
+          { label: 'Users (Admin, Teacher, Accounts)', href: 'user.html' },
           { label: 'Students',        href: 'manage-students.html' },
           { label: 'Student Details', href: 'student-details.html' },
           { label: 'Courses',         href: 'manage-courses.html' },
@@ -212,20 +212,13 @@ const NAV_CONFIG = {
         ]
       },
       {
-        label: 'Database History',
+        label: 'Database History & Storage',
         expanded: true,
         children: [
+          { label: 'Storage & Partitions', href: 'storage-manager.html' },
           { label: 'Time Line',    href: 'time-line.html' },
           { label: 'Recycle Bin',  href: 'recycle-bin.html' },
           { label: 'Edit History', href: 'edit-history.html' },
-        ]
-      },
-      {
-        label: 'Communication',
-        expanded: false,
-        children: [
-          { label: 'Notices', href: 'notices.html' },
-          { label: 'Reports', href: 'reports.html' },
         ]
       }
     ]
@@ -243,13 +236,6 @@ const NAV_CONFIG = {
           { label: 'Results',     href: 'results.html' },
         ]
       },
-      {
-        label: 'Communication',
-        expanded: false,
-        children: [
-          { label: 'Notices', href: 'notices.html' },
-        ]
-      }
     ]
   },
   accounting: {
@@ -465,3 +451,310 @@ function showToast(message, type = 'success') {
 function confirmAction(message) {
   return confirm(message);
 }
+
+// Redirect user to their respective dashboard
+function redirectToDashboard(role) {
+  const paths = {
+    admin: '/pages/admin/dashboard.html',
+    teacher: '/pages/teacher/dashboard.html',
+    accounting: '/pages/accounting/dashboard.html'
+  };
+  window.location.href = paths[role] || '/pages/admin/dashboard.html';
+}
+
+// ==================== AUTH & PORTAL PAGE LOGIC (index.html) ====================
+function initAuthPortal() {
+  const loginForm = document.getElementById('loginForm');
+  const signupForm = document.getElementById('signupForm');
+  if (!loginForm && !signupForm) return;
+
+  // If already logged in on login/signup page, redirect to dashboard
+  const user = getUser();
+  const token = getToken();
+  if (user && token) {
+    redirectToDashboard(user.role);
+    return;
+  }
+
+  // Setup tab switcher buttons
+  const tabLoginBtn = document.getElementById('tabLoginBtn');
+  const tabSignupBtn = document.getElementById('tabSignupBtn');
+  const toSignupLink = document.getElementById('toSignupLink');
+  const toLoginLink = document.getElementById('toLoginLink');
+
+  if (tabLoginBtn) tabLoginBtn.addEventListener('click', () => switchAuthTab('login'));
+  if (tabSignupBtn) tabSignupBtn.addEventListener('click', () => switchAuthTab('signup'));
+  if (toSignupLink) {
+    toSignupLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchAuthTab('signup');
+    });
+  }
+  if (toLoginLink) {
+    toLoginLink.addEventListener('click', (e) => {
+      e.preventDefault();
+      switchAuthTab('login');
+    });
+  }
+
+  // Check URL params
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.get('tab') === 'signup') {
+    switchAuthTab('signup');
+  } else if (urlParams.get('registered') === 'true') {
+    switchAuthTab('login');
+    const errDiv = document.getElementById('loginError');
+    if (errDiv) {
+      errDiv.className = 'alert alert-success login-alert';
+      errDiv.textContent = 'Account created successfully! Please log in with your credentials.';
+      errDiv.classList.remove('hidden');
+    }
+  }
+
+  if (loginForm) loginForm.addEventListener('submit', handleLoginSubmit);
+  if (signupForm) signupForm.addEventListener('submit', handleSignupSubmit);
+}
+
+function switchAuthTab(tab) {
+  const loginSection = document.getElementById('loginSection');
+  const signupSection = document.getElementById('signupSection');
+  const tabLoginBtn = document.getElementById('tabLoginBtn');
+  const tabSignupBtn = document.getElementById('tabSignupBtn');
+  const card = document.querySelector('.login-card');
+
+  if (tab === 'signup') {
+    if (loginSection) loginSection.classList.add('hidden');
+    if (signupSection) signupSection.classList.remove('hidden');
+    if (tabLoginBtn) tabLoginBtn.classList.remove('active');
+    if (tabSignupBtn) tabSignupBtn.classList.add('active');
+    if (card) card.classList.add('login-card-wide');
+  } else {
+    if (signupSection) signupSection.classList.add('hidden');
+    if (loginSection) loginSection.classList.remove('hidden');
+    if (tabSignupBtn) tabSignupBtn.classList.remove('active');
+    if (tabLoginBtn) tabLoginBtn.classList.add('active');
+  }
+}
+
+async function handleLoginSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById('loginBtn');
+  const errorDiv = document.getElementById('loginError');
+  const usernameInput = document.getElementById('username');
+  const passwordInput = document.getElementById('password');
+
+  const username = usernameInput ? usernameInput.value.trim() : '';
+  const password = passwordInput ? passwordInput.value : '';
+
+  if (btn) {
+    btn.textContent = 'Logging in...';
+    btn.disabled = true;
+  }
+  if (errorDiv) {
+    errorDiv.classList.add('hidden');
+  }
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+
+    if (res.ok && data.token) {
+      setAuth(data.token, data.user, data.sessionId || null);
+      redirectToDashboard(data.user.role);
+    } else {
+      if (errorDiv) {
+        errorDiv.textContent = data.message || 'Invalid username or password.';
+        errorDiv.classList.remove('hidden');
+      }
+    }
+  } catch (err) {
+    if (errorDiv) {
+      errorDiv.textContent = 'Cannot connect to server. Make sure the server is running.';
+      errorDiv.classList.remove('hidden');
+    }
+  }
+
+  if (btn) {
+    btn.textContent = 'Login';
+    btn.disabled = false;
+  }
+}
+
+async function handleSignupSubmit(e) {
+  e.preventDefault();
+  const btn = document.getElementById('signupBtn');
+  const alertDiv = document.getElementById('signupAlert');
+
+  const full_name = document.getElementById('signup_fullname')?.value.trim();
+  const username = document.getElementById('signup_username')?.value.trim();
+  const role = document.getElementById('signup_role')?.value;
+  const email = document.getElementById('signup_email')?.value.trim();
+  const phone = document.getElementById('signup_phone')?.value.trim();
+  const password = document.getElementById('signup_password')?.value;
+  const confirm_password = document.getElementById('signup_confirm_password')?.value;
+
+  if (alertDiv) {
+    alertDiv.className = 'alert login-alert hidden';
+  }
+
+  if (password !== confirm_password) {
+    if (alertDiv) {
+      alertDiv.className = 'alert alert-danger login-alert';
+      alertDiv.textContent = 'Passwords do not match. Please re-enter.';
+      alertDiv.classList.remove('hidden');
+    }
+    return;
+  }
+
+  if (password.length < 6) {
+    if (alertDiv) {
+      alertDiv.className = 'alert alert-danger login-alert';
+      alertDiv.textContent = 'Password must be at least 6 characters long.';
+      alertDiv.classList.remove('hidden');
+    }
+    return;
+  }
+
+  if (btn) {
+    btn.textContent = 'Creating Account...';
+    btn.disabled = true;
+  }
+
+  try {
+    const res = await fetch('/api/auth/signup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        full_name,
+        username,
+        role,
+        email,
+        phone,
+        password
+      })
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      if (alertDiv) {
+        alertDiv.className = 'alert alert-success login-alert';
+        alertDiv.textContent = 'Registration successful! Logging you in...';
+        alertDiv.classList.remove('hidden');
+      }
+
+      if (data.token && data.user) {
+        setAuth(data.token, data.user, data.sessionId || null);
+        setTimeout(() => {
+          redirectToDashboard(data.user.role);
+        }, 600);
+      } else {
+        setTimeout(() => {
+          switchAuthTab('login');
+          const errDiv = document.getElementById('loginError');
+          if (errDiv) {
+            errDiv.className = 'alert alert-success login-alert';
+            errDiv.textContent = 'Account created successfully! Please log in.';
+            errDiv.classList.remove('hidden');
+          }
+        }, 600);
+      }
+    } else {
+      if (alertDiv) {
+        alertDiv.className = 'alert alert-danger login-alert';
+        alertDiv.textContent = data.message || 'Failed to create account. Please try again.';
+        alertDiv.classList.remove('hidden');
+      }
+      if (btn) {
+        btn.textContent = 'Create Account';
+        btn.disabled = false;
+      }
+    }
+  } catch (err) {
+    if (alertDiv) {
+      alertDiv.className = 'alert alert-danger login-alert';
+      alertDiv.textContent = 'Cannot connect to server. Make sure the server is running.';
+      alertDiv.classList.remove('hidden');
+    }
+    if (btn) {
+      btn.textContent = 'Create Account';
+      btn.disabled = false;
+    }
+  }
+}
+
+// ==================== RESULTS MANAGEMENT (view-results.html) ====================
+let allResultsData = [];
+
+async function loadResults() {
+  try {
+    const data = await apiCall('/api/admin/results');
+    allResultsData = data || [];
+    renderResults(allResultsData);
+  } catch (e) {
+    const tbody = document.getElementById('resultsTableBody');
+    if (tbody) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted" style="padding:32px;">Could not load results.</td></tr>';
+    }
+  }
+}
+
+function renderResults(results) {
+  const tbody = document.getElementById('resultsTableBody');
+  if (!tbody) return;
+
+  if (!results.length) {
+    tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted" style="padding:32px;">No results found.</td></tr>';
+    return;
+  }
+
+  const gradeBadge = g => {
+    const map = { A: 'badge-green', B: 'badge-blue', C: 'badge-yellow', D: 'badge-yellow', F: 'badge-red' };
+    return `<span class="badge ${map[g] || 'badge-blue'}">${g}</span>`;
+  };
+
+  tbody.innerHTML = results.map((r, i) => `
+    <tr>
+      <td>${i + 1}</td>
+      <td>${r.student_name || '—'}</td>
+      <td>${r.class_name || '—'}</td>
+      <td>${r.subject_name || '—'}</td>
+      <td><span class="badge badge-blue">${r.exam_type || '—'}</span></td>
+      <td>${r.marks_obtained ?? '—'}</td>
+      <td>${r.total_marks ?? '—'}</td>
+      <td>${gradeBadge(r.grade || '—')}</td>
+    </tr>
+  `).join('');
+}
+
+function filterResults() {
+  const searchInput = document.getElementById('searchResults');
+  const examInput = document.getElementById('filterExamType');
+  const q = searchInput ? searchInput.value.toLowerCase() : '';
+  const exam = examInput ? examInput.value : '';
+
+  const filtered = allResultsData.filter(r => {
+    const matchName = (r.student_name || '').toLowerCase().includes(q) ||
+                      (r.subject_name || '').toLowerCase().includes(q);
+    const matchExam = !exam || r.exam_type === exam;
+    return matchName && matchExam;
+  });
+
+  renderResults(filtered);
+}
+
+// Global page initializer for portal & results
+document.addEventListener('DOMContentLoaded', () => {
+  initAuthPortal();
+  if (document.getElementById('resultsTableBody') && window.location.pathname.includes('view-results.html')) {
+    if (requireAuth(['admin'])) {
+      renderLayout('admin', 'View Results', 'view-results.html');
+      loadResults();
+    }
+  }
+});
+

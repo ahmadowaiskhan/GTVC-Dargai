@@ -12,6 +12,16 @@ create a sessition page:
 in the page will store how many studen get addmissition and DIT, CCVT, GIT, etc the number of studen . how may sessition are completed and the tottle subject.
 
 
+sessions.html ,session.html , manage-courses.html
+ i want these in one page sessions.html also manage-students.html
+  student-details.html in one student-details.html 
+
+
+
+
+manage-user.html , manage-teachers.html :
+i want all these in one user.html page where i want store admin , teacher , accounting details and login password, these will be my user i can edit delete and add new user. like admin teacher accounting.
+
 student details page:
 this page will store data about student appleyed cources a time studen applied and get digre and completed cources. and studen projects and study plane. a studen contece like phone number and email and eddress CNIC number. 
 

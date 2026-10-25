@@ -1,0 +1,35 @@
+{
+  "primaryLocation": "C:\\Users\\A.Owais khan\\Desktop\\GTVC Website\\offline Database Management System\\database",
+  "locations": [
+    {
+      "id": 1,
+      "name": "Default Project Database Folder",
+      "path": "C:\\Users\\A.Owais khan\\Desktop\\GTVC Website\\offline Database Management System\\database",
+      "partition": "C:",
+      "isPrimary": true,
+      "autoBackup": true,
+      "lastBackupAt": "2026-10-24T00:09:51.680Z",
+      "createdAt": "2026-10-23T23:09:06.175Z"
+    },
+    {
+      "id": 2,
+      "name": "Drive D Redundant Storage",
+      "path": "D:\\GTVC_Database_Backup",
+      "partition": "D:",
+      "isPrimary": false,
+      "autoBackup": true,
+      "lastBackupAt": "2026-10-24T00:09:51.680Z",
+      "createdAt": "2026-10-23T23:16:36.868Z"
+    },
+    {
+      "id": 3,
+      "name": "Test Drive D",
+      "path": "D:\\TestFolder",
+      "partition": "D:",
+      "isPrimary": false,
+      "autoBackup": true,
+      "lastBackupAt": null,
+      "createdAt": "2026-10-24T00:16:41.820Z"
+    }
+  ]
+}

@@ -30,10 +30,10 @@
 
         <div class="toolbar">
           <div class="search-box">
-            <span class="search-icon">🔍</span>
+            <span class="search-icon"><img src="/assets/icons/search.svg" style="width:16px;height:16px;" alt="search"></span>
             <input type="text" id="searchCourses" placeholder="Search courses..." oninput="filterCourses()">
           </div>
-          <button class="btn btn-primary" onclick="openAddCourseModal()">➕ Add Course</button>
+          <button class="btn btn-primary" onclick="openAddCourseModal()"><img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Add Course</button>
         </div>
 
         <div class="card">
@@ -66,7 +66,7 @@
     <div class="modal">
       <div class="modal-header">
         <h3 id="courseModalTitle">Add New Course</h3>
-        <button class="modal-close" onclick="closeCourseModal()">✕</button>
+        <button class="modal-close" onclick="closeCourseModal()"><img src="/assets/icons/close.svg" style="width:16px;height:16px;" alt="close"></button>
       </div>
       <form id="courseForm" onsubmit="saveCourse(event)">
         <input type="hidden" id="courseId">
@@ -131,8 +131,8 @@
           <td><span class="badge ${c.is_active ? 'badge-green' : 'badge-red'}">${c.is_active ? 'Active' : 'Inactive'}</span></td>
           <td>
             <div class="btn-group">
-              <button class="btn btn-outline btn-sm" onclick="editCourse(${c.id})">✏️ Edit</button>
-              <button class="btn btn-danger btn-sm" onclick="deleteCourse(${c.id})">🗑️</button>
+              <button class="btn btn-outline btn-sm" onclick="editCourse(${c.id})"><img src="/assets/icons/edit.svg" style="width:12px;height:12px;vertical-align:middle;margin-right:4px;" alt="edit"> Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteCourse(${c.id})"><img src="/assets/icons/trash.svg" style="width:12px;height:12px;vertical-align:middle;" alt="delete"></button>
             </div>
           </td>
         </tr>

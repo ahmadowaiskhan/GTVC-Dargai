@@ -15,194 +15,8 @@
   <title>Time Line — GTVC Dargai</title>
   <link rel="stylesheet" href="/assets/style.css">
   <script src="/app.js" defer></script>
-  <style>
-    /* Security Gate Modal / Backdrop */
-    .timeline-gate-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(10, 15, 29, 0.90);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
-      z-index: 99999;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-    .timeline-gate-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
-      border-radius: var(--border-radius-lg, 14px);
-      width: 100%;
-      max-width: 440px;
-      padding: 32px 28px;
-      text-align: center;
-      animation: gatePop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    @keyframes gatePop {
-      0% { opacity: 0; transform: scale(0.92) translateY(12px); }
-      100% { opacity: 1; transform: scale(1) translateY(0); }
-    }
-    .gate-shield-icon {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      background: rgba(59, 130, 246, 0.12);
-      border: 2px solid rgba(59, 130, 246, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 16px;
-      color: var(--color-primary, #3b82f6);
-    }
-    .gate-shield-icon svg {
-      width: 32px;
-      height: 32px;
-    }
-    .timeline-gate-card h2 {
-      font-size: 1.35rem;
-      margin-bottom: 8px;
-    }
-    .timeline-gate-card p {
-      color: var(--text-secondary);
-      font-size: 0.88rem;
-      line-height: 1.5;
-      margin-bottom: 24px;
-    }
-    .gate-form-group {
-      text-align: left;
-      margin-bottom: 16px;
-    }
-    .gate-form-group label {
-      display: block;
-      font-size: 0.8rem;
-      font-weight: 600;
-      color: var(--text-secondary);
-      margin-bottom: 6px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    /* Timeline presentation */
-    .timeline-stat-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    .timeline-stat-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-color);
-      border-radius: var(--border-radius);
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    .timeline-stat-val {
-      font-size: 1.75rem;
-      font-weight: 700;
-      color: var(--text-primary);
-      line-height: 1.1;
-    }
-    .timeline-stat-lbl {
-      font-size: 0.78rem;
-      color: var(--text-secondary);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-top: 4px;
-    }
-
-    /* Timeline Table Pill Badges */
-    .status-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 3px 10px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      font-weight: 600;
-    }
-    .status-pill.active {
-      background: rgba(16, 185, 129, 0.15);
-      color: #10b981;
-      border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-    .status-pill.active .status-dot {
-      background: #10b981;
-      box-shadow: 0 0 6px #10b981;
-      animation: pulseDot 1.5s infinite;
-    }
-    .status-pill.logged_out {
-      background: rgba(107, 114, 128, 0.15);
-      color: #9ca3af;
-      border: 1px solid rgba(107, 114, 128, 0.25);
-    }
-    .status-pill.logged_out .status-dot {
-      background: #9ca3af;
-    }
-    .status-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-    }
-    @keyframes pulseDot {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.85); }
-    }
-
-    /* Duration tag */
-    .duration-tag {
-      display: inline-block;
-      font-family: monospace;
-      font-size: 0.85rem;
-      padding: 2px 8px;
-      border-radius: 4px;
-      background: var(--bg-hover);
-      color: var(--text-primary);
-      border: 1px solid var(--border-color);
-    }
-  </style>
 </head>
 <body>
-
-  <!-- ==================== SECURITY LOGIN GATE ==================== -->
-  <!-- Every time the user opens this page, it requires username & password to view -->
-  <div class="timeline-gate-backdrop" id="timelineGate">
-    <div class="timeline-gate-card">
-      <div class="gate-shield-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-          <path d="M9 12l2 2 4-4"/>
-        </svg>
-      </div>
-      <h2>Protected Time Line</h2>
-      <p>Enter your administrator credentials to unlock and view user login/logout activity logs.</p>
-      
-      <div id="gateAlert" class="alert alert-danger hidden" style="margin-bottom:16px; font-size:0.85rem; padding:10px 14px;"></div>
-
-      <form id="gateForm" onsubmit="handleGateUnlock(event)">
-        <div class="gate-form-group">
-          <label for="gateUser">Username</label>
-          <input type="text" id="gateUser" class="form-control" placeholder="Enter username (e.g. admin)" required autocomplete="username" autofocus>
-        </div>
-        <div class="gate-form-group">
-          <label for="gatePass">Password</label>
-          <input type="password" id="gatePass" class="form-control" placeholder="Enter password" required autocomplete="current-password">
-        </div>
-        <div style="display:flex; gap:10px; margin-top:20px;">
-          <a href="/pages/admin/dashboard.html" class="btn btn-outline" style="flex:1; justify-content:center;">Cancel</a>
-          <button type="submit" id="gateBtn" class="btn btn-primary" style="flex:2; justify-content:center;">
-            Unlock Time Line
-          </button>
-        </div>
-      </form>
-      <div style="margin-top:16px; font-size:0.75rem; color:var(--text-muted);">
-        🔒 Security Gate: Credentials are re-verified every time you open this page
-      </div>
-    </div>
-  </div>
 
   <!-- ==================== MAIN PAGE CONTENT ==================== -->
   <div class="app-layout">
@@ -218,14 +32,11 @@
             <p>Monitors exact times users login, stay active, and log off/close the tool with user details.</p>
           </div>
           <div class="flex gap-1" style="align-items:center;">
-            <button class="btn btn-outline btn-sm" onclick="lockGate()" title="Lock this page immediately">
-              🔒 Lock Page
-            </button>
             <button class="btn btn-outline btn-sm" onclick="loadTimeline()">
-              🔄 Refresh
+              <img src="/assets/icons/refresh.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="refresh"> Refresh
             </button>
             <button class="btn btn-primary btn-sm" onclick="openManualLogModal()">
-              ➕ Add Manual Time Log
+              <img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Add Manual Time Log
             </button>
           </div>
         </div>
@@ -237,28 +48,28 @@
               <div class="timeline-stat-val" id="statTotalSessions">0</div>
               <div class="timeline-stat-lbl">Total Recorded Sessions</div>
             </div>
-            <div style="font-size:2rem; opacity:0.6;">⏱️</div>
+            <div style="font-size:2rem; opacity:0.6;"><img src="/assets/icons/clock.svg" style="width:28px;height:28px;" alt="sessions"></div>
           </div>
           <div class="timeline-stat-card">
             <div>
               <div class="timeline-stat-val" style="color:#10b981;" id="statActiveSessions">0</div>
               <div class="timeline-stat-lbl">Currently Active Now</div>
             </div>
-            <div style="font-size:2rem; opacity:0.6;">🟢</div>
+            <div style="font-size:2rem; opacity:0.6;"><img src="/assets/icons/circle-green.svg" style="width:28px;height:28px;" alt="active"></div>
           </div>
           <div class="timeline-stat-card">
             <div>
               <div class="timeline-stat-val" id="statTodayLogins">0</div>
               <div class="timeline-stat-lbl">Today's Logins</div>
             </div>
-            <div style="font-size:2rem; opacity:0.6;">📅</div>
+            <div style="font-size:2rem; opacity:0.6;"><img src="/assets/icons/calendar.svg" style="width:28px;height:28px;" alt="today"></div>
           </div>
           <div class="timeline-stat-card">
             <div>
               <div class="timeline-stat-val" style="color:var(--color-primary);" id="statUniqueUsers">0</div>
               <div class="timeline-stat-lbl">Unique Users Tracked</div>
             </div>
-            <div style="font-size:2rem; opacity:0.6;">👤</div>
+            <div style="font-size:2rem; opacity:0.6;"><img src="/assets/icons/user.svg" style="width:28px;height:28px;" alt="users"></div>
           </div>
         </div>
 
@@ -303,7 +114,7 @@
                 </tr>
               </thead>
               <tbody id="timelineTableBody">
-                <tr><td colspan="9" class="text-center text-muted" style="padding:32px;">Please authenticate to load time line records...</td></tr>
+                <tr><td colspan="9" class="text-center text-muted" style="padding:32px;">Loading time line activity records...</td></tr>
               </tbody>
             </table>
           </div>
@@ -367,79 +178,12 @@
 
   <script>
     let allTimelineLogs = [];
-    let isGateUnlocked = false;
 
     document.addEventListener('DOMContentLoaded', () => {
       if (!requireAuth(['admin'])) return;
       renderLayout('admin', 'Time Line', 'time-line.html');
-
-      // The security gate modal is always displayed when this page is opened
-      const gate = document.getElementById('timelineGate');
-      if (gate) gate.style.display = 'flex';
-      
-      // Focus username input
-      setTimeout(() => {
-        const u = document.getElementById('gateUser');
-        if (u) u.focus();
-      }, 100);
+      loadTimeline();
     });
-
-    // Gate Unlock Handler
-    async function handleGateUnlock(e) {
-      e.preventDefault();
-      const userVal = document.getElementById('gateUser').value.trim();
-      const passVal = document.getElementById('gatePass').value;
-      const alertDiv = document.getElementById('gateAlert');
-      const btn = document.getElementById('gateBtn');
-
-      if (!userVal || !passVal) {
-        alertDiv.textContent = 'Please enter both username and password';
-        alertDiv.classList.remove('hidden');
-        return;
-      }
-
-      btn.disabled = true;
-      btn.textContent = 'Verifying...';
-      if (alertDiv) alertDiv.classList.add('hidden');
-
-      try {
-        const res = await fetch('/api/auth/verify-gate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: userVal, password: passVal })
-        });
-        const data = await res.json();
-
-        if (res.ok && data.success) {
-          isGateUnlocked = true;
-          const gate = document.getElementById('timelineGate');
-          if (gate) gate.style.display = 'none';
-
-          // Reset gate fields for security
-          document.getElementById('gatePass').value = '';
-
-          // Load data
-          loadTimeline();
-        } else {
-          alertDiv.textContent = data.message || 'Invalid username or password.';
-          alertDiv.classList.remove('hidden');
-        }
-      } catch (err) {
-        alertDiv.textContent = 'Network or server error verifying credentials.';
-        alertDiv.classList.remove('hidden');
-      }
-
-      btn.disabled = false;
-      btn.textContent = 'Unlock Time Line';
-    }
-
-    function lockGate() {
-      isGateUnlocked = false;
-      document.getElementById('gatePass').value = '';
-      const gate = document.getElementById('timelineGate');
-      if (gate) gate.style.display = 'flex';
-      document.getElementById('gatePass').focus();
-    }
 
     // Load timeline data from server
     async function loadTimeline() {
@@ -559,7 +303,7 @@
             </td>
             <td style="text-align:right;">
               <button class="btn btn-outline btn-sm" style="color:var(--color-danger); padding:4px 8px;" onclick="deleteLog(${item.id})" title="Delete log">
-                🗑️
+                <img src="/assets/icons/trash.svg" style="width:13px;height:13px;vertical-align:middle;" alt="delete">
               </button>
             </td>
           </tr>

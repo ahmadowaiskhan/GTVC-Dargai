@@ -15,139 +15,6 @@
   <title>Admin Database Control Center — GTVC Dargai</title>
   <link rel="stylesheet" href="/assets/style.css">
   <script src="/app.js" defer></script>
-  <style>
-    .control-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    .control-card {
-      background: var(--bg-surface);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius);
-      padding: 18px 20px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
-    }
-    .control-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-      border-color: var(--primary);
-    }
-    .control-card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .control-card-icon {
-      font-size: 1.6rem;
-      width: 42px;
-      height: 42px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg-surface-secondary, rgba(0,0,0,0.04));
-    }
-    .control-card-count {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: var(--text-color);
-      line-height: 1.1;
-    }
-    .control-card-label {
-      font-size: 0.82rem;
-      font-weight: 500;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-    .control-card-actions {
-      margin-top: 14px;
-      display: flex;
-      gap: 6px;
-    }
-
-    .safeguard-banner {
-      background: linear-gradient(135deg, rgba(59, 130, 246, 0.08), rgba(16, 185, 129, 0.08));
-      border: 1px solid rgba(59, 130, 246, 0.25);
-      border-radius: var(--radius);
-      padding: 18px 22px;
-      margin-bottom: 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .admission-banner-preview {
-      background: linear-gradient(135deg, #1e3a8a, #047857);
-      color: white;
-      border-radius: 10px;
-      padding: 20px 24px;
-      margin-top: 14px;
-      box-shadow: 0 4px 14px rgba(0,0,0,0.15);
-      position: relative;
-    }
-    .admission-banner-preview h3 {
-      color: white;
-      margin: 0 0 6px;
-      font-size: 1.25rem;
-    }
-    .admission-banner-preview p {
-      color: rgba(255, 255, 255, 0.9);
-      margin: 0 0 10px;
-      font-size: 0.92rem;
-      line-height: 1.4;
-    }
-    .admission-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 16px;
-      font-size: 0.85rem;
-      color: rgba(255, 255, 255, 0.85);
-    }
-    .switch-toggle {
-      position: relative;
-      display: inline-block;
-      width: 48px;
-      height: 26px;
-    }
-    .switch-toggle input {
-      opacity: 0;
-      width: 0;
-      height: 0;
-    }
-    .slider {
-      position: absolute;
-      cursor: pointer;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #ccc;
-      transition: .3s;
-      border-radius: 26px;
-    }
-    .slider:before {
-      position: absolute;
-      content: "";
-      height: 20px;
-      width: 20px;
-      left: 3px;
-      bottom: 3px;
-      background-color: white;
-      transition: .3s;
-      border-radius: 50%;
-    }
-    input:checked + .slider {
-      background-color: #22c55e;
-    }
-    input:checked + .slider:before {
-      transform: translateX(22px);
-    }
-  </style>
 </head>
 <body>
   <div class="app-layout">
@@ -160,11 +27,11 @@
         <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
           <div>
             <h1>Admin Database Control Center</h1>
-            <p>Master database oversight: create, edit, delete, rollback, and configure admissions for GTVC Dargai.</p>
+            <p>Master database oversight: create, edit, delete, rollback, and manage records for GTVC Dargai.</p>
           </div>
           <div class="btn-group">
             <span class="badge" style="background:rgba(34,197,94,0.15); color:#22c55e; border:1px solid rgba(34,197,94,0.3); padding:6px 12px; font-weight:600;">
-              🟢 MySQL Database Online
+              <img src="/assets/icons/database.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="db"> MySQL Database Online
             </span>
             <button class="btn btn-outline" onclick="loadAllAdminData()">↻ Refresh All</button>
           </div>
@@ -174,7 +41,7 @@
         <div class="safeguard-banner">
           <div>
             <div style="display:flex; align-items:center; gap:8px;">
-              <span style="font-size:1.3rem;">🛡️</span>
+              <img src="/assets/icons/shield.svg" style="width:24px;height:24px;" alt="shield">
               <h3 style="margin:0; font-size:1.05rem; color:var(--text-color);">Database Protection & Disaster Recovery Active</h3>
             </div>
             <p style="margin:4px 0 0; font-size:0.86rem; color:var(--text-muted);">
@@ -183,10 +50,10 @@
           </div>
           <div class="btn-group">
             <a href="recycle-bin.html" class="btn btn-outline btn-sm">
-              🗑️ Recycle Bin (<span id="countRecycle">0</span>)
+              <img src="/assets/icons/trash.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="recycle"> Recycle Bin (<span id="countRecycle">0</span>)
             </a>
             <a href="edit-history.html" class="btn btn-outline btn-sm">
-              📝 Edit History (<span id="countEdits">0</span>)
+              <img src="/assets/icons/history.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="history"> Edit History (<span id="countEdits">0</span>)
             </a>
           </div>
         </div>
@@ -195,26 +62,42 @@
         <div class="card mb-3" style="padding:16px 20px;">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
             <h3 class="card-title" style="margin:0; font-size:0.95rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted);">
-              ⚡ Quick Database Entry (Add Data Directly)
+              <img src="/assets/icons/bolt.svg" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;" alt="quick"> Quick Database Entry (Add Data Directly)
             </h3>
           </div>
           <div class="btn-group" style="flex-wrap:wrap; gap:10px;">
-            <button class="btn btn-primary" onclick="openModal('modalAddStudent')">➕ Add New Student</button>
-            <button class="btn btn-success" onclick="openModal('modalAddTeacher')">➕ Add New Teacher</button>
-            <button class="btn btn-outline" onclick="openModal('modalAddCourse')">➕ Add New Course</button>
-            <button class="btn btn-outline" onclick="openModal('modalAddResult')">➕ Add Exam Result</button>
-            <button class="btn btn-outline" onclick="openModal('modalAddNotice')">📢 Post Notice</button>
-            <a href="accounting.html" class="btn btn-outline">💰 Record Bill / Expense</a>
+            <button class="btn btn-primary" onclick="openModal('modalAddStudent')"><img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Add New Student</button>
+            <button class="btn btn-success" onclick="openModal('modalAddTeacher')"><img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Add New Teacher</button>
+            <button class="btn btn-outline" onclick="openModal('modalAddCourse')"><img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Add New Course</button>
+            <button class="btn btn-outline" onclick="openModal('modalAddResult')"><img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Add Exam Result</button>
+            <a href="sessions.html" class="btn btn-outline"><img src="/assets/icons/calendar.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="sessions"> Sessions & Admissions</a>
+            <a href="accounting.html" class="btn btn-outline"><img src="/assets/icons/money.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="accounting"> Record Bill / Expense</a>
+            <a href="storage-manager.html" class="btn btn-outline"><img src="/assets/icons/database.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="storage"> Storage & Partitions</a>
           </div>
         </div>
 
         <!-- Master Database Table Counters -->
         <div class="control-grid">
+          <!-- Sessions -->
+          <div class="control-card">
+            <div>
+              <div class="control-card-header">
+                <span class="control-card-icon"><img src="/assets/icons/calendar.svg" style="width:24px;height:24px;" alt="sessions"></span>
+                <span class="badge" style="background:rgba(6,182,212,0.15); color:#0891b2;">Academic</span>
+              </div>
+              <div class="control-card-count" id="countSessions">0</div>
+              <div class="control-card-label">Academic Sessions / Batches</div>
+            </div>
+            <div class="control-card-actions">
+              <a href="sessions.html" class="btn btn-outline btn-sm" style="flex:1; justify-content:center;">View Sessions</a>
+            </div>
+          </div>
+
           <!-- Students -->
           <div class="control-card">
             <div>
               <div class="control-card-header">
-                <span class="control-card-icon">🎓</span>
+                <span class="control-card-icon"><img src="/assets/icons/graduation.svg" style="width:24px;height:24px;" alt="students"></span>
                 <span class="badge" style="background:rgba(59,130,246,0.15); color:#3b82f6;">Active</span>
               </div>
               <div class="control-card-count" id="countStudents">0</div>
@@ -230,14 +113,14 @@
           <div class="control-card">
             <div>
               <div class="control-card-header">
-                <span class="control-card-icon">👨‍🏫</span>
+                <span class="control-card-icon"><img src="/assets/icons/teacher.svg" style="width:24px;height:24px;" alt="teachers"></span>
                 <span class="badge" style="background:rgba(16,185,129,0.15); color:#10b981;">Faculty</span>
               </div>
               <div class="control-card-count" id="countTeachers">0</div>
               <div class="control-card-label">Faculty Teachers</div>
             </div>
             <div class="control-card-actions">
-              <a href="manage-teachers.html" class="btn btn-outline btn-sm" style="flex:1; justify-content:center;">Manage Faculty</a>
+              <a href="user.html?role=teacher" class="btn btn-outline btn-sm" style="flex:1; justify-content:center;">Manage Faculty</a>
             </div>
           </div>
 
@@ -245,7 +128,7 @@
           <div class="control-card">
             <div>
               <div class="control-card-header">
-                <span class="control-card-icon">📚</span>
+                <span class="control-card-icon"><img src="/assets/icons/book.svg" style="width:24px;height:24px;" alt="courses"></span>
                 <span class="badge" style="background:rgba(245,158,11,0.15); color:#f59e0b;">Trades</span>
               </div>
               <div class="control-card-count" id="countCourses">0</div>
@@ -260,7 +143,7 @@
           <div class="control-card">
             <div>
               <div class="control-card-header">
-                <span class="control-card-icon">📊</span>
+                <span class="control-card-icon"><img src="/assets/icons/chart.svg" style="width:24px;height:24px;" alt="results"></span>
                 <span class="badge" style="background:rgba(139,92,246,0.15); color:#8b5cf6;">Exams</span>
               </div>
               <div class="control-card-count" id="countResults">0</div>
@@ -275,7 +158,7 @@
           <div class="control-card">
             <div>
               <div class="control-card-header">
-                <span class="control-card-icon">💰</span>
+                <span class="control-card-icon"><img src="/assets/icons/money.svg" style="width:24px;height:24px;" alt="funds"></span>
                 <span class="badge" style="background:rgba(34,197,94,0.15); color:#22c55e;">Finance</span>
               </div>
               <div class="control-card-count" id="countBalance" style="font-size:1.4rem;">PKR 0</div>
@@ -290,86 +173,145 @@
           <div class="control-card">
             <div>
               <div class="control-card-header">
-                <span class="control-card-icon">👥</span>
+                <span class="control-card-icon"><img src="/assets/icons/users.svg" style="width:24px;height:24px;" alt="users"></span>
                 <span class="badge" style="background:rgba(107,114,128,0.15); color:#6b7280;">Logins</span>
               </div>
               <div class="control-card-count" id="countUsers">0</div>
               <div class="control-card-label">System User Accounts</div>
             </div>
             <div class="control-card-actions">
-              <a href="manage-users.html" class="btn btn-outline btn-sm" style="flex:1; justify-content:center;">Manage Users</a>
+              <a href="user.html" class="btn btn-outline btn-sm" style="flex:1; justify-content:center;">Manage Users</a>
             </div>
           </div>
         </div>
 
-        <!-- Admission Advertisement & Notification Controller -->
-        <div class="card mb-3">
-          <div class="card-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <!-- Database Storage, Partitions & Multi-Location Manager -->
+        <div class="storage-panel" id="storageSection">
+          <div class="storage-header">
             <div>
-              <h3 class="card-title" style="margin:0;">📢 Admission Advertisement & Notice Controller</h3>
-              <p style="margin:4px 0 0; font-size:0.85rem; color:var(--text-muted);">
-                Open or close college admissions advertisement and broadcast updates to prospective students.
+              <div style="display:flex; align-items:center; gap:8px;">
+                <img src="/assets/icons/database.svg" style="width:22px;height:22px;" alt="db">
+                <h2 style="margin:0; font-size:1.25rem; color:var(--text-color);">Database Storage, Partitions & Multi-Location Manager</h2>
+              </div>
+              <p style="margin:4px 0 0; font-size:0.86rem; color:var(--text-muted);">
+                Select drive partition (C:, D:, F:, etc.), configure primary and redundant database storage folders, and monitor real-time disk space usage.
               </p>
             </div>
-            <div style="display:flex; align-items:center; gap:12px;">
-              <span id="admissionStatusBadge" class="badge" style="font-size:0.85rem; padding:6px 12px; font-weight:600;">
-                Checking...
-              </span>
-              <label class="switch-toggle" title="Toggle Admissions Open / Closed">
-                <input type="checkbox" id="toggleAdmissionOpen" onchange="handleAdmissionToggleChange()">
-                <span class="slider"></span>
-              </label>
+            <div class="btn-group" style="flex-wrap:wrap; gap:8px;">
+              <a href="storage-manager.html" class="btn btn-outline" style="border-color:var(--color-primary); color:var(--color-primary); font-weight:600;">
+                <img src="/assets/icons/folder.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="storage"> Open Storage Manager ↗
+              </a>
+              <button class="btn btn-primary" onclick="openAddLocationModal()">
+                <img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Add Storage / Backup Folder
+              </button>
+              <button class="btn btn-success" onclick="triggerBackupNow()" id="btnBackupNow">
+                <img src="/assets/icons/shield.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="backup"> Backup Database Now (All Locations)
+              </button>
+              <button class="btn btn-outline" onclick="openTableBreakdownModal()">
+                <img src="/assets/icons/chart.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="breakdown"> Table Storage Details
+              </button>
+              <button class="btn btn-outline" onclick="loadStorageData()">
+                ↻ Refresh Storage
+              </button>
             </div>
           </div>
 
-          <div style="padding:20px;">
-            <form id="admissionForm" onsubmit="saveAdmissionSettings(event)">
-              <div class="form-row">
-                <div class="form-group" style="flex:2;">
-                  <label class="form-label">Advertisement Banner Title *</label>
-                  <input type="text" id="admTitle" class="form-input" required placeholder="e.g. Admissions Open for Session 2026-2027 — Apply Today!">
-                </div>
-                <div class="form-group" style="flex:1;">
-                  <label class="form-label">Last Date to Apply (Deadline) *</label>
-                  <input type="date" id="admDeadline" class="form-input" required>
+          <!-- Storage Metric Boxes -->
+          <div class="storage-metrics-grid">
+            <!-- Metric 1: Active Primary Location -->
+            <div class="storage-metric-box">
+              <div>
+                <div class="storage-metric-label">Active Primary Database Folder</div>
+                <div style="margin:8px 0;">
+                  <span id="primaryPartitionBadge" class="partition-badge">C:</span>
+                  <span id="primaryLocationPath" style="font-family:monospace; font-size:0.82rem; word-break:break-all; color:var(--text-color); margin-left:6px;">Loading...</span>
                 </div>
               </div>
+              <div style="font-size:0.8rem; color:var(--text-muted); display:flex; justify-content:space-between; align-items:center;">
+                <span>Role: <strong style="color:var(--primary);">Primary Store</strong></span>
+                <span id="primaryFolderSize">0 MB on disk</span>
+              </div>
+            </div>
 
-              <div class="form-group">
-                <label class="form-label">Advertisement Description / Offered Trades *</label>
-                <textarea id="admDescription" class="form-input" rows="3" required placeholder="Describe technical trades, eligibility, and scholarship benefits..."></textarea>
+            <!-- Metric 2: Total Database Storage Footprint -->
+            <div class="storage-metric-box">
+              <div>
+                <div class="storage-metric-label">Database Data Storage Size</div>
+                <div class="storage-metric-val" id="dbSizeVal" style="color:var(--primary);">0 KB</div>
               </div>
-
-              <div class="form-row">
-                <div class="form-group">
-                  <label class="form-label">Admission Inquiry Phone Number</label>
-                  <input type="text" id="admPhone" class="form-input" placeholder="0932-XXXXXX / 03XX-XXXXXXX">
-                </div>
-                <div class="form-group">
-                  <label class="form-label">Admission Inquiry Email</label>
-                  <input type="email" id="admEmail" class="form-input" placeholder="admissions@gtvcdargai.edu.pk">
-                </div>
+              <div style="font-size:0.8rem; color:var(--text-muted);" id="dbTablesCountText">
+                Across 16 active tables + uploads
               </div>
+            </div>
 
-              <!-- Live Banner Preview -->
-              <div style="margin-top:10px;">
-                <label class="form-label">Live Advertisement Banner Preview:</label>
-                <div class="admission-banner-preview" id="bannerPreview">
-                  <span id="bannerStatusPill" class="badge" style="background:#22c55e; color:white; margin-bottom:8px; display:inline-block;">🟢 ADMISSIONS OPEN</span>
-                  <h3 id="prevTitle">Admissions Open for Session 2026-2027 — Apply Today!</h3>
-                  <p id="prevDesc">Government Technical & Vocational Centre Dargai announces admissions for Technical & Vocational Courses.</p>
-                  <div class="admission-meta">
-                    <span id="prevDeadline">📅 Deadline: 2026-11-30</span>
-                    <span id="prevPhone">📞 0932-411234</span>
-                    <span id="prevEmail">✉️ admissions@gtvcdargai.edu.pk</span>
-                  </div>
+            <!-- Metric 3: Active Partition Free Space -->
+            <div class="storage-metric-box">
+              <div>
+                <div class="storage-metric-label">Primary Drive Free Space</div>
+                <div class="storage-metric-val" id="primaryDriveFreeVal" style="color:#16a34a;">0 GB</div>
+              </div>
+              <div>
+                <div class="drive-progress-bar">
+                  <div id="primaryDriveProgressFill" class="drive-progress-fill" style="width:0%; background:#16a34a;"></div>
+                </div>
+                <div style="font-size:0.75rem; color:var(--text-muted); display:flex; justify-content:space-between;" id="primaryDriveCapacityText">
+                  <span>Used: 0 GB</span>
+                  <span>Total: 0 GB</span>
                 </div>
               </div>
+            </div>
 
-              <div style="margin-top:18px; display:flex; justify-content:flex-end;">
-                <button type="submit" class="btn btn-primary" id="saveAdmBtn">💾 Save Admission Settings</button>
+            <!-- Metric 4: Configured Storage Destinations -->
+            <div class="storage-metric-box">
+              <div>
+                <div class="storage-metric-label">Configured Storage Destinations</div>
+                <div class="storage-metric-val" id="storageDestCount" style="color:#8b5cf6;">1 Location</div>
               </div>
-            </form>
+              <div style="font-size:0.8rem; color:var(--text-muted);" id="storageBackupStatusText">
+                Multi-location redundancy active
+              </div>
+            </div>
+          </div>
+
+          <!-- Detected Partitions on System -->
+          <div style="margin-top:20px; margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:var(--text-color);">
+                Detected System Partitions / Drives (Click to add database folder on drive)
+              </h4>
+              <span class="text-muted" style="font-size:0.8rem;">Auto-detected from Windows</span>
+            </div>
+            <div class="drive-cards-grid" id="systemDrivesContainer">
+              <div class="text-muted" style="font-size:0.85rem; padding:12px;">Detecting drives...</div>
+            </div>
+          </div>
+
+          <!-- Configured Storage & Backup Locations Table -->
+          <div style="margin-top:16px;">
+            <h4 style="margin:0 0 10px 0; font-size:0.95rem; font-weight:600; color:var(--text-color);">
+              Configured Storage & Redundant Backup Folder Locations
+            </h4>
+            <div class="card" style="margin:0; border:1px solid var(--border-color);">
+              <div class="table-wrapper">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Partition</th>
+                      <th>Location Name</th>
+                      <th>Folder Path on Disk</th>
+                      <th>Status / Role</th>
+                      <th>Folder Space Used</th>
+                      <th>Backups Saved</th>
+                      <th>Last Backup</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="storageLocationsTableBody">
+                    <tr><td colspan="8" class="text-center text-muted" style="padding:24px;">Loading storage locations...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -378,12 +320,111 @@
     </div>
   </div>
 
+  <!-- Modal: Add / Configure Storage Location -->
+  <div class="modal-overlay" id="modalAddStorageLocation">
+    <div class="modal" style="max-width:580px;">
+      <div class="modal-header">
+        <h3 id="storageModalTitle">Add Database Storage / Backup Location</h3>
+        <button class="modal-close" onclick="closeModal('modalAddStorageLocation')"><img src="/assets/icons/close.svg" style="width:16px;height:16px;" alt="close"></button>
+      </div>
+      <form onsubmit="saveStorageLocation(event)" style="padding:20px;">
+        <input type="hidden" id="locId">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Select Partition / Drive *</label>
+            <select id="locPartitionSelect" class="form-input" onchange="onPartitionSelectChange()">
+              <option value="C:">C: System Drive</option>
+              <option value="D:">D: Secondary Drive</option>
+              <option value="custom">Other / Custom Drive...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Location Name *</label>
+            <input type="text" id="locName" class="form-input" required placeholder="e.g. Drive D Backup Folder">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label class="form-label" style="margin:0;">Target Folder Path * (e.g. D:\database or F:\gtvc_backup)</label>
+            <button type="button" class="btn btn-outline btn-sm" onclick="triggerNativeFolderPicker()" id="btnNativeBrowse" title="Browse on computer like other desktop apps">
+              <img src="/assets/icons/folder.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="browse"> Browse Folder...
+            </button>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <input type="text" id="locPath" class="form-input" required placeholder="e.g. D:\GTVC_Database" style="flex:1;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="testLocationPath()">Test Path</button>
+          </div>
+          <div id="pathTestResult" style="font-size:0.8rem; margin-top:4px;"></div>
+        </div>
+
+        <div class="form-group" style="margin-top:14px; background:var(--bg-hover); padding:12px; border-radius:6px;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem; font-weight:600;">
+            <input type="checkbox" id="locIsPrimary">
+            <span>Set as Primary Database Storage Location</span>
+          </label>
+          <p style="margin:4px 0 0 24px; font-size:0.78rem; color:var(--text-muted);">
+            If selected, this becomes the primary folder for database operations and exports.
+          </p>
+        </div>
+
+        <div class="form-group" style="background:var(--bg-hover); padding:12px; border-radius:6px;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem; font-weight:600;">
+            <input type="checkbox" id="locAutoBackup" checked>
+            <span>Include in 1-Click Multi-Location Backups</span>
+          </label>
+          <p style="margin:4px 0 0 24px; font-size:0.78rem; color:var(--text-muted);">
+            When clicking "Backup Database Now", backups will automatically mirror to this folder.
+          </p>
+        </div>
+
+        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modalAddStorageLocation')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveLoc">Save Location</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Table Storage Breakdown -->
+  <div class="modal-overlay" id="modalTableBreakdown">
+    <div class="modal" style="max-width:750px; max-height:85vh; display:flex; flex-direction:column;">
+      <div class="modal-header">
+        <div>
+          <h3 style="margin:0;">Database Tables Storage Footprint</h3>
+          <p class="text-muted" style="margin:4px 0 0; font-size:0.85rem;" id="breakdownSubtitle">Detailed storage consumption by each table in gtvc_db</p>
+        </div>
+        <button class="modal-close" onclick="closeModal('modalTableBreakdown')"><img src="/assets/icons/close.svg" style="width:16px;height:16px;" alt="close"></button>
+      </div>
+      <div class="table-wrapper" style="flex:1; overflow-y:auto; padding:16px;">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Table Name</th>
+              <th>Total Rows</th>
+              <th>Size (KB)</th>
+              <th>Size (MB)</th>
+              <th>Share</th>
+            </tr>
+          </thead>
+          <tbody id="tableBreakdownBody">
+            <tr><td colspan="6" class="text-center text-muted" style="padding:24px;">Loading table sizes...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer" style="padding:14px 20px; border-top:1px solid var(--border-color); display:flex; justify-content:flex-end;">
+        <button class="btn btn-outline" onclick="closeModal('modalTableBreakdown')">Close</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Modal 1: Add New Teacher -->
   <div class="modal-overlay" id="modalAddTeacher">
     <div class="modal" style="max-width:650px;">
       <div class="modal-header">
         <h3>Add New Teacher / Faculty</h3>
-        <button class="modal-close" onclick="closeModal('modalAddTeacher')">✕</button>
+        <button class="modal-close" onclick="closeModal('modalAddTeacher')"><img src="/assets/icons/close.svg" style="width:16px;height:16px;" alt="close"></button>
       </div>
       <form onsubmit="saveTeacherDirect(event)" style="padding:20px;">
         <div class="form-row">
@@ -429,7 +470,7 @@
     <div class="modal" style="max-width:550px;">
       <div class="modal-header">
         <h3>Add New Technical Course / Trade</h3>
-        <button class="modal-close" onclick="closeModal('modalAddCourse')">✕</button>
+        <button class="modal-close" onclick="closeModal('modalAddCourse')"><img src="/assets/icons/close.svg" style="width:16px;height:16px;" alt="close"></button>
       </div>
       <form onsubmit="saveCourseDirect(event)" style="padding:20px;">
         <div class="form-group">
@@ -463,7 +504,7 @@
     <div class="modal" style="max-width:600px;">
       <div class="modal-header">
         <h3>Record Student Exam Result</h3>
-        <button class="modal-close" onclick="closeModal('modalAddResult')">✕</button>
+        <button class="modal-close" onclick="closeModal('modalAddResult')"><img src="/assets/icons/close.svg" style="width:16px;height:16px;" alt="close"></button>
       </div>
       <form onsubmit="saveResultDirect(event)" style="padding:20px;">
         <div class="form-row">
@@ -519,44 +560,13 @@
     </div>
   </div>
 
-  <!-- Modal 4: Post Notice -->
-  <div class="modal-overlay" id="modalAddNotice">
-    <div class="modal" style="max-width:600px;">
-      <div class="modal-header">
-        <h3>Post Official College Notice</h3>
-        <button class="modal-close" onclick="closeModal('modalAddNotice')">✕</button>
-      </div>
-      <form onsubmit="saveNoticeDirect(event)" style="padding:20px;">
-        <div class="form-group">
-          <label class="form-label">Notice Title *</label>
-          <input type="text" id="nTitle" class="form-input" required placeholder="e.g. Commencement of Practical Examinations">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Target Audience *</label>
-          <select id="nTarget" class="form-select" required>
-            <option value="all">Everyone (All Students & Teachers)</option>
-            <option value="student">Students Only</option>
-            <option value="teacher">Teachers & Staff Only</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Notice Announcement Body *</label>
-          <textarea id="nContent" class="form-input" rows="4" required placeholder="Type the full notice announcement here..."></textarea>
-        </div>
-        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
-          <button type="button" class="btn btn-outline" onclick="closeModal('modalAddNotice')">Cancel</button>
-          <button type="submit" class="btn btn-primary" id="btnSaveNotice">Publish Notice</button>
-        </div>
-      </form>
-    </div>
-  </div>
 
   <!-- Modal 5: Quick Add Student -->
   <div class="modal-overlay" id="modalAddStudent">
     <div class="modal" style="max-width:650px;">
       <div class="modal-header">
         <h3>Quick Add Student</h3>
-        <button class="modal-close" onclick="closeModal('modalAddStudent')">✕</button>
+        <button class="modal-close" onclick="closeModal('modalAddStudent')"><img src="/assets/icons/close.svg" style="width:16px;height:16px;" alt="close"></button>
       </div>
       <form onsubmit="saveQuickStudent(event)" style="padding:20px;">
         <div class="form-row">
@@ -597,7 +607,7 @@
           </div>
         </div>
         <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px; margin-top:16px;">
-          <a href="student-details.html" class="btn btn-outline" style="margin-right:auto;">Full Profile Form ↗</a>
+          <a href="student-details.html" class="btn btn-outline" style="margin-right:auto;">Full Profile Form</a>
           <button type="button" class="btn btn-outline" onclick="closeModal('modalAddStudent')">Cancel</button>
           <button type="submit" class="btn btn-primary" id="btnSaveQuickStudent">Register Student</button>
         </div>
@@ -615,14 +625,11 @@
       if (!requireAuth(['admin'])) return;
       renderLayout('admin', 'Admin Database Control', 'dashboard.html');
 
-      // Bind input live preview
-      ['admTitle', 'admDeadline', 'admDescription', 'admPhone', 'admEmail'].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener('input', updateBannerPreview);
-      });
+      // (advertisement/notice listeners removed)
 
       await loadAllAdminData();
       await loadDropdownData();
+      await loadStorageData();
     });
 
     async function loadAllAdminData() {
@@ -638,24 +645,13 @@
           document.getElementById('countUsers').textContent = c.users || 0;
           document.getElementById('countRecycle').textContent = c.recycleBin || 0;
           document.getElementById('countEdits').textContent = c.editLog || 0;
+          if (document.getElementById('countSessions')) document.getElementById('countSessions').textContent = c.sessions || 0;
 
           // Financial balance
           const fin = res.finance || {};
           document.getElementById('countBalance').textContent = 'PKR ' + Number(fin.balance || 0).toLocaleString();
-
-          // Admission settings
-          const s = res.settings || {};
-          const isOpen = s.admission_open === '1';
-          document.getElementById('toggleAdmissionOpen').checked = isOpen;
-          document.getElementById('admTitle').value = s.admission_title || '';
-          document.getElementById('admDeadline').value = s.admission_deadline || '';
-          document.getElementById('admDescription').value = s.admission_description || '';
-          document.getElementById('admPhone').value = s.admission_phone || '';
-          document.getElementById('admEmail').value = s.admission_email || '';
-
-          updateAdmissionBadge(isOpen);
-          updateBannerPreview();
         }
+        await loadStorageData();
       } catch (err) {
         console.error('Failed to load stats', err);
       }
@@ -706,81 +702,6 @@
       }
     }
 
-    function updateAdmissionBadge(isOpen) {
-      const badge = document.getElementById('admissionStatusBadge');
-      const pill = document.getElementById('bannerStatusPill');
-      if (isOpen) {
-        badge.textContent = '🟢 Admissions Open';
-        badge.style.background = 'rgba(34, 197, 94, 0.15)';
-        badge.style.color = '#22c55e';
-        badge.style.border = '1px solid rgba(34, 197, 94, 0.3)';
-
-        pill.textContent = '🟢 ADMISSIONS OPEN';
-        pill.style.background = '#22c55e';
-        document.getElementById('bannerPreview').style.opacity = '1';
-      } else {
-        badge.textContent = '🔴 Admissions Closed';
-        badge.style.background = 'rgba(239, 68, 68, 0.15)';
-        badge.style.color = '#ef4444';
-        badge.style.border = '1px solid rgba(239, 68, 68, 0.3)';
-
-        pill.textContent = '🔴 ADMISSIONS CLOSED';
-        pill.style.background = '#ef4444';
-        document.getElementById('bannerPreview').style.opacity = '0.65';
-      }
-    }
-
-    function handleAdmissionToggleChange() {
-      const isOpen = document.getElementById('toggleAdmissionOpen').checked;
-      updateAdmissionBadge(isOpen);
-    }
-
-    function updateBannerPreview() {
-      const title = document.getElementById('admTitle').value.trim() || 'Admissions Open';
-      const desc = document.getElementById('admDescription').value.trim() || 'No description entered.';
-      const dl = document.getElementById('admDeadline').value;
-      const ph = document.getElementById('admPhone').value.trim();
-      const em = document.getElementById('admEmail').value.trim();
-
-      document.getElementById('prevTitle').textContent = title;
-      document.getElementById('prevDesc').textContent = desc;
-      document.getElementById('prevDeadline').textContent = '📅 Deadline: ' + (dl ? new Date(dl).toLocaleDateString() : 'N/A');
-      document.getElementById('prevPhone').textContent = ph ? '📞 ' + ph : '';
-      document.getElementById('prevEmail').textContent = em ? '✉️ ' + em : '';
-    }
-
-    async function saveAdmissionSettings(e) {
-      e.preventDefault();
-      const isOpen = document.getElementById('toggleAdmissionOpen').checked;
-      const payload = {
-        admission_open: isOpen ? '1' : '0',
-        admission_title: document.getElementById('admTitle').value.trim(),
-        admission_deadline: document.getElementById('admDeadline').value,
-        admission_description: document.getElementById('admDescription').value.trim(),
-        admission_phone: document.getElementById('admPhone').value.trim(),
-        admission_email: document.getElementById('admEmail').value.trim()
-      };
-
-      const btn = document.getElementById('saveAdmBtn');
-      btn.disabled = true;
-      btn.textContent = 'Saving...';
-
-      try {
-        const res = await apiCall('/api/admin/settings', 'POST', payload);
-        if (res && res.success) {
-          alert('✅ Admission advertisement settings saved successfully!');
-          await loadAllAdminData();
-        } else {
-          alert('Could not save admission settings.');
-        }
-      } catch (err) {
-        alert('Error: ' + err.message);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = '💾 Save Admission Settings';
-      }
-    }
-
     // Modal Helpers
     function openModal(id) {
       document.getElementById(id).classList.add('active');
@@ -804,7 +725,7 @@
       try {
         const res = await apiCall('/api/admin/teachers', 'POST', payload);
         if (res && res.success) {
-          alert('✅ Teacher added successfully!');
+          alert('Teacher added successfully!');
           closeModal('modalAddTeacher');
           await loadAllAdminData();
         } else {
@@ -824,7 +745,7 @@
       try {
         const res = await apiCall('/api/admin/courses', 'POST', payload);
         if (res && res.success) {
-          alert('✅ Course created successfully!');
+          alert('Course created successfully!');
           closeModal('modalAddCourse');
           await loadAllAdminData();
           await loadDropdownData();
@@ -848,7 +769,7 @@
       try {
         const res = await apiCall('/api/admin/results', 'POST', payload);
         if (res && res.success) {
-          alert('✅ Exam result logged successfully!');
+          alert('Exam result logged successfully!');
           closeModal('modalAddResult');
           await loadAllAdminData();
         } else {
@@ -857,24 +778,6 @@
       } catch (err) { alert(err.message); }
     }
 
-    async function saveNoticeDirect(e) {
-      e.preventDefault();
-      const payload = {
-        title: document.getElementById('nTitle').value.trim(),
-        target_role: document.getElementById('nTarget').value,
-        content: document.getElementById('nContent').value.trim()
-      };
-      try {
-        const res = await apiCall('/api/notices', 'POST', payload);
-        if (res && res.success) {
-          alert('📢 Notice published successfully!');
-          closeModal('modalAddNotice');
-          await loadAllAdminData();
-        } else {
-          alert(res && res.message ? res.message : 'Failed to post notice');
-        }
-      } catch (err) { alert(err.message); }
-    }
 
     async function saveQuickStudent(e) {
       e.preventDefault();
@@ -890,7 +793,7 @@
       try {
         const res = await apiCall('/api/admin/students', 'POST', payload);
         if (res && res.success) {
-          alert('✅ Student registered successfully!');
+          alert('Student registered successfully!');
           closeModal('modalAddStudent');
           await loadAllAdminData();
         } else {
@@ -898,6 +801,402 @@
         }
       } catch (err) { alert(err.message); }
     }
+
+    // ==================== STORAGE & PARTITION MANAGER ====================
+    let globalStorageData = null;
+
+    async function loadStorageData() {
+      try {
+        const data = await apiCall('/api/admin/database/storage');
+        if (data) {
+          globalStorageData = data;
+          renderStorageUI(data);
+        }
+      } catch (err) {
+        console.error('Failed to load storage metrics', err);
+      }
+    }
+
+    function renderStorageUI(data) {
+      const { drives, primaryLocation, locations, dbStats } = data;
+
+      // 1. Metric 1: Primary location
+      const primaryLocObj = (locations && locations.find(l => l.isPrimary)) || (locations && locations[0]) || {};
+      const primaryPart = primaryLocObj.partition || 'C:';
+      document.getElementById('primaryPartitionBadge').textContent = primaryPart;
+      document.getElementById('primaryLocationPath').textContent = primaryLocation || primaryLocObj.path || 'N/A';
+      document.getElementById('primaryFolderSize').textContent = `${primaryLocObj.folderSizeMB || 0} MB on disk`;
+
+      // 2. Metric 2: DB Data storage size
+      const totalMB = dbStats ? dbStats.totalCombinedMB : 0;
+      const mysqlKB = dbStats ? dbStats.mysqlTotalKB : 0;
+      document.getElementById('dbSizeVal').textContent = totalMB > 1 ? `${totalMB} MB` : `${mysqlKB} KB`;
+      document.getElementById('dbTablesCountText').textContent = `Across ${dbStats ? dbStats.tablesCount : 0} MySQL tables + uploads`;
+
+      // 3. Metric 3: Primary Drive Free Space
+      const primaryDrive = (drives && drives.find(d => primaryPart.toUpperCase().startsWith(d.driveLetter.toUpperCase()))) || (drives && drives[0]);
+      if (primaryDrive) {
+        document.getElementById('primaryDriveFreeVal').textContent = `${primaryDrive.freeGB} GB Free`;
+        const fill = document.getElementById('primaryDriveProgressFill');
+        fill.style.width = `${primaryDrive.usedPercent}%`;
+        fill.style.background = primaryDrive.usedPercent > 90 ? '#dc2626' : (primaryDrive.usedPercent > 75 ? '#d97706' : '#16a34a');
+        document.getElementById('primaryDriveCapacityText').innerHTML = `
+          <span>Used: <b>${primaryDrive.usedGB} GB</b> (${primaryDrive.usedPercent}%)</span>
+          <span>Drive ${primaryDrive.driveLetter} Total: <b>${primaryDrive.totalGB} GB</b></span>
+        `;
+      }
+
+      // 4. Metric 4: Destinations count
+      const locLen = locations ? locations.length : 0;
+      document.getElementById('storageDestCount').textContent = `${locLen} Location${locLen !== 1 ? 's' : ''}`;
+      const autoCount = locations ? locations.filter(l => l.autoBackup).length : 0;
+      document.getElementById('storageBackupStatusText').textContent = `${autoCount} folder(s) included in auto-backup`;
+
+      // 5. System Drives Cards
+      const drivesContainer = document.getElementById('systemDrivesContainer');
+      if (drives && drives.length > 0) {
+        drivesContainer.innerHTML = drives.map(d => {
+          const isPrimary = primaryPart.toUpperCase().startsWith(d.driveLetter.toUpperCase());
+          const barColor = d.usedPercent > 90 ? '#dc2626' : (d.usedPercent > 75 ? '#d97706' : '#16a34a');
+          return `
+            <div class="drive-card ${isPrimary ? 'active' : ''}" onclick="selectDriveForStorage('${d.driveLetter}')" title="Click to add storage folder on partition ${d.driveLetter}">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="partition-badge">${d.driveLetter}</span>
+                ${isPrimary ? '<span class="badge" style="background:rgba(37,99,235,0.15); color:var(--primary); font-size:0.7rem;">Primary Drive</span>' : ''}
+              </div>
+              <div style="font-weight:600; font-size:0.85rem; margin-top:6px; color:var(--text-color);">${d.name}</div>
+              <div class="drive-progress-bar">
+                <div class="drive-progress-fill" style="width:${d.usedPercent}%; background:${barColor};"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted);">
+                <span><b>${d.freeGB} GB</b> free</span>
+                <span>${d.totalGB} GB</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        drivesContainer.innerHTML = '<div class="text-muted" style="padding:8px;">No logical drives detected.</div>';
+      }
+
+      // 6. Configured Locations Table
+      const tbody = document.getElementById('storageLocationsTableBody');
+      if (locations && locations.length > 0) {
+        tbody.innerHTML = locations.map((loc, idx) => {
+          const isPrimary = loc.isPrimary;
+          const statusBadge = isPrimary 
+            ? '<span class="badge" style="background:rgba(37,99,235,0.15); color:var(--primary); font-weight:600;">Primary Storage</span>'
+            : (loc.autoBackup 
+                ? '<span class="badge" style="background:rgba(16,185,129,0.15); color:#16a34a;">Redundant Backup</span>'
+                : '<span class="badge" style="background:rgba(107,114,128,0.15); color:#6b7280;">Mirror Archive</span>');
+
+          const lastBackup = loc.lastBackupAt 
+            ? new Date(loc.lastBackupAt).toLocaleString() 
+            : '<span class="text-muted">Not yet backed up</span>';
+
+          const driveFree = loc.driveInfo ? `${loc.driveInfo.freeGB} GB free` : '';
+
+          return `
+            <tr style="${isPrimary ? 'background:rgba(37,99,235,0.03);' : ''}">
+              <td><span class="partition-badge">${escapeHtml(loc.partition)}</span></td>
+              <td>
+                <strong>${escapeHtml(loc.name)}</strong>
+                ${driveFree ? `<div class="text-muted" style="font-size:0.75rem;">Partition: ${driveFree}</div>` : ''}
+              </td>
+              <td>
+                <span style="font-family:monospace; font-size:0.82rem; word-break:break-all;">${escapeHtml(loc.path)}</span>
+                ${!loc.exists ? '<div style="color:#dc2626; font-size:0.75rem;">⚠️ Folder does not exist on disk</div>' : ''}
+              </td>
+              <td>${statusBadge}</td>
+              <td>
+                <strong>${loc.folderSizeMB} MB</strong>
+                <div class="text-muted" style="font-size:0.75rem;">${(loc.folderSizeBytes || 0).toLocaleString()} bytes</div>
+              </td>
+              <td>
+                <span class="badge" style="background:var(--bg-hover); color:var(--text-color); border:1px solid var(--border-color);">
+                  ${loc.backupCount || 0} .sql file(s)
+                </span>
+              </td>
+              <td style="font-size:0.8rem;">${lastBackup}</td>
+              <td>
+                <div class="btn-group">
+                  ${!isPrimary ? `<button class="btn btn-outline btn-sm" onclick="setPrimaryLocation(${loc.id})" title="Switch to this location as Primary">Make Primary</button>` : ''}
+                  <button class="btn btn-outline btn-sm" onclick="testLocationPathDirect('${escapeJs(loc.path)}')">Test</button>
+                  ${!isPrimary ? `<button class="btn btn-danger btn-sm" onclick="deleteStorageLocation(${loc.id}, '${escapeJs(loc.name)}')">Remove</button>` : ''}
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } else {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted" style="padding:20px;">No storage locations configured.</td></tr>';
+      }
+    }
+
+    function selectDriveForStorage(driveLetter) {
+      openAddLocationModal(driveLetter);
+    }
+
+    function openAddLocationModal(prefillDrive) {
+      document.getElementById('locId').value = '';
+      document.getElementById('pathTestResult').innerHTML = '';
+      const sel = document.getElementById('locPartitionSelect');
+      sel.innerHTML = '';
+
+      if (globalStorageData && globalStorageData.drives) {
+        globalStorageData.drives.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = d.driveLetter;
+          opt.textContent = `${d.driveLetter} ${d.name} (${d.freeGB} GB free)`;
+          sel.appendChild(opt);
+        });
+      }
+      const customOpt = document.createElement('option');
+      customOpt.value = 'custom';
+      customOpt.textContent = 'Custom Path / Network Partition...';
+      sel.appendChild(customOpt);
+
+      if (prefillDrive) {
+        sel.value = prefillDrive;
+      }
+
+      onPartitionSelectChange();
+      openModal('modalAddStorageLocation');
+    }
+
+    function onPartitionSelectChange() {
+      const part = document.getElementById('locPartitionSelect').value;
+      const pathInput = document.getElementById('locPath');
+      const nameInput = document.getElementById('locName');
+
+      if (part !== 'custom') {
+        pathInput.value = `${part}\\GTVC_Database_Backup`;
+        nameInput.value = `Drive ${part} Database Storage`;
+      } else {
+        pathInput.value = 'F:\\GTVC_Database';
+        nameInput.value = 'External Drive F Storage';
+      }
+    }
+
+    async function triggerNativeFolderPicker() {
+      const btn = document.getElementById('btnNativeBrowse');
+      const originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = 'Waiting for folder...';
+      const testRes = document.getElementById('pathTestResult');
+      testRes.innerHTML = '<span class="text-muted">📁 Look at your screen: Select your database folder in the Windows dialog...</span>';
+
+      try {
+        const res = await apiCall('/api/admin/database/storage/browse-folder', 'POST');
+        if (res && res.success && res.path) {
+          document.getElementById('locPath').value = res.path;
+          if (res.drive) {
+            const sel = document.getElementById('locPartitionSelect');
+            for (let i = 0; i < sel.options.length; i++) {
+              if (sel.options[i].value.toUpperCase() === res.drive.toUpperCase()) {
+                sel.selectedIndex = i;
+                break;
+              }
+            }
+          }
+          testRes.innerHTML = `<span style="color:#16a34a; font-weight:600;">✓ Selected: ${escapeHtml(res.path)}</span>`;
+          testLocationPath();
+        } else if (res && res.cancelled) {
+          testRes.innerHTML = '<span class="text-muted">Folder selection cancelled.</span>';
+        } else {
+          testRes.innerHTML = `<span style="color:#d97706;">Notice: ${res && res.message ? res.message : 'Please enter path.'}</span>`;
+        }
+      } catch (err) {
+        testRes.innerHTML = `<span style="color:#dc2626;">Error: ${err.message}</span>`;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
+    }
+
+    async function testLocationPath() {
+      const p = document.getElementById('locPath').value.trim();
+      const resEl = document.getElementById('pathTestResult');
+      if (!p) {
+        resEl.innerHTML = '<span style="color:#dc2626;">Please enter a folder path.</span>';
+        return;
+      }
+      resEl.innerHTML = '<span class="text-muted">Testing path & write permissions...</span>';
+      try {
+        const res = await apiCall('/api/admin/database/storage/test-path', 'POST', { path: p });
+        if (res && res.writable) {
+          resEl.innerHTML = `<span style="color:#16a34a; font-weight:600;">✓ Valid & Writable! Partition: ${res.drive || 'Ready'}</span>`;
+        } else {
+          resEl.innerHTML = `<span style="color:#dc2626;">✗ Error: ${res ? res.error || 'Path is not writable' : 'Test failed'}</span>`;
+        }
+      } catch (err) {
+        resEl.innerHTML = `<span style="color:#dc2626;">✗ ${err.message}</span>`;
+      }
+    }
+
+    async function testLocationPathDirect(pathStr) {
+      try {
+        const res = await apiCall('/api/admin/database/storage/test-path', 'POST', { path: pathStr });
+        if (res && res.writable) {
+          alert(`Location is valid and writable!\nFolder: ${pathStr}\nPartition: ${res.drive || 'OK'}`);
+        } else {
+          alert(`Write test failed for "${pathStr}": ${res ? res.error || 'Permission denied' : 'Unknown error'}`);
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function saveStorageLocation(e) {
+      e.preventDefault();
+      const saveBtn = document.getElementById('btnSaveLoc');
+      const origText = saveBtn.textContent;
+      
+      const pathVal = document.getElementById('locPath').value.trim();
+      const partVal = document.getElementById('locPartitionSelect').value;
+      let nameVal = document.getElementById('locName').value.trim();
+      
+      if (!pathVal) {
+        alert('Please enter or browse for a folder path on disk.');
+        return;
+      }
+      if (!nameVal) {
+        nameVal = `Storage (${partVal})`;
+      }
+
+      const payload = {
+        name: nameVal,
+        path: pathVal,
+        partition: partVal,
+        isPrimary: document.getElementById('locIsPrimary').checked,
+        autoBackup: document.getElementById('locAutoBackup').checked
+      };
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+
+      try {
+        const res = await apiCall('/api/admin/database/storage/locations', 'POST', payload);
+        if (res && (res.success || res.location)) {
+          closeModal('modalAddStorageLocation');
+          await loadStorageData();
+          alert(`✓ Database location "${payload.name}" saved successfully!\nPath: ${payload.path}`);
+        } else {
+          alert('Could not save location: ' + (res && res.message ? res.message : 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Network or server error: ' + err.message);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = origText;
+      }
+    }
+
+    async function setPrimaryLocation(id) {
+      if (!confirm('Are you sure you want to set this folder as the Primary Database Storage Location?')) {
+        return;
+      }
+      try {
+        const res = await apiCall(`/api/admin/database/storage/locations/${id}`, 'PUT', { isPrimary: true });
+        if (res && res.success) {
+          await loadStorageData();
+          alert('Primary database storage location updated!');
+        } else {
+          alert(res && res.message ? res.message : 'Failed to set primary');
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function deleteStorageLocation(id, name) {
+      if (!confirm(`Are you sure you want to remove storage location "${name}"? Existing files on disk will NOT be deleted.`)) {
+        return;
+      }
+      try {
+        const res = await apiCall(`/api/admin/database/storage/locations/${id}`, 'DELETE');
+        if (res && res.success) {
+          await loadStorageData();
+          alert('Storage location removed.');
+        } else {
+          alert(res && res.message ? res.message : 'Failed to remove location');
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function triggerBackupNow() {
+      const btn = document.getElementById('btnBackupNow');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = 'Backing up database to all locations...';
+
+      try {
+        const res = await apiCall('/api/admin/database/storage/backup-now', 'POST');
+        if (res && res.success) {
+          await loadStorageData();
+          const detailStr = (res.results || []).map(r => `• ${r.locationName} (${r.partition}): ${r.success ? '✓ Saved ' + r.fileSizeMB + ' MB' : '✗ ' + r.error}`).join('\n');
+          alert(`${res.message}\n\nDestinations:\n${detailStr}`);
+        } else {
+          alert(res && res.message ? res.message : 'Backup failed');
+        }
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    }
+
+    function openTableBreakdownModal() {
+      if (!globalStorageData || !globalStorageData.dbStats) {
+        alert('Storage stats not ready yet. Please wait a moment.');
+        return;
+      }
+
+      const { tables, mysqlTotalKB, databaseName } = globalStorageData.dbStats;
+      document.getElementById('breakdownSubtitle').textContent = `Total size: ${(mysqlTotalKB || 0).toLocaleString()} KB across ${tables.length} tables in database "${databaseName}"`;
+
+      const tbody = document.getElementById('tableBreakdownBody');
+      if (tables && tables.length > 0) {
+        tbody.innerHTML = tables.map((t, idx) => {
+          const share = mysqlTotalKB > 0 ? Math.round((t.size_kb / mysqlTotalKB) * 100) : 0;
+          return `
+            <tr>
+              <td>${idx + 1}</td>
+              <td><strong style="font-family:monospace; color:var(--primary);">${escapeHtml(t.table_name)}</strong></td>
+              <td>${(t.table_rows || 0).toLocaleString()} rows</td>
+              <td><strong>${t.size_kb} KB</strong></td>
+              <td>${t.size_mb} MB</td>
+              <td style="min-width:120px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <div style="flex:1; height:6px; background:rgba(0,0,0,0.08); border-radius:3px; overflow:hidden;">
+                    <div style="width:${share}%; height:100%; background:var(--primary); border-radius:3px;"></div>
+                  </div>
+                  <span style="font-size:0.75rem; font-weight:600;">${share}%</span>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } else {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No tables found.</td></tr>';
+      }
+
+      openModal('modalTableBreakdown');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function escapeJs(str) {
+      if (!str) return '';
+      return String(str).replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
   </script>
 </body>
 </html>
+

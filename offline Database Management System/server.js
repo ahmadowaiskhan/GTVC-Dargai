@@ -12,6 +12,7 @@ const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
+const cp = require('child_process');
 require('dotenv').config();
 
 const app = express();
@@ -22,8 +23,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'gtvc_dargai_secret_key_2024_change
 const uploadDirs = [
   path.join(__dirname, 'uploads'),
   path.join(__dirname, 'uploads', 'students'),
-  path.join(__dirname, 'uploads', 'teachers'),
-  path.join(__dirname, 'uploads', 'notices')
+  path.join(__dirname, 'uploads', 'teachers')
 ];
 uploadDirs.forEach(dir => {
   if (!fs.existsSync(dir)) {
@@ -37,7 +37,6 @@ const storage = multer.diskStorage({
     let dest = path.join(__dirname, 'uploads');
     if (file.fieldname === 'student_photo') dest = path.join(dest, 'students');
     else if (file.fieldname === 'teacher_photo') dest = path.join(dest, 'teachers');
-    else if (file.fieldname === 'notice_file') dest = path.join(dest, 'notices');
     cb(null, dest);
   },
   filename: (req, file, cb) => {
@@ -220,18 +219,7 @@ async function initDatabase() {
       );
     `);
 
-    await conn.query(`
-      CREATE TABLE IF NOT EXISTS notices (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        title VARCHAR(255) NOT NULL,
-        content TEXT NOT NULL,
-        posted_by INT NULL,
-        target_role VARCHAR(50) DEFAULT 'all',
-        file_path VARCHAR(255),
-        is_active TINYINT DEFAULT 1,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
+    // notices table removed
 
     // Recycle Bin — stores soft-deleted records
     await conn.query(`
@@ -300,14 +288,7 @@ async function initDatabase() {
       );
     `);
 
-    // Site Settings (Admission advertisement, notifications, etc.)
-    await conn.query(`
-      CREATE TABLE IF NOT EXISTS site_settings (
-        setting_key VARCHAR(100) PRIMARY KEY,
-        setting_value TEXT,
-        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-      );
-    `);
+    // site_settings table removed
 
     // Ensure students table has full student details columns
     const addCol = async (tbl, col, def) => {
@@ -318,6 +299,7 @@ async function initDatabase() {
         }
       } catch (e) { /* ignore */ }
     };
+    // Ensure students table has full student details columns
     await addCol('students', 'email', 'VARCHAR(150)');
     await addCol('students', 'applied_course_id', 'INT NULL');
     await addCol('students', 'applied_date', 'DATE NULL');
@@ -326,19 +308,36 @@ async function initDatabase() {
     await addCol('students', 'study_plan', 'TEXT NULL');
     await addCol('students', 'projects', 'TEXT NULL');
 
-    // Seed default admission setting if empty
-    const [existAdm] = await conn.query("SELECT setting_key FROM site_settings WHERE setting_key = 'admission_open'");
-    if (existAdm.length === 0) {
-      await conn.query(`
-        INSERT INTO site_settings (setting_key, setting_value) VALUES
-        ('admission_open', '1'),
-        ('admission_title', 'Admissions Open for Session 2026-2027 — Apply Today!'),
-        ('admission_description', 'Government Technical & Vocational Centre Dargai announces admissions for Technical & Vocational Trades: Electrical, Auto Mechanic, Plumbing, Computer Operator, Welding, and RAC trades.'),
-        ('admission_deadline', '2026-11-30'),
-        ('admission_phone', '0932-411234'),
-        ('admission_email', 'admissions@gtvcdargai.edu.pk');
-      `);
-    }
+    // Ensure users table has full staff/profile details (Employee ID, CNIC, DOB, Joining Date, Qualification, Specialization, Gender, Address)
+    await addCol('users', 'employee_id', 'VARCHAR(50) NULL');
+    await addCol('users', 'cnic', 'VARCHAR(30) NULL');
+    await addCol('users', 'date_of_birth', 'DATE NULL');
+    await addCol('users', 'joining_date', 'DATE NULL');
+    await addCol('users', 'gender', "ENUM('male', 'female', 'other') NULL");
+    await addCol('users', 'qualification', 'VARCHAR(150) NULL');
+    await addCol('users', 'specialization', 'VARCHAR(150) NULL');
+    await addCol('users', 'address', 'TEXT NULL');
+
+    // Auto-sync teachers with users if needed
+    try {
+      const [allT] = await conn.query('SELECT * FROM teachers WHERE user_id IS NOT NULL');
+      for (const t of allT) {
+        await conn.query(`
+          UPDATE users SET 
+            employee_id = COALESCE(employee_id, ?),
+            cnic = COALESCE(cnic, ?),
+            date_of_birth = COALESCE(date_of_birth, ?),
+            joining_date = COALESCE(joining_date, ?),
+            gender = COALESCE(gender, ?),
+            qualification = COALESCE(qualification, ?),
+            specialization = COALESCE(specialization, ?),
+            address = COALESCE(address, ?)
+          WHERE id = ?
+        `, [t.employee_id, t.cnic, t.date_of_birth, t.joining_date, t.gender, t.qualification, t.specialization, t.address, t.user_id]);
+      }
+    } catch (e) { /* ignore */ }
+
+
 
     // 4. Seed default admin if table is empty
     const [existingUsers] = await conn.query('SELECT id FROM users LIMIT 1');
@@ -365,6 +364,129 @@ async function initDatabase() {
         ('Refrigeration & AC', 'RAC', 12, 'Refrigeration and Air Conditioning Trade');
       `);
       console.log('✅ Default GTVC trade courses initialized');
+    }
+
+    // Ensure DIT, CCVT, GIT are present in courses
+    const gtvCourses = [
+      { name: 'DIT (Diploma in Information Technology)', code: 'DIT', duration: 12, desc: '1-Year Board of Technical Education Diploma in IT' },
+      { name: 'CCVT (Civil & Computer Vocational Training)', code: 'CCVT', duration: 12, desc: 'Technical & Vocational Certification in Computer and Civil Draftsmanship' },
+      { name: 'GIT (Graphic Information Technology)', code: 'GIT', duration: 6, desc: 'Graphic Design, Multimedia & UI/UX Vocational Program' }
+    ];
+    for (const c of gtvCourses) {
+      const [ex] = await conn.query('SELECT id FROM courses WHERE course_code = ? OR course_name LIKE ?', [c.code, `%${c.code}%`]);
+      if (ex.length === 0) {
+        await conn.query('INSERT INTO courses (course_name, course_code, duration_months, description) VALUES (?, ?, ?, ?)', [c.name, c.code, c.duration, c.desc]);
+      }
+    }
+
+    // 6. Academic Sessions Table
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS academic_sessions (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        session_name VARCHAR(150) NOT NULL,
+        session_code VARCHAR(50) UNIQUE,
+        start_date DATE,
+        end_date DATE,
+        status ENUM('upcoming', 'active', 'completed') DEFAULT 'active',
+        total_admissions INT DEFAULT 0,
+        description TEXT,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+      );
+    `);
+
+    // Ensure session_id and subject_code columns exist
+    await addCol('students', 'session_id', 'INT NULL');
+    await addCol('classes', 'session_id', 'INT NULL');
+    await addCol('subjects', 'session_id', 'INT NULL');
+    await addCol('subjects', 'subject_code', 'VARCHAR(50) NULL');
+
+    // Seed default academic sessions if empty
+    const [sessCount] = await conn.query('SELECT COUNT(*) as count FROM academic_sessions');
+    if (sessCount[0].count === 0) {
+      await conn.query(`
+        INSERT INTO academic_sessions (session_name, session_code, start_date, end_date, status, total_admissions, description) VALUES
+        ('Session 2024-2025 (Annual)', 'SESS-2024-25', '2024-09-01', '2025-08-31', 'active', 155, 'Current active academic batch for all regular vocational and technical trades.'),
+        ('Session 2023-2024 (Annual)', 'SESS-2023-24', '2023-09-01', '2024-08-31', 'completed', 142, 'Completed academic session. All board exams finished, diplomas verified.'),
+        ('Session 2022-2023 (Annual)', 'SESS-2022-23', '2022-09-01', '2023-08-31', 'completed', 126, 'Past completed session. Certificates awarded.'),
+        ('Session 2025-2026 (Upcoming)', 'SESS-2025-26', '2025-09-01', '2026-08-31', 'upcoming', 0, 'Upcoming admission campaign scheduled for Autumn 2025.');
+      `);
+      console.log('✅ Default Academic Sessions seeded');
+    }
+
+    // Seed default subjects if subjects table is empty
+    const [subjCount] = await conn.query('SELECT COUNT(*) as count FROM subjects');
+    if (subjCount[0].count === 0) {
+      const [allC] = await conn.query('SELECT id, course_code FROM courses');
+      const cMap = {};
+      allC.forEach(c => { cMap[c.course_code] = c.id; });
+
+      const sampleSubjects = [
+        // DIT
+        { name: 'Office Automation & MS Office', code: 'DIT-101', cCode: 'DIT', total: 100, pass: 40 },
+        { name: 'Web Design & HTML/CSS', code: 'DIT-102', cCode: 'DIT', total: 100, pass: 40 },
+        { name: 'Database Management & SQL', code: 'DIT-103', cCode: 'DIT', total: 100, pass: 40 },
+        { name: 'Programming in C/C++', code: 'DIT-104', cCode: 'DIT', total: 100, pass: 40 },
+        { name: 'Operating Systems & Networking', code: 'DIT-105', cCode: 'DIT', total: 100, pass: 40 },
+        // CCVT
+        { name: 'Civil Drawing & CAD Fundamentals', code: 'CCVT-101', cCode: 'CCVT', total: 100, pass: 40 },
+        { name: 'Building Construction & Materials', code: 'CCVT-102', cCode: 'CCVT', total: 100, pass: 40 },
+        { name: 'Computer Application for Estimations', code: 'CCVT-103', cCode: 'CCVT', total: 100, pass: 40 },
+        { name: 'Surveying & Leveling Techniques', code: 'CCVT-104', cCode: 'CCVT', total: 100, pass: 40 },
+        // GIT
+        { name: 'Adobe Photoshop & Photo Editing', code: 'GIT-101', cCode: 'GIT', total: 100, pass: 40 },
+        { name: 'Vector Graphics with Illustrator', code: 'GIT-102', cCode: 'GIT', total: 100, pass: 40 },
+        { name: 'Digital Typography & Brand Design', code: 'GIT-103', cCode: 'GIT', total: 100, pass: 40 },
+        { name: 'UI/UX Basics & Figma Prototyping', code: 'GIT-104', cCode: 'GIT', total: 100, pass: 40 },
+        // Electrician
+        { name: 'Electrical Circuit Fundamentals', code: 'ELC-101', cCode: 'ELC', total: 100, pass: 40 },
+        { name: 'Domestic Wiring & Installation', code: 'ELC-102', cCode: 'ELC', total: 100, pass: 40 },
+        { name: 'Industrial Motor Control & PLC', code: 'ELC-103', cCode: 'ELC', total: 100, pass: 40 },
+        // Computer Operator
+        { name: 'Computer Fundamentals & Hardware', code: 'COM-101', cCode: 'COM', total: 100, pass: 40 },
+        { name: 'Typing & Office Documentation', code: 'COM-102', cCode: 'COM', total: 100, pass: 40 }
+      ];
+
+      for (const s of sampleSubjects) {
+        const cId = cMap[s.cCode] || null;
+        await conn.query(
+          'INSERT INTO subjects (subject_name, subject_code, course_id, total_marks, pass_marks) VALUES (?, ?, ?, ?, ?)',
+          [s.name, s.code, cId, s.total, s.pass]
+        );
+      }
+      console.log('✅ Default GTVC trade subjects seeded');
+    }
+
+    // Seed sample students into the active session if students table is empty
+    const [stCount] = await conn.query('SELECT COUNT(*) as count FROM students');
+    if (stCount[0].count === 0) {
+      const [[activeSess]] = await conn.query("SELECT id FROM academic_sessions WHERE status = 'active' LIMIT 1");
+      const activeSessId = activeSess ? activeSess.id : 1;
+      const [allC] = await conn.query('SELECT id, course_code FROM courses');
+      const cMap = {};
+      allC.forEach(c => { cMap[c.course_code] = c.id; });
+
+      const sampleStudents = [
+        { id: 'STU-2024-001', name: 'Muhammad Usman Khan', father: 'Tariq Khan', cnic: '15402-1234567-1', phone: '0300-1112233', course: 'DIT' },
+        { id: 'STU-2024-002', name: 'Ahmad Bilal', father: 'Muhammad Zahir', cnic: '15402-2345678-3', phone: '0301-2223344', course: 'DIT' },
+        { id: 'STU-2024-003', name: 'Sohail Ahmad', father: 'Bakhtiar Ahmad', cnic: '15402-3456789-5', phone: '0302-3334455', course: 'DIT' },
+        { id: 'STU-2024-004', name: 'Hamza Farooq', father: 'Farooq Shah', cnic: '15402-4567890-7', phone: '0303-4445566', course: 'CCVT' },
+        { id: 'STU-2024-005', name: 'Zia Ullah', father: 'Inayat Ullah', cnic: '15402-5678901-9', phone: '0304-5556677', course: 'CCVT' },
+        { id: 'STU-2024-006', name: 'Kamran Ali', father: 'Sher Ali', cnic: '15402-6789012-1', phone: '0305-6667788', course: 'GIT' },
+        { id: 'STU-2024-007', name: 'Noman Khan', father: 'Said Rahman', cnic: '15402-7890123-3', phone: '0306-7778899', course: 'GIT' },
+        { id: 'STU-2024-008', name: 'Asad Iqbal', father: 'Iqbal Hussain', cnic: '15402-8901234-5', phone: '0307-8889900', course: 'ELC' },
+        { id: 'STU-2024-009', name: 'Rashid Mehmood', father: 'Mehmood Jan', cnic: '15402-9012345-7', phone: '0308-9990011', course: 'COM' }
+      ];
+
+      for (const st of sampleStudents) {
+        const cId = cMap[st.course] || null;
+        await conn.query(
+          `INSERT INTO students (student_id, full_name, father_name, cnic, phone, applied_course_id, session_id, admission_date, status)
+           VALUES (?, ?, ?, ?, ?, ?, ?, '2024-09-15', 'active')`,
+          [st.id, st.name, st.father, st.cnic, st.phone, cId, activeSessId]
+        );
+      }
+      console.log('✅ Sample students seeded with DIT, CCVT, GIT, ELC, COM courses');
     }
 
     conn.release();
@@ -726,10 +848,16 @@ app.get('/api/admin/dashboard', authenticate, authorize(['admin']), async (req, 
   }
 });
 
-// Users CRUD (Admin)
+// Users CRUD (Admin) - Full profiles (Admin, Teacher, Accounting)
 app.get('/api/admin/users', authenticate, authorize(['admin']), async (req, res) => {
   try {
-    const users = await query('SELECT id, username, full_name, role, email, phone, is_active, created_at FROM users ORDER BY id DESC');
+    const users = await query(`
+      SELECT id, username, full_name, role, email, phone, is_active,
+             employee_id, cnic, date_of_birth, joining_date, gender,
+             qualification, specialization, address, created_at, updated_at
+      FROM users 
+      ORDER BY id DESC
+    `);
     res.json(users);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -828,64 +956,162 @@ app.delete('/api/admin/user-timeline/:id', authenticate, authorize(['admin']), h
 
 app.post('/api/admin/users', authenticate, authorize(['admin']), async (req, res) => {
   try {
-    const { username, password, full_name, role, email, phone } = req.body;
+    const {
+      username, password, full_name, role, email, phone,
+      employee_id, cnic, date_of_birth, joining_date, gender,
+      qualification, specialization, address, is_active
+    } = req.body;
+
     if (!username || !password || !full_name || !role) {
-      return res.status(400).json({ message: 'All required fields must be filled' });
+      return res.status(400).json({ message: 'Username, password, full name, and role are required.' });
     }
-    const hash = await bcrypt.hash(password, 10);
+    if (password.trim().length < 6) {
+      return res.status(400).json({ message: 'Password must be at least 6 characters long.' });
+    }
+
+    const hash = await bcrypt.hash(password.trim(), 10);
     const result = await query(
-      `INSERT INTO users (username, password, full_name, role, email, phone) VALUES (?, ?, ?, ?, ?, ?)`,
-      [username.trim(), hash, full_name.trim(), role, email || null, phone || null]
+      `INSERT INTO users (username, password, full_name, role, email, phone, employee_id, cnic, date_of_birth, joining_date, gender, qualification, specialization, address, is_active)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, 1))`,
+      [
+        username.trim(), hash, full_name.trim(), role,
+        email ? email.trim() : null, phone ? phone.trim() : null,
+        employee_id ? employee_id.trim() : null, cnic ? cnic.trim() : null,
+        date_of_birth || null, joining_date || null, gender || null,
+        qualification ? qualification.trim() : null, specialization ? specialization.trim() : null,
+        address ? address.trim() : null, is_active !== undefined ? is_active : 1
+      ]
     );
-    res.status(201).json({ success: true, id: result.insertId });
+
+    const newUserId = result.insertId;
+
+    // If role is teacher, synchronize with teachers table
+    if (role === 'teacher') {
+      try {
+        await query(
+          `INSERT INTO teachers (user_id, employee_id, full_name, cnic, date_of_birth, gender, qualification, specialization, joining_date, phone, address, is_active)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          [
+            newUserId, employee_id || null, full_name.trim(), cnic || null,
+            date_of_birth || null, gender || null, qualification || null,
+            specialization || null, joining_date || null, phone || null,
+            address || null, is_active !== undefined ? is_active : 1
+          ]
+        );
+      } catch (te) {
+        console.error('Teachers sync on insert error:', te);
+      }
+    }
+
+    // Log to edit_log
+    try {
+      await query(
+        `INSERT INTO edit_log (target_table, target_id, action, old_data, new_data, edited_by, edited_by_name, description) VALUES (?, ?, 'create', NULL, ?, ?, ?, ?)`,
+        ['users', newUserId, JSON.stringify({ username, full_name, role, email, phone, employee_id, cnic }), req.user.id, req.user.full_name, `Created ${role} user account "${full_name}" (${username})`]
+      );
+    } catch (le) {}
+
+    res.status(201).json({ success: true, id: newUserId });
   } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(400).json({ message: 'Username or Employee ID / CNIC already exists in the system.' });
+    }
     res.status(500).json({ message: err.message });
   }
 });
 
 app.put('/api/admin/users/:id', authenticate, authorize(['admin']), async (req, res) => {
   try {
-    const { username, full_name, role, email, phone, password, is_active } = req.body;
+    const {
+      username, full_name, role, email, phone, password, is_active,
+      employee_id, cnic, date_of_birth, joining_date, gender,
+      qualification, specialization, address
+    } = req.body;
     const userId = req.params.id;
 
     // Fetch previous data for audit/rollback
     const oldRows = await query('SELECT * FROM users WHERE id = ?', [userId]);
-    if (oldRows.length > 0) {
-      const oldRec = { ...oldRows[0] };
-      delete oldRec.password;
-      await query(
-        `INSERT INTO edit_log (target_table, target_id, action, old_data, new_data, edited_by, edited_by_name, description) VALUES (?, ?, 'update', ?, ?, ?, ?, ?)`,
-        ['users', userId, JSON.stringify(oldRec), JSON.stringify({ username, full_name, role, email, phone, is_active }), req.user.id, req.user.full_name, `Updated user "${full_name}" (${username})`]
-      );
+    if (oldRows.length === 0) {
+      return res.status(404).json({ message: 'User not found' });
     }
+    const oldRec = { ...oldRows[0] };
+    delete oldRec.password;
+
+    await query(
+      `INSERT INTO edit_log (target_table, target_id, action, old_data, new_data, edited_by, edited_by_name, description) VALUES (?, ?, 'update', ?, ?, ?, ?, ?)`,
+      ['users', userId, JSON.stringify(oldRec), JSON.stringify({ username, full_name, role, email, phone, is_active, employee_id, cnic }), req.user.id, req.user.full_name, `Updated user "${full_name}" (${username})`]
+    );
 
     if (password && password.trim().length >= 6) {
-      const hash = await bcrypt.hash(password, 10);
+      const hash = await bcrypt.hash(password.trim(), 10);
       await query(
-        `UPDATE users SET username=?, full_name=?, role=?, email=?, phone=?, password=?, is_active=COALESCE(?, is_active) WHERE id=?`,
-        [username, full_name, role, email || null, phone || null, hash, is_active, userId]
+        `UPDATE users SET username=?, full_name=?, role=?, email=?, phone=?, password=?, is_active=COALESCE(?, is_active), employee_id=?, cnic=?, date_of_birth=?, joining_date=?, gender=?, qualification=?, specialization=?, address=? WHERE id=?`,
+        [
+          username, full_name, role, email || null, phone || null, hash,
+          is_active !== undefined ? is_active : oldRec.is_active,
+          employee_id || null, cnic || null, date_of_birth || null,
+          joining_date || null, gender || null, qualification || null,
+          specialization || null, address || null, userId
+        ]
       );
     } else {
       await query(
-        `UPDATE users SET username=?, full_name=?, role=?, email=?, phone=?, is_active=COALESCE(?, is_active) WHERE id=?`,
-        [username, full_name, role, email || null, phone || null, is_active, userId]
+        `UPDATE users SET username=?, full_name=?, role=?, email=?, phone=?, is_active=COALESCE(?, is_active), employee_id=?, cnic=?, date_of_birth=?, joining_date=?, gender=?, qualification=?, specialization=?, address=? WHERE id=?`,
+        [
+          username, full_name, role, email || null, phone || null,
+          is_active !== undefined ? is_active : oldRec.is_active,
+          employee_id || null, cnic || null, date_of_birth || null,
+          joining_date || null, gender || null, qualification || null,
+          specialization || null, address || null, userId
+        ]
       );
     }
-    res.json({ success: true });
+
+    // Sync with teachers table
+    if (role === 'teacher') {
+      try {
+        const [existingT] = await pool.query('SELECT id FROM teachers WHERE user_id = ? LIMIT 1', [userId]);
+        if (existingT.length > 0) {
+          await query(
+            `UPDATE teachers SET full_name=?, employee_id=?, cnic=?, phone=?, qualification=?, specialization=?, date_of_birth=?, joining_date=?, gender=?, address=?, is_active=COALESCE(?, is_active) WHERE user_id=?`,
+            [full_name, employee_id || null, cnic || null, phone || null, qualification || null, specialization || null, date_of_birth || null, joining_date || null, gender || null, address || null, is_active, userId]
+          );
+        } else {
+          await query(
+            `INSERT INTO teachers (user_id, employee_id, full_name, cnic, date_of_birth, gender, qualification, specialization, joining_date, phone, address, is_active)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, 1))`,
+            [userId, employee_id || null, full_name.trim(), cnic || null, date_of_birth || null, gender || null, qualification || null, specialization || null, joining_date || null, phone || null, address || null, is_active]
+          );
+        }
+      } catch (te) {
+        console.error('Teacher sync on update error:', te);
+      }
+    } else if (oldRec.role === 'teacher' && role !== 'teacher') {
+      try {
+        await query('UPDATE teachers SET is_active=0 WHERE user_id = ?', [userId]);
+      } catch (e) {}
+    }
+
+    res.json({ success: true, message: 'User updated successfully' });
   } catch (err) {
+    if (err.code === 'ER_DUP_ENTRY') {
+      return res.status(400).json({ message: 'Username or Employee ID / CNIC already taken by another account.' });
+    }
     res.status(500).json({ message: err.message });
   }
 });
 
 app.delete('/api/admin/users/:id', authenticate, authorize(['admin']), async (req, res) => {
   try {
-    if (parseInt(req.params.id, 10) === req.user.id) {
-      return res.status(400).json({ message: 'Cannot delete your own admin account.' });
+    const userId = parseInt(req.params.id, 10);
+    if (userId === req.user.id) {
+      return res.status(400).json({ message: 'Cannot delete your own active admin account.' });
     }
-    const rows = await query('SELECT * FROM users WHERE id = ?', [req.params.id]);
+    const rows = await query('SELECT * FROM users WHERE id = ?', [userId]);
     if (rows.length === 0) return res.status(404).json({ message: 'User not found' });
     const record = rows[0];
     delete record.password;
+
     await query(
       `INSERT INTO recycle_bin (original_table, original_id, record_data, deleted_by, deleted_by_name) VALUES (?, ?, ?, ?, ?)`,
       ['users', record.id, JSON.stringify(record), req.user.id, req.user.full_name]
@@ -894,8 +1120,14 @@ app.delete('/api/admin/users/:id', authenticate, authorize(['admin']), async (re
       `INSERT INTO edit_log (target_table, target_id, action, old_data, edited_by, edited_by_name, description) VALUES (?, ?, 'delete', ?, ?, ?, ?)`,
       ['users', record.id, JSON.stringify(record), req.user.id, req.user.full_name, `Deleted user "${record.full_name}" (${record.username})`]
     );
-    await query('DELETE FROM users WHERE id = ?', [req.params.id]);
-    res.json({ success: true });
+
+    // If teacher, also clean up teachers table
+    try {
+      await query('DELETE FROM teachers WHERE user_id = ?', [userId]);
+    } catch (te) {}
+
+    await query('DELETE FROM users WHERE id = ?', [userId]);
+    res.json({ success: true, message: 'User removed and archived to recycle bin' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -1205,6 +1437,371 @@ app.delete('/api/admin/courses/:id', authenticate, authorize(['admin']), async (
       ['courses', record.id, JSON.stringify(record), req.user.id, req.user.full_name, `Deleted course "${record.course_name}"`]
     );
     await query('DELETE FROM courses WHERE id = ?', [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// ==================== SESSIONS & SUBJECTS ROUTES (Admin) ====================
+
+// GET /api/admin/sessions/stats — Overview KPIs
+app.get('/api/admin/sessions/stats', authenticate, authorize(['admin', 'principal', 'teacher']), async (req, res) => {
+  try {
+    const [[{ totalSessions }]] = await pool.query('SELECT COUNT(*) as totalSessions FROM academic_sessions');
+    const [[{ completedSessions }]] = await pool.query("SELECT COUNT(*) as completedSessions FROM academic_sessions WHERE status = 'completed'");
+    const [[{ activeSessions }]] = await pool.query("SELECT COUNT(*) as activeSessions FROM academic_sessions WHERE status = 'active'");
+    const [[{ upcomingSessions }]] = await pool.query("SELECT COUNT(*) as upcomingSessions FROM academic_sessions WHERE status = 'upcoming'");
+    const [[{ totalSubjects }]] = await pool.query('SELECT COUNT(*) as totalSubjects FROM subjects');
+    
+    // Total student admissions: either sum of session admissions or total students count
+    const [[{ totalStudentsCount }]] = await pool.query('SELECT COUNT(*) as totalStudentsCount FROM students');
+    const [[{ sumRecordedAdmissions }]] = await pool.query('SELECT COALESCE(SUM(total_admissions), 0) as sumRecordedAdmissions FROM academic_sessions');
+    const totalAdmissions = Math.max(totalStudentsCount || 0, sumRecordedAdmissions || 0);
+
+    // Breakdown per course (DIT, CCVT, GIT, Electrician, etc.)
+    const courseBreakdown = await query(`
+      SELECT 
+        c.id as course_id,
+        c.course_name,
+        c.course_code,
+        c.duration_months,
+        (
+          SELECT COUNT(*) 
+          FROM students s 
+          WHERE s.applied_course_id = c.id
+        ) as enrolled_students,
+        (
+          SELECT COUNT(*)
+          FROM subjects sub
+          WHERE sub.course_id = c.id
+        ) as total_subjects
+      FROM courses c
+      ORDER BY c.id ASC
+    `);
+
+    res.json({
+      totalSessions,
+      completedSessions,
+      activeSessions,
+      upcomingSessions,
+      totalSubjects,
+      totalAdmissions,
+      totalStudentsCount,
+      courseBreakdown
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/admin/sessions — List all sessions with computed student & course counts
+app.get('/api/admin/sessions', authenticate, authorize(['admin', 'principal', 'teacher']), async (req, res) => {
+  try {
+    const sessions = await query('SELECT * FROM academic_sessions ORDER BY start_date DESC, id DESC');
+    
+    const enriched = await Promise.all(sessions.map(async (sess) => {
+      // Direct students linked by session_id
+      const [[{ directStudents }]] = await pool.query(
+        'SELECT COUNT(*) as directStudents FROM students WHERE session_id = ?',
+        [sess.id]
+      );
+
+      // Course-wise student counts for this session
+      const courseCounts = await query(`
+        SELECT 
+          c.id as course_id,
+          c.course_name,
+          c.course_code,
+          COUNT(s.id) as student_count
+        FROM courses c
+        LEFT JOIN students s ON (s.applied_course_id = c.id AND s.session_id = ?)
+        GROUP BY c.id
+        ORDER BY student_count DESC, c.id ASC
+      `, [sess.id]);
+
+      // Total subjects in system
+      const [[{ sessionSubjects }]] = await pool.query('SELECT COUNT(*) as sessionSubjects FROM subjects');
+
+      const enrolledCount = Math.max(sess.total_admissions || 0, directStudents || 0);
+
+      return {
+        ...sess,
+        enrolled_students: enrolledCount,
+        direct_students: directStudents,
+        course_counts: courseCounts,
+        total_subjects: sessionSubjects
+      };
+    }));
+
+    res.json(enriched);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/admin/sessions — Add new academic session
+app.post('/api/admin/sessions', authenticate, authorize(['admin']), async (req, res) => {
+  try {
+    const { session_name, session_code, start_date, end_date, status, total_admissions, description } = req.body;
+    if (!session_name) {
+      return res.status(400).json({ message: 'Session name is required' });
+    }
+
+    const result = await query(
+      `INSERT INTO academic_sessions (session_name, session_code, start_date, end_date, status, total_admissions, description)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      [
+        session_name,
+        session_code || null,
+        start_date || null,
+        end_date || null,
+        status || 'active',
+        total_admissions || 0,
+        description || null
+      ]
+    );
+
+    await query(
+      `INSERT INTO edit_log (target_table, target_id, action, new_data, edited_by, edited_by_name, description) VALUES (?, ?, 'create', ?, ?, ?, ?)`,
+      ['academic_sessions', result.insertId, JSON.stringify(req.body), req.user.id, req.user.full_name, `Created academic session "${session_name}"`]
+    );
+
+    res.status(201).json({ success: true, id: result.insertId });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// PUT /api/admin/sessions/:id — Edit academic session
+app.put('/api/admin/sessions/:id', authenticate, authorize(['admin']), async (req, res) => {
+  try {
+    const { session_name, session_code, start_date, end_date, status, total_admissions, description } = req.body;
+    const oldRows = await query('SELECT * FROM academic_sessions WHERE id = ?', [req.params.id]);
+    if (oldRows.length === 0) return res.status(404).json({ message: 'Session not found' });
+
+    await query(
+      `INSERT INTO edit_log (target_table, target_id, action, old_data, new_data, edited_by, edited_by_name, description) VALUES (?, ?, 'update', ?, ?, ?, ?, ?)`,
+      ['academic_sessions', req.params.id, JSON.stringify(oldRows[0]), JSON.stringify(req.body), req.user.id, req.user.full_name, `Updated session "${session_name || oldRows[0].session_name}"`]
+    );
+
+    await query(
+      `UPDATE academic_sessions SET session_name=?, session_code=?, start_date=?, end_date=?, status=?, total_admissions=?, description=? WHERE id=?`,
+      [
+        session_name || oldRows[0].session_name,
+        session_code || null,
+        start_date || null,
+        end_date || null,
+        status || 'active',
+        total_admissions !== undefined ? total_admissions : oldRows[0].total_admissions,
+        description || null,
+        req.params.id
+      ]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/admin/sessions/:id/toggle-status — Toggle completed / active
+app.post('/api/admin/sessions/:id/toggle-status', authenticate, authorize(['admin']), async (req, res) => {
+  try {
+    const rows = await query('SELECT * FROM academic_sessions WHERE id = ?', [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ message: 'Session not found' });
+    const sess = rows[0];
+    const newStatus = sess.status === 'completed' ? 'active' : 'completed';
+
+    await query('UPDATE academic_sessions SET status = ? WHERE id = ?', [newStatus, req.params.id]);
+
+    await query(
+      `INSERT INTO edit_log (target_table, target_id, action, old_data, new_data, edited_by, edited_by_name, description) VALUES (?, ?, 'update', ?, ?, ?, ?, ?)`,
+      ['academic_sessions', req.params.id, JSON.stringify({ status: sess.status }), JSON.stringify({ status: newStatus }), req.user.id, req.user.full_name, `Changed session "${sess.session_name}" status to ${newStatus}`]
+    );
+
+    res.json({ success: true, status: newStatus });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// DELETE /api/admin/sessions/:id — Move session to recycle bin
+app.delete('/api/admin/sessions/:id', authenticate, authorize(['admin']), async (req, res) => {
+  try {
+    const rows = await query('SELECT * FROM academic_sessions WHERE id = ?', [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ message: 'Session not found' });
+    const record = rows[0];
+
+    await query(
+      `INSERT INTO recycle_bin (original_table, original_id, record_data, deleted_by, deleted_by_name) VALUES (?, ?, ?, ?, ?)`,
+      ['academic_sessions', record.id, JSON.stringify(record), req.user.id, req.user.full_name]
+    );
+
+    await query(
+      `INSERT INTO edit_log (target_table, target_id, action, old_data, edited_by, edited_by_name, description) VALUES (?, ?, 'delete', ?, ?, ?, ?)`,
+      ['academic_sessions', record.id, JSON.stringify(record), req.user.id, req.user.full_name, `Deleted session "${record.session_name}"`]
+    );
+
+    await query('DELETE FROM academic_sessions WHERE id = ?', [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/admin/sessions/:id/students — List students for a specific session
+app.get('/api/admin/sessions/:id/students', authenticate, authorize(['admin', 'principal', 'teacher']), async (req, res) => {
+  try {
+    const { course_id } = req.query;
+    let sql = `
+      SELECT s.*, c.course_name, c.course_code
+      FROM students s
+      LEFT JOIN courses c ON s.applied_course_id = c.id
+      WHERE s.session_id = ?
+    `;
+    const params = [req.params.id];
+    if (course_id) {
+      sql += ' AND s.applied_course_id = ?';
+      params.push(course_id);
+    }
+    sql += ' ORDER BY s.id DESC';
+
+    const rows = await query(sql, params);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/admin/sessions/quick-enroll — Quick student registration in a session & course
+app.post('/api/admin/sessions/quick-enroll', authenticate, authorize(['admin']), async (req, res) => {
+  try {
+    const { full_name, father_name, cnic, phone, course_id, session_id, admission_date } = req.body;
+    if (!full_name || !course_id || !session_id) {
+      return res.status(400).json({ message: 'Student name, course, and session are required.' });
+    }
+
+    const autoStudentId = 'STU-' + Date.now().toString().slice(-6);
+
+    const result = await query(
+      `INSERT INTO students (student_id, full_name, father_name, cnic, phone, applied_course_id, session_id, admission_date, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')`,
+      [
+        autoStudentId,
+        full_name,
+        father_name || null,
+        cnic || null,
+        phone || null,
+        course_id,
+        session_id,
+        admission_date || new Date().toISOString().split('T')[0]
+      ]
+    );
+
+    // Update session admissions count if present
+    await query('UPDATE academic_sessions SET total_admissions = total_admissions + 1 WHERE id = ?', [session_id]);
+
+    await query(
+      `INSERT INTO edit_log (target_table, target_id, action, new_data, edited_by, edited_by_name, description) VALUES (?, ?, 'create', ?, ?, ?, ?)`,
+      ['students', result.insertId, JSON.stringify(req.body), req.user.id, req.user.full_name, `Quick enrolled student "${full_name}" into session #${session_id}`]
+    );
+
+    res.status(201).json({ success: true, id: result.insertId, student_id: autoStudentId });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/admin/subjects — List all subjects with course info
+app.get('/api/admin/subjects', authenticate, authorize(['admin', 'principal', 'teacher']), async (req, res) => {
+  try {
+    const { course_id } = req.query;
+    let sql = `
+      SELECT s.*, c.course_name, c.course_code
+      FROM subjects s
+      LEFT JOIN courses c ON s.course_id = c.id
+    `;
+    const params = [];
+    if (course_id) {
+      sql += ' WHERE s.course_id = ?';
+      params.push(course_id);
+    }
+    sql += ' ORDER BY s.course_id ASC, s.id ASC';
+
+    const rows = await query(sql, params);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/admin/subjects — Add new subject
+app.post('/api/admin/subjects', authenticate, authorize(['admin']), async (req, res) => {
+  try {
+    const { subject_name, subject_code, course_id, total_marks, pass_marks, session_id } = req.body;
+    if (!subject_name) {
+      return res.status(400).json({ message: 'Subject name is required' });
+    }
+
+    const result = await query(
+      `INSERT INTO subjects (subject_name, subject_code, course_id, total_marks, pass_marks, session_id)
+       VALUES (?, ?, ?, ?, ?, ?)`,
+      [subject_name, subject_code || null, course_id || null, total_marks || 100, pass_marks || 40, session_id || null]
+    );
+
+    await query(
+      `INSERT INTO edit_log (target_table, target_id, action, new_data, edited_by, edited_by_name, description) VALUES (?, ?, 'create', ?, ?, ?, ?)`,
+      ['subjects', result.insertId, JSON.stringify(req.body), req.user.id, req.user.full_name, `Added new subject "${subject_name}"`]
+    );
+
+    res.status(201).json({ success: true, id: result.insertId });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// PUT /api/admin/subjects/:id — Edit subject
+app.put('/api/admin/subjects/:id', authenticate, authorize(['admin']), async (req, res) => {
+  try {
+    const { subject_name, subject_code, course_id, total_marks, pass_marks, session_id } = req.body;
+    const oldRows = await query('SELECT * FROM subjects WHERE id = ?', [req.params.id]);
+    if (oldRows.length === 0) return res.status(404).json({ message: 'Subject not found' });
+
+    await query(
+      `INSERT INTO edit_log (target_table, target_id, action, old_data, new_data, edited_by, edited_by_name, description) VALUES (?, ?, 'update', ?, ?, ?, ?, ?)`,
+      ['subjects', req.params.id, JSON.stringify(oldRows[0]), JSON.stringify(req.body), req.user.id, req.user.full_name, `Updated subject "${subject_name || oldRows[0].subject_name}"`]
+    );
+
+    await query(
+      `UPDATE subjects SET subject_name=?, subject_code=?, course_id=?, total_marks=?, pass_marks=?, session_id=? WHERE id=?`,
+      [subject_name, subject_code || null, course_id || null, total_marks || 100, pass_marks || 40, session_id || null, req.params.id]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// DELETE /api/admin/subjects/:id — Move subject to recycle bin
+app.delete('/api/admin/subjects/:id', authenticate, authorize(['admin']), async (req, res) => {
+  try {
+    const rows = await query('SELECT * FROM subjects WHERE id = ?', [req.params.id]);
+    if (rows.length === 0) return res.status(404).json({ message: 'Subject not found' });
+    const record = rows[0];
+
+    await query(
+      `INSERT INTO recycle_bin (original_table, original_id, record_data, deleted_by, deleted_by_name) VALUES (?, ?, ?, ?, ?)`,
+      ['subjects', record.id, JSON.stringify(record), req.user.id, req.user.full_name]
+    );
+
+    await query(
+      `INSERT INTO edit_log (target_table, target_id, action, old_data, edited_by, edited_by_name, description) VALUES (?, ?, 'delete', ?, ?, ?, ?)`,
+      ['subjects', record.id, JSON.stringify(record), req.user.id, req.user.full_name, `Deleted subject "${record.subject_name}"`]
+    );
+
+    await query('DELETE FROM subjects WHERE id = ?', [req.params.id]);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -1523,9 +2120,10 @@ app.get('/api/admin/control/stats', authenticate, authorize(['admin']), async (r
     const [[{ studentsCount }]] = await pool.query('SELECT COUNT(*) as studentsCount FROM students');
     const [[{ coursesCount }]] = await pool.query('SELECT COUNT(*) as coursesCount FROM courses');
     const [[{ resultsCount }]] = await pool.query('SELECT COUNT(*) as resultsCount FROM results');
-    const [[{ noticesCount }]] = await pool.query('SELECT COUNT(*) as noticesCount FROM notices');
     const [[{ recycleCount }]] = await pool.query('SELECT COUNT(*) as recycleCount FROM recycle_bin');
     const [[{ editCount }]] = await pool.query('SELECT COUNT(*) as editCount FROM edit_log');
+    const [[{ sessionsCount }]] = await pool.query('SELECT COUNT(*) as sessionsCount FROM academic_sessions');
+    const [[{ subjectsCount }]] = await pool.query('SELECT COUNT(*) as subjectsCount FROM subjects');
     
     // Accounting stats
     const [[acc]] = await pool.query(`
@@ -1535,11 +2133,6 @@ app.get('/api/admin/control/stats', authenticate, authorize(['admin']), async (r
       FROM accounting_transactions
     `);
 
-    // Admission settings
-    const settingsRows = await query('SELECT setting_key, setting_value FROM site_settings');
-    const settings = {};
-    settingsRows.forEach(r => { settings[r.setting_key] = r.setting_value; });
-
     res.json({
       counts: {
         users: usersCount,
@@ -1547,75 +2140,642 @@ app.get('/api/admin/control/stats', authenticate, authorize(['admin']), async (r
         students: studentsCount,
         courses: coursesCount,
         results: resultsCount,
-        notices: noticesCount,
         recycleBin: recycleCount,
-        editLog: editCount
+        editLog: editCount,
+        sessions: sessionsCount,
+        subjects: subjectsCount
       },
       finance: {
         totalIncome: parseFloat(acc.totalIncome),
         totalExpense: parseFloat(acc.totalExpense),
         balance: parseFloat(acc.totalIncome) - parseFloat(acc.totalExpense)
-      },
-      settings
+      }
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// GET /api/admin/settings
-app.get('/api/admin/settings', authenticate, authorize(['admin']), async (req, res) => {
+// ==================== DATABASE STORAGE & PARTITION MANAGER ====================
+
+const STORAGE_CONFIG_PATH = path.join(__dirname, 'database_storage_config.json');
+
+function getStorageConfig() {
+  const defaultPath = path.join(__dirname, 'database');
+  const defaults = {
+    primaryLocation: defaultPath,
+    locations: [
+      {
+        id: 1,
+        name: 'Default Project Database Folder',
+        path: defaultPath,
+        partition: 'C:',
+        isPrimary: true,
+        autoBackup: true,
+        lastBackupAt: null,
+        createdAt: new Date().toISOString()
+      }
+    ]
+  };
+
   try {
-    const rows = await query('SELECT setting_key, setting_value FROM site_settings');
-    const settings = {};
-    rows.forEach(r => { settings[r.setting_key] = r.setting_value; });
-    res.json(settings);
+    if (!fs.existsSync(STORAGE_CONFIG_PATH)) {
+      fs.writeFileSync(STORAGE_CONFIG_PATH, JSON.stringify(defaults, null, 2), 'utf8');
+      return defaults;
+    }
+    const data = fs.readFileSync(STORAGE_CONFIG_PATH, 'utf8');
+    const parsed = JSON.parse(data);
+    if (!parsed.locations || !Array.isArray(parsed.locations) || parsed.locations.length === 0) {
+      return defaults;
+    }
+    return parsed;
+  } catch (e) {
+    return defaults;
+  }
+}
+
+function saveStorageConfig(config) {
+  fs.writeFileSync(STORAGE_CONFIG_PATH, JSON.stringify(config, null, 2), 'utf8');
+}
+
+function getDirectorySize(dirPath) {
+  let totalBytes = 0;
+  if (!fs.existsSync(dirPath)) return 0;
+  try {
+    const files = fs.readdirSync(dirPath);
+    for (const file of files) {
+      const fullPath = path.join(dirPath, file);
+      try {
+        const stat = fs.statSync(fullPath);
+        if (stat.isDirectory()) {
+          totalBytes += getDirectorySize(fullPath);
+        } else {
+          totalBytes += stat.size;
+        }
+      } catch (e) {}
+    }
+  } catch (e) {}
+  return totalBytes;
+}
+
+function getSystemDrives() {
+  return new Promise((resolve) => {
+    const psCmd = `Get-CimInstance Win32_LogicalDisk | Select-Object DeviceID, VolumeName, Size, FreeSpace, DriveType | ConvertTo-Json -Compress`;
+    cp.exec(`powershell -NoProfile -Command "${psCmd}"`, { timeout: 5000 }, (err, stdout) => {
+      const fallbackLetters = ['C', 'D', 'E', 'F', 'G', 'L', 'P'];
+      if (err || !stdout || !stdout.trim()) {
+        const drives = [];
+        for (const l of fallbackLetters) {
+          const root = `${l}:\\`;
+          if (fs.existsSync(root)) {
+            drives.push({
+              driveLetter: `${l}:`,
+              name: `Local Disk (${l}:)`,
+              totalBytes: 0,
+              freeBytes: 0,
+              usedBytes: 0,
+              totalGB: 'N/A',
+              freeGB: 'N/A',
+              usedGB: 'N/A',
+              usedPercent: 0
+            });
+          }
+        }
+        return resolve(drives);
+      }
+      try {
+        let parsed = JSON.parse(stdout);
+        if (!Array.isArray(parsed)) parsed = [parsed];
+        const drives = parsed
+          .filter(d => d.DriveType === 3 || d.DriveType === 2)
+          .map(d => {
+            const size = Number(d.Size || 0);
+            const free = Number(d.FreeSpace || 0);
+            const used = size > free ? size - free : 0;
+            const pct = size > 0 ? Math.round((used / size) * 100) : 0;
+            return {
+              driveLetter: d.DeviceID,
+              name: d.VolumeName ? `${d.VolumeName} (${d.DeviceID})` : `Local Disk (${d.DeviceID})`,
+              totalBytes: size,
+              freeBytes: free,
+              usedBytes: used,
+              totalGB: (size / (1024 ** 3)).toFixed(1),
+              freeGB: (free / (1024 ** 3)).toFixed(1),
+              usedGB: (used / (1024 ** 3)).toFixed(1),
+              usedPercent: pct
+            };
+          });
+        resolve(drives);
+      } catch (pe) {
+        resolve([]);
+      }
+    });
+  });
+}
+
+async function dumpDatabaseSQL() {
+  const [tables] = await pool.query('SHOW FULL TABLES WHERE Table_Type = "BASE TABLE"');
+  let sqlDump = `-- ============================================================\n`;
+  sqlDump += `-- GTVC Dargai Database Complete Backup & Schema Export\n`;
+  sqlDump += `-- Export Date: ${new Date().toISOString()}\n`;
+  sqlDump += `-- Host: ${dbConfig.host} | Database: ${dbConfig.database}\n`;
+  sqlDump += `-- ============================================================\n\n`;
+  sqlDump += `SET FOREIGN_KEY_CHECKS = 0;\n\n`;
+
+  for (const row of tables) {
+    const tableName = Object.values(row)[0];
+    const [[createRow]] = await pool.query(`SHOW CREATE TABLE \`${tableName}\``);
+    sqlDump += `-- ------------------------------------------------------------\n`;
+    sqlDump += `-- Structure for table \`${tableName}\`\n`;
+    sqlDump += `-- ------------------------------------------------------------\n`;
+    sqlDump += `DROP TABLE IF EXISTS \`${tableName}\`;\n`;
+    sqlDump += `${createRow['Create Table']};\n\n`;
+
+    const [rows] = await pool.query(`SELECT * FROM \`${tableName}\``);
+    if (rows.length > 0) {
+      sqlDump += `-- Dumping data for table \`${tableName}\` (${rows.length} records)\n`;
+      const cols = Object.keys(rows[0]);
+      const colList = cols.map(c => `\`${c}\``).join(', ');
+
+      const batchSize = 100;
+      for (let i = 0; i < rows.length; i += batchSize) {
+        const batch = rows.slice(i, i + batchSize);
+        const valStrings = batch.map(r => {
+          const vals = cols.map(c => {
+            const val = r[c];
+            if (val === null || val === undefined) return 'NULL';
+            if (typeof val === 'number') return val;
+            if (typeof val === 'boolean') return val ? 1 : 0;
+            if (val instanceof Date) return `'${val.toISOString().slice(0, 19).replace('T', ' ')}'`;
+            if (typeof val === 'object') return `'${JSON.stringify(val).replace(/'/g, "\\'")}'`;
+            return `'${String(val).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r')}'`;
+          });
+          return `(${vals.join(', ')})`;
+        });
+        sqlDump += `INSERT INTO \`${tableName}\` (${colList}) VALUES\n${valStrings.join(',\n')};\n\n`;
+      }
+    }
+  }
+
+  sqlDump += `SET FOREIGN_KEY_CHECKS = 1;\n`;
+  return sqlDump;
+}
+
+// GET /api/admin/database/storage — Storage metrics, locations, and drives
+app.get('/api/admin/database/storage', authenticate, authorize(['admin']), async (req, res) => {
+  try {
+    const drives = await getSystemDrives();
+    const config = getStorageConfig();
+
+    // MySQL Table storage stats
+    const [tables] = await pool.query(`
+      SELECT 
+        table_name,
+        ROUND(((data_length + index_length) / 1024), 2) AS size_kb,
+        ROUND(((data_length + index_length) / (1024 * 1024)), 3) AS size_mb,
+        table_rows
+      FROM information_schema.TABLES 
+      WHERE table_schema = ?
+      ORDER BY (data_length + index_length) DESC
+    `, [dbConfig.database]);
+
+    const [[dbSizeSummary]] = await pool.query(`
+      SELECT 
+        ROUND(COALESCE(SUM(data_length + index_length), 0) / 1024, 2) AS total_kb,
+        ROUND(COALESCE(SUM(data_length + index_length), 0) / (1024 * 1024), 3) AS total_mb
+      FROM information_schema.TABLES 
+      WHERE table_schema = ?
+    `, [dbConfig.database]);
+
+    // Uploads folder size
+    const uploadsPath = path.join(__dirname, 'uploads');
+    const uploadsBytes = getDirectorySize(uploadsPath);
+    const uploadsMB = (uploadsBytes / (1024 * 1024)).toFixed(2);
+
+    // Enrich configured locations with size, status, and drive info
+    const enrichedLocations = config.locations.map(loc => {
+      const exists = fs.existsSync(loc.path);
+      const folderBytes = exists ? getDirectorySize(loc.path) : 0;
+      const folderMB = (folderBytes / (1024 * 1024)).toFixed(2);
+      
+      // Count backup files
+      let backupCount = 0;
+      let lastFileDate = null;
+      if (exists) {
+        try {
+          const files = fs.readdirSync(loc.path).filter(f => f.endsWith('.sql'));
+          backupCount = files.length;
+          if (files.length > 0) {
+            const mtimes = files.map(f => fs.statSync(path.join(loc.path, f)).mtime);
+            lastFileDate = new Date(Math.max(...mtimes)).toISOString();
+          }
+        } catch (e) {}
+      }
+
+      // Match drive
+      const driveMatch = drives.find(d => loc.path.toUpperCase().startsWith(d.driveLetter.toUpperCase()));
+
+      return {
+        ...loc,
+        exists,
+        folderSizeBytes: folderBytes,
+        folderSizeMB: parseFloat(folderMB),
+        backupCount,
+        lastBackupAt: lastFileDate || loc.lastBackupAt,
+        driveInfo: driveMatch || null
+      };
+    });
+
+    const mysqlMB = parseFloat(dbSizeSummary.total_mb || 0);
+    const totalCombinedMB = (mysqlMB + parseFloat(uploadsMB)).toFixed(2);
+
+    res.json({
+      drives,
+      primaryLocation: config.primaryLocation,
+      locations: enrichedLocations,
+      dbStats: {
+        databaseName: dbConfig.database,
+        mysqlTotalKB: parseFloat(dbSizeSummary.total_kb || 0),
+        mysqlTotalMB: mysqlMB,
+        uploadsTotalMB: parseFloat(uploadsMB),
+        totalCombinedMB: parseFloat(totalCombinedMB),
+        tablesCount: tables.length,
+        tables
+      }
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// POST /api/admin/settings
-app.post('/api/admin/settings', authenticate, authorize(['admin']), async (req, res) => {
+// POST /api/admin/database/storage/locations — Add storage location
+app.post('/api/admin/database/storage/locations', authenticate, authorize(['admin']), async (req, res) => {
   try {
-    const settings = req.body;
-    for (const [key, val] of Object.entries(settings)) {
-      await query(
-        `INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?)
-         ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)`,
-        [key, String(val)]
-      );
+    const { name, path: locationPath, partition, isPrimary, autoBackup } = req.body;
+    if (!locationPath || !locationPath.trim()) {
+      return res.status(400).json({ message: 'Folder path is required.' });
     }
 
-    await query(
-      `INSERT INTO edit_log (target_table, target_id, action, new_data, edited_by, edited_by_name, description) VALUES (?, 0, 'update', ?, ?, ?, ?)`,
-      ['site_settings', JSON.stringify(settings), req.user.id, req.user.full_name, 'Updated admission / site settings']
-    );
+    // Clean and normalize path (strip quotes, normalize slashes)
+    let trimmedPath = locationPath.trim().replace(/^["']|["']$/g, '').trim();
+    trimmedPath = path.normalize(trimmedPath);
 
-    res.json({ success: true, message: 'Settings saved successfully' });
+    // Create target directory if possible
+    let exists = fs.existsSync(trimmedPath);
+    if (!exists) {
+      try {
+        fs.mkdirSync(trimmedPath, { recursive: true });
+        exists = true;
+      } catch (me) {
+        console.warn(`Could not create folder at "${trimmedPath}": ${me.message}`);
+        // If it's a valid drive letter path, allow saving even if drive is temporarily offline/unplugged
+        const isDriveFormat = /^[A-Za-z]:[\\/]/.test(trimmedPath);
+        if (!isDriveFormat) {
+          return res.status(400).json({ message: `Cannot create folder at "${trimmedPath}": ${me.message}` });
+        }
+      }
+    }
+
+    // Detect partition letter
+    const match = trimmedPath.match(/^([A-Za-z]:)/);
+    const driveLetter = match ? match[1].toUpperCase() : (partition || 'C:');
+
+    const config = getStorageConfig();
+
+    if (isPrimary) {
+      config.locations.forEach(loc => loc.isPrimary = false);
+      config.primaryLocation = trimmedPath;
+    }
+
+    // Generate safe integer ID
+    const existingIds = config.locations
+      .map(l => Number(l.id))
+      .filter(id => !isNaN(id) && id > 0 && id < 1000000000);
+    const safeId = existingIds.length ? Math.max(...existingIds) + 1 : 1;
+
+    const newLoc = {
+      id: safeId,
+      name: name || `Storage (${driveLetter})`,
+      path: trimmedPath,
+      partition: driveLetter,
+      isPrimary: Boolean(isPrimary),
+      autoBackup: autoBackup !== undefined ? Boolean(autoBackup) : true,
+      lastBackupAt: null,
+      createdAt: new Date().toISOString()
+    };
+
+    config.locations.push(newLoc);
+    saveStorageConfig(config);
+
+    try {
+      await query(
+        `INSERT INTO edit_log (target_table, target_id, action, new_data, edited_by, edited_by_name, description) VALUES (?, ?, 'create', ?, ?, ?, ?)`,
+        ['storage_locations', safeId, JSON.stringify(newLoc), req.user ? req.user.id : null, req.user ? req.user.full_name : 'Admin', `Added database storage folder location "${trimmedPath}" on drive ${driveLetter}`]
+      );
+    } catch (logErr) {
+      console.warn('edit_log insert skipped:', logErr.message);
+    }
+
+    res.status(201).json({ success: true, location: newLoc, exists });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// GET /api/public/admission-notice — accessible to public / frontend
-app.get('/api/public/admission-notice', async (req, res) => {
+// PUT /api/admin/database/storage/locations/:id — Update location
+app.put('/api/admin/database/storage/locations/:id', authenticate, authorize(['admin']), async (req, res) => {
   try {
-    const rows = await query('SELECT setting_key, setting_value FROM site_settings');
-    const settings = {};
-    rows.forEach(r => { settings[r.setting_key] = r.setting_value; });
+    const id = parseInt(req.params.id);
+    const { name, path: newPath, isPrimary, autoBackup } = req.body;
+    const config = getStorageConfig();
+    const loc = config.locations.find(l => l.id === id);
+    if (!loc) return res.status(404).json({ message: 'Storage location not found.' });
+
+    if (newPath && newPath.trim() !== loc.path) {
+      let tp = newPath.trim().replace(/^["']|["']$/g, '').trim();
+      tp = path.normalize(tp);
+      if (!fs.existsSync(tp)) {
+        try { fs.mkdirSync(tp, { recursive: true }); } catch (me) { /* ignore */ }
+      }
+      loc.path = tp;
+      const m = tp.match(/^([A-Za-z]:)/);
+      if (m) loc.partition = m[1].toUpperCase();
+    }
+
+    if (name) loc.name = name;
+    if (autoBackup !== undefined) loc.autoBackup = Boolean(autoBackup);
+
+    if (isPrimary) {
+      config.locations.forEach(l => l.isPrimary = (l.id === id));
+      config.primaryLocation = loc.path;
+    }
+
+    saveStorageConfig(config);
+
+    try {
+      await query(
+        `INSERT INTO edit_log (target_table, target_id, action, new_data, edited_by, edited_by_name, description) VALUES (?, ?, 'update', ?, ?, ?, ?)`,
+        ['storage_locations', id, JSON.stringify(loc), req.user ? req.user.id : null, req.user ? req.user.full_name : 'Admin', `Updated database storage location "${loc.name}" (${loc.path})`]
+      );
+    } catch (logErr) {
+      console.warn('edit_log insert skipped:', logErr.message);
+    }
+
+    res.json({ success: true, location: loc });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// DELETE /api/admin/database/storage/locations/:id — Remove storage location
+app.delete('/api/admin/database/storage/locations/:id', authenticate, authorize(['admin']), async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const config = getStorageConfig();
+    const idx = config.locations.findIndex(l => l.id === id);
+    if (idx === -1) return res.status(404).json({ message: 'Storage location not found.' });
+
+    if (config.locations[idx].isPrimary && config.locations.length > 1) {
+      return res.status(400).json({ message: 'Cannot delete the primary database location. Set another location as primary first.' });
+    }
+
+    const removed = config.locations.splice(idx, 1)[0];
+    if (config.locations.length === 0) {
+      config.locations.push({
+        id: 1,
+        name: 'Default Database Directory',
+        path: path.join(__dirname, 'database'),
+        partition: 'C:',
+        isPrimary: true,
+        autoBackup: true,
+        lastBackupAt: null,
+        createdAt: new Date().toISOString()
+      });
+      config.primaryLocation = config.locations[0].path;
+    }
+
+    saveStorageConfig(config);
+
+    try {
+      await query(
+        `INSERT INTO edit_log (target_table, target_id, action, old_data, edited_by, edited_by_name, description) VALUES (?, ?, 'delete', ?, ?, ?, ?)`,
+        ['storage_locations', id, JSON.stringify(removed), req.user ? req.user.id : null, req.user ? req.user.full_name : 'Admin', `Removed database storage location "${removed.name}" (${removed.path})`]
+      );
+    } catch (logErr) {
+      console.warn('edit_log insert skipped:', logErr.message);
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/admin/database/storage/backup-now — Perform full backup to all locations
+app.post('/api/admin/database/storage/backup-now', authenticate, authorize(['admin']), async (req, res) => {
+  try {
+    const config = getStorageConfig();
+    const sqlDump = await dumpDatabaseSQL();
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const backupFileName = `gtvc_db_backup_${timestamp}.sql`;
+    const latestFileName = 'gtvc_db_latest.sql';
+    const metadataFileName = 'backup_metadata.json';
+
+    const results = [];
+    const nowIso = new Date().toISOString();
+
+    for (const loc of config.locations) {
+      try {
+        if (!fs.existsSync(loc.path)) {
+          fs.mkdirSync(loc.path, { recursive: true });
+        }
+
+        const fullBackupPath = path.join(loc.path, backupFileName);
+        const fullLatestPath = path.join(loc.path, latestFileName);
+        const metaPath = path.join(loc.path, metadataFileName);
+
+        fs.writeFileSync(fullBackupPath, sqlDump, 'utf8');
+        fs.writeFileSync(fullLatestPath, sqlDump, 'utf8');
+
+        const meta = {
+          database: dbConfig.database,
+          timestamp: nowIso,
+          backupFileName,
+          fileSizeBytes: Buffer.byteLength(sqlDump, 'utf8'),
+          fileSizeMB: (Buffer.byteLength(sqlDump, 'utf8') / (1024 * 1024)).toFixed(3),
+          locationName: loc.name,
+          partition: loc.partition,
+          backedUpBy: req.user.full_name
+        };
+        fs.writeFileSync(metaPath, JSON.stringify(meta, null, 2), 'utf8');
+
+        loc.lastBackupAt = nowIso;
+
+        results.push({
+          locationId: loc.id,
+          locationName: loc.name,
+          path: loc.path,
+          partition: loc.partition,
+          success: true,
+          fileSizeMB: meta.fileSizeMB,
+          fileName: backupFileName
+        });
+      } catch (locErr) {
+        results.push({
+          locationId: loc.id,
+          locationName: loc.name,
+          path: loc.path,
+          partition: loc.partition,
+          success: false,
+          error: locErr.message
+        });
+      }
+    }
+
+    saveStorageConfig(config);
+
+    const successCount = results.filter(r => r.success).length;
+
+    await query(
+      `INSERT INTO edit_log (target_table, target_id, action, new_data, edited_by, edited_by_name, description) VALUES (?, ?, 'create', ?, ?, ?, ?)`,
+      ['database_backups', Date.now(), JSON.stringify(results), req.user.id, req.user.full_name, `Exported full database backup to ${successCount} storage locations (${backupFileName})`]
+    );
+
     res.json({
-      isOpen: settings.admission_open === '1',
-      title: settings.admission_title || 'Admissions Open',
-      description: settings.admission_description || '',
-      deadline: settings.admission_deadline || '',
-      phone: settings.admission_phone || '',
-      email: settings.admission_email || ''
+      success: true,
+      message: `Database backup completed successfully to ${successCount} location(s).`,
+      results
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
+
+// POST /api/admin/database/storage/test-path — Check path availability & permissions
+app.post('/api/admin/database/storage/test-path', authenticate, authorize(['admin']), async (req, res) => {
+  try {
+    const { path: checkPath } = req.body;
+    if (!checkPath) return res.status(400).json({ message: 'Path is required' });
+
+    const trimmed = checkPath.trim();
+    const match = trimmed.match(/^([A-Za-z]:)/);
+    const drive = match ? match[1].toUpperCase() : null;
+
+    let exists = fs.existsSync(trimmed);
+    let writable = false;
+
+    if (!exists) {
+      try {
+        fs.mkdirSync(trimmed, { recursive: true });
+        exists = true;
+      } catch (e) {
+        return res.json({ exists: false, writable: false, drive, error: e.message });
+      }
+    }
+
+    try {
+      const testFile = path.join(trimmed, `.test_write_${Date.now()}`);
+      fs.writeFileSync(testFile, 'test', 'utf8');
+      fs.unlinkSync(testFile);
+      writable = true;
+    } catch (we) {
+      writable = false;
+    }
+
+    res.json({ success: true, exists, writable, drive, path: trimmed });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/admin/database/storage/browse-folder — Open native Windows Folder Picker Dialog
+app.post('/api/admin/database/storage/browse-folder', authenticate, authorize(['admin']), (req, res) => {
+  const psScript = `Add-Type -AssemblyName System.Windows.Forms; $f = New-Object System.Windows.Forms.FolderBrowserDialog; $f.Description = 'Select Database Storage / Backup Folder for GTVC Dargai'; $f.ShowNewFolderButton = $true; if ($f.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) { [Console]::OutputEncoding = [System.Text.Encoding]::UTF8; Write-Output $f.SelectedPath } else { Write-Output '__CANCELLED__' }`;
+  cp.exec(`powershell -NoProfile -STA -Command "${psScript}"`, { timeout: 120000 }, (err, stdout) => {
+    if (err) {
+      return res.json({ success: false, message: 'Could not open native folder picker: ' + err.message });
+    }
+    const selected = (stdout || '').trim();
+    if (!selected || selected === '__CANCELLED__') {
+      return res.json({ success: false, cancelled: true, message: 'Folder selection was cancelled' });
+    }
+    const match = selected.match(/^([A-Za-z]:)/);
+    const drive = match ? match[1].toUpperCase() : null;
+    res.json({ success: true, path: selected, drive });
+  });
+});
+
+// GET /api/admin/database/storage/explore-directory — Browse folders on system for web tree picker
+app.get('/api/admin/database/storage/explore-directory', authenticate, authorize(['admin']), async (req, res) => {
+  try {
+    const target = req.query.path ? req.query.path.trim() : '';
+
+    if (!target) {
+      const drives = await getSystemDrives();
+      return res.json({
+        success: true,
+        currentPath: '',
+        parentPath: null,
+        isRoot: true,
+        items: drives.map(d => ({
+          name: d.name || `Local Disk (${d.driveLetter})`,
+          path: d.driveLetter.endsWith('\\') ? d.driveLetter : `${d.driveLetter}\\`,
+          partition: d.driveLetter,
+          freeGB: d.freeGB,
+          isDrive: true
+        }))
+      });
+    }
+
+    if (!fs.existsSync(target)) {
+      return res.status(404).json({ success: false, message: 'Folder path does not exist on disk' });
+    }
+
+    const stat = fs.statSync(target);
+    if (!stat.isDirectory()) {
+      return res.status(400).json({ success: false, message: 'Target is not a directory' });
+    }
+
+    let entries = [];
+    try {
+      entries = fs.readdirSync(target, { withFileTypes: true });
+    } catch (readErr) {
+      return res.status(403).json({ success: false, message: 'Access denied: ' + readErr.message });
+    }
+
+    const folders = [];
+    for (const ent of entries) {
+      if (ent.isDirectory()) {
+        const name = ent.name;
+        if (name.startsWith('$') || name === 'System Volume Information' || name === 'Recovery') {
+          continue;
+        }
+        folders.push({
+          name: name,
+          path: path.join(target, name),
+          isDrive: false
+        });
+      }
+    }
+
+    folders.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+
+    const parent = path.dirname(target);
+    const isDriveRoot = /^[A-Za-z]:\\?$/.test(target);
+
+    res.json({
+      success: true,
+      currentPath: target,
+      parentPath: isDriveRoot ? '' : parent,
+      isRoot: false,
+      items: folders
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+
 
 // POST /api/admin/results — add single result directly
 app.post('/api/admin/results', authenticate, authorize(['admin']), async (req, res) => {
@@ -1675,13 +2835,10 @@ app.get('/api/teacher/dashboard', authenticate, authorize(['teacher', 'admin']),
       classCount = cCount;
     }
 
-    const notices = await query('SELECT * FROM notices WHERE is_active = 1 AND target_role IN ("all", "teacher") ORDER BY id DESC LIMIT 5');
-
     res.json({
       myClassesCount: classCount,
       totalStudents: studentCount,
-      todayAttendanceRate: 95,
-      recentNotices: notices
+      todayAttendanceRate: 95
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -1935,50 +3092,7 @@ app.get('/api/principal/attendance', authenticate, authorize(['principal', 'admi
   }
 });
 
-// ==================== NOTICES ROUTES ====================
-
-app.get('/api/notices', authenticate, async (req, res) => {
-  try {
-    let sql = 'SELECT n.*, u.full_name as author FROM notices n LEFT JOIN users u ON n.posted_by = u.id WHERE n.is_active = 1';
-    const params = [];
-
-    if (req.user && req.user.role !== 'admin' && req.user.role !== 'principal') {
-      sql += ' AND (n.target_role = "all" OR n.target_role = ?)';
-      params.push(req.user.role);
-    }
-    sql += ' ORDER BY n.id DESC';
-
-    const rows = await query(sql, params);
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-app.post('/api/notices', authenticate, authorize(['admin', 'principal']), async (req, res) => {
-  try {
-    const { title, content, target_role } = req.body;
-    if (!title || !content) {
-      return res.status(400).json({ message: 'Title and content are required' });
-    }
-    const result = await query(
-      `INSERT INTO notices (title, content, target_role, posted_by) VALUES (?, ?, ?, ?)`,
-      [title, content, target_role || 'all', req.user.id]
-    );
-    res.status(201).json({ success: true, id: result.insertId });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-app.delete('/api/notices/:id', authenticate, authorize(['admin']), async (req, res) => {
-  try {
-    await query('DELETE FROM notices WHERE id = ?', [req.params.id]);
-    res.json({ success: true, message: 'Notice deleted' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+// notices routes removed
 
 // ==================== REPORTS ROUTES ====================
 
@@ -2030,13 +3144,25 @@ app.get('/', (req, res) => {
 });
 
 // ==================== SERVER START ====================
-app.listen(PORT, async () => {
+const server = app.listen(PORT, async () => {
   console.log(`\n============================================================`);
   console.log(`🚀 GTVC Dargai Offline DBMS Server running on:`);
   console.log(`   Local URL: http://localhost:${PORT}`);
   console.log(`   Login:     http://localhost:${PORT}/index.html`);
-  console.log(`   Signup:    http://localhost:${PORT}/signup.html`);
+  console.log(`   Signup:    http://localhost:${PORT}/index.html?tab=signup`);
   console.log(`============================================================\n`);
 
   await initDatabase();
+});
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\n⚠️ Port ${PORT} is already in use by another running process.`);
+    console.error(`   To free port ${PORT} on Windows PowerShell, run:`);
+    console.error(`   Stop-Process -Id (Get-NetTCPConnection -LocalPort ${PORT}).OwningProcess -Force`);
+    console.error(`   Then run 'node server.js' again.\n`);
+    process.exit(1);
+  } else {
+    console.error('Server error:', err);
+  }
 });

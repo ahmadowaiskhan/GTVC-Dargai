@@ -96,8 +96,7 @@ offline Database Management System/
     │   ├── admin/
     │   │   ├── dashboard.html       ← Admin home page
     │   │   │                           (shows totals: students, teachers, etc.)
-    │   │   ├── manage-users.html    ← Add / edit / delete user accounts
-    │   │   ├── manage-teachers.html ← Add / view teachers
+    │   │   ├── user.html            ← Unified User & Faculty Management (Admin, Teacher, Accounting)
     │   │   ├── manage-students.html ← Add / view / edit students
     │   │   ├── manage-courses.html  ← Add courses and classes
     │   │   ├── notices.html         ← Post a new notice
@@ -373,10 +372,10 @@ CREATE TABLE IF NOT EXISTS notices (
 
 - [ ] Step 3.1 — Admin Dashboard (`pages/admin/dashboard.html`)
   - Statistics cards: Total Students, Teachers, Courses, Today's Attendance
-- [ ] Step 3.2 — User Management (`pages/admin/manage-users.html`)
-  - Add new teacher/principal accounts
-  - Edit user info, reset password
-  - Deactivate/activate accounts
+- [x] Step 3.2 — User & Faculty Management (`pages/admin/user.html`)
+  - Add new accounts (Admin, Teacher, Accounting)
+  - Edit user info, reset password, update staff details (CNIC, DOB, joining date, etc.)
+  - Deactivate/activate and delete accounts
 - [ ] Step 3.3 — Course Management (`pages/admin/manage-courses.html`)
   - Add/Edit/Delete trade courses (Electrician, Plumber, Computer, etc.)
   - Assign subjects to courses

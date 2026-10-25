@@ -109,7 +109,7 @@
             <p>Comprehensive tracking of student applications, degrees, study plans, projects, and contact data.</p>
           </div>
           <button class="btn btn-primary" onclick="openStudentModal()">
-            ➕ Add / Register Student
+            <img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Add / Register Student
           </button>
         </div>
 
@@ -149,7 +149,7 @@
             <option value="degree_awarded">Degree Awarded</option>
             <option value="dropped">Dropped</option>
           </select>
-          <button class="btn btn-outline" onclick="loadStudents()">↻ Refresh</button>
+          <button class="btn btn-outline" onclick="loadStudents()"><img src="/assets/icons/refresh.svg" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;" alt="refresh"> Refresh</button>
         </div>
 
         <!-- Students Table Card -->
@@ -192,7 +192,7 @@
         <!-- Injected via JavaScript -->
       </div>
       <div class="modal-footer" style="display:flex; justify-content:space-between; padding:16px 20px; border-top:1px solid var(--border-color);">
-        <button class="btn btn-outline" onclick="window.print()">🖨️ Print Student Card</button>
+        <button class="btn btn-outline" onclick="window.print()"><img src="/assets/icons/printer.svg" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;" alt="print"> Print Student Card</button>
         <button class="btn btn-secondary" onclick="closeModal('profileModal')">Close</button>
       </div>
     </div>
@@ -406,10 +406,10 @@
               <div style="font-size:0.75rem; color:var(--primary); font-weight:600;">ID: ${escapeHtml(s.student_id || ('# ' + s.id))}</div>
             </td>
             <td>
-              <div style="font-size:0.85rem; font-weight:600;">🪪 ${escapeHtml(s.cnic || 'CNIC: N/A')}</div>
-              <div style="font-size:0.8rem; color:var(--text-muted);">📞 ${escapeHtml(s.phone || 'N/A')}</div>
-              ${s.email ? `<div style="font-size:0.78rem; color:var(--text-muted);">✉️ ${escapeHtml(s.email)}</div>` : ''}
-              <div style="font-size:0.75rem; color:var(--text-muted);">📍 ${escapeHtml(s.district || '')} ${escapeHtml(s.address || '')}</div>
+              <div style="font-size:0.85rem; font-weight:600;"><img src="/assets/icons/id-card.svg" style="width:12px;height:12px;vertical-align:middle;" alt="cnic"> ${escapeHtml(s.cnic || 'CNIC: N/A')}</div>
+              <div style="font-size:0.8rem; color:var(--text-muted);"><img src="/assets/icons/phone.svg" style="width:12px;height:12px;vertical-align:middle;" alt="phone"> ${escapeHtml(s.phone || 'N/A')}</div>
+              ${s.email ? `<div style="font-size:0.78rem; color:var(--text-muted);"><img src="/assets/icons/mail.svg" style="width:11px;height:11px;vertical-align:middle;" alt="mail"> ${escapeHtml(s.email)}</div>` : ''}
+              <div style="font-size:0.75rem; color:var(--text-muted);"><img src="/assets/icons/location.svg" style="width:11px;height:11px;vertical-align:middle;" alt="location"> ${escapeHtml(s.district || '')} ${escapeHtml(s.address || '')}</div>
             </td>
             <td>
               <div style="font-weight:600; color:var(--text-color);">${escapeHtml(appliedCourse)}</div>
@@ -422,18 +422,18 @@
             <td>
               <div style="display:flex; flex-direction:column; gap:4px;">
                 <span style="font-size:0.78rem;">
-                  ${hasProjects ? '🚀 <b style="color:var(--primary);">Projects documented</b>' : '<span style="color:var(--text-muted);">No projects yet</span>'}
+                  ${hasProjects ? '<img src="/assets/icons/rocket.svg" style="width:12px;height:12px;vertical-align:middle;" alt="projects"> <b style="color:var(--primary);">Projects documented</b>' : '<span style="color:var(--text-muted);">No projects yet</span>'}
                 </span>
                 <span style="font-size:0.78rem;">
-                  ${hasPlan ? '📋 <span style="color:var(--text-color);">Study plan set</span>' : '<span style="color:var(--text-muted);">No plan set</span>'}
+                  ${hasPlan ? '<img src="/assets/icons/clipboard.svg" style="width:12px;height:12px;vertical-align:middle;" alt="plan"> <span style="color:var(--text-color);">Study plan set</span>' : '<span style="color:var(--text-muted);">No plan set</span>'}
                 </span>
               </div>
             </td>
             <td>
               <div class="btn-group" style="gap:4px;">
-                <button class="btn btn-outline btn-sm" onclick="viewProfile(${s.id})" title="View Full Academic Profile">👁️ Details</button>
-                <button class="btn btn-outline btn-sm" onclick="editStudent(${s.id})" title="Edit Details">✏️</button>
-                <button class="btn btn-danger btn-sm" onclick="deleteStudent(${s.id}, '${escapeHtml(s.full_name)}')" title="Delete to Recycle Bin">🗑️</button>
+                <button class="btn btn-outline btn-sm" onclick="viewProfile(${s.id})" title="View Full Academic Profile"><img src="/assets/icons/eye.svg" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;" alt="view"> Details</button>
+                <button class="btn btn-outline btn-sm" onclick="editStudent(${s.id})" title="Edit Details"><img src="/assets/icons/edit.svg" style="width:12px;height:12px;vertical-align:middle;" alt="edit"></button>
+                <button class="btn btn-danger btn-sm" onclick="deleteStudent(${s.id}, '${escapeHtml(s.full_name)}')" title="Delete to Recycle Bin"><img src="/assets/icons/trash.svg" style="width:12px;height:12px;vertical-align:middle;" alt="delete"></button>
               </div>
             </td>
           </tr>
@@ -487,7 +487,7 @@
             </div>
           </div>
 
-          <div class="profile-section-title">👤 Contact & Identity Information</div>
+          <div class="profile-section-title"><img src="/assets/icons/user.svg" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;" alt="contact"> Contact &amp; Identity Information</div>
           <div class="profile-info-grid">
             <div class="info-box">
               <div class="info-box-label">CNIC Number</div>
@@ -511,7 +511,7 @@
             </div>
           </div>
 
-          <div class="profile-section-title">🎓 Academic Course & Degree Status</div>
+          <div class="profile-section-title"><img src="/assets/icons/graduation.svg" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;" alt="academic"> Academic Course &amp; Degree Status</div>
           <div class="profile-info-grid">
             <div class="info-box">
               <div class="info-box-label">Applied Trade / Course</div>
@@ -531,18 +531,18 @@
             </div>
           </div>
 
-          <div class="profile-section-title">📋 Study Plan & Schedule</div>
+          <div class="profile-section-title"><img src="/assets/icons/calendar.svg" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;" alt="plan"> Study Plan &amp; Schedule</div>
           <div class="plan-box">
             ${s.study_plan ? escapeHtml(s.study_plan).replace(/\\n/g, '<br>') : '<span style="color:var(--text-muted);">No study plan registered for this student yet.</span>'}
           </div>
 
-          <div class="profile-section-title">🚀 Student Projects & Practical Portfolio</div>
+          <div class="profile-section-title"><img src="/assets/icons/rocket.svg" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;" alt="projects"> Student Projects &amp; Practical Portfolio</div>
           <div class="project-box">
             ${s.projects ? escapeHtml(s.projects).replace(/\\n/g, '<br>') : '<span style="color:var(--text-muted);">No projects recorded for this student yet.</span>'}
           </div>
 
           ${s.attendance ? `
-            <div class="profile-section-title">📊 Attendance Summary</div>
+            <div class="profile-section-title"><img src="/assets/icons/chart.svg" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;" alt="attendance"> Attendance Summary</div>
             <div class="profile-info-grid">
               <div class="info-box">
                 <div class="info-box-label">Total Days Marked</div>

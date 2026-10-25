@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('gtvc_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+  <title>Storage & Partitions Manager — GTVC Dargai</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="app-sidebar"></aside>
+    <div class="app-main">
+      <header class="app-navbar"></header>
+      <main class="app-content">
+
+        <!-- Page Header -->
+        <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+          <div>
+            <h1>Database Storage & Partitions Manager</h1>
+            <p>Configure local disk drives (C:, D:, F:, etc.), browse and select storage folders, and manage automated multi-location database redundancy.</p>
+          </div>
+          <div class="btn-group" style="flex-wrap:wrap; gap:8px;">
+            <button class="btn btn-primary" onclick="openAddLocationModal()">
+              <img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Add Storage / Backup Folder
+            </button>
+            <button class="btn btn-success" onclick="triggerBackupNow()" id="btnBackupNow">
+              <img src="/assets/icons/shield.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="backup"> Backup Database Now (All Locations)
+            </button>
+            <button class="btn btn-outline" onclick="openTableBreakdownModal()">
+              <img src="/assets/icons/chart.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="breakdown"> Table Storage Details
+            </button>
+            <button class="btn btn-outline" onclick="loadStorageData()">
+              ↻ Refresh Drives
+            </button>
+          </div>
+        </div>
+
+        <!-- Safeguard Information Notice -->
+        <div class="safeguard-banner" style="margin-bottom:20px;">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <img src="/assets/icons/database.svg" style="width:22px;height:22px;" alt="db">
+              <h3 style="margin:0; font-size:1.05rem; color:var(--text-color);">Multi-Partition Redundancy & Instant Disaster Recovery</h3>
+            </div>
+            <p style="margin:4px 0 0; font-size:0.86rem; color:var(--text-muted);">
+              Store your primary database on one partition (e.g. C: or D:) and maintain automated mirrored copies on external drives or secondary partitions (e.g. F: or USB).
+            </p>
+          </div>
+          <div class="btn-group">
+            <a href="recycle-bin.html" class="btn btn-outline btn-sm">
+              <img src="/assets/icons/trash.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="recycle"> Recycle Bin
+            </a>
+            <a href="edit-history.html" class="btn btn-outline btn-sm">
+              <img src="/assets/icons/history.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="history"> Edit History
+            </a>
+          </div>
+        </div>
+
+        <!-- Top Metrics Row -->
+        <div class="storage-metrics-grid">
+          <!-- Metric 1: Active Primary Location -->
+          <div class="storage-metric-box">
+            <div>
+              <div class="storage-metric-label">Active Primary Database Folder</div>
+              <div style="margin:8px 0;">
+                <span id="primaryPartitionBadge" class="partition-badge">C:</span>
+                <span id="primaryLocationPath" style="font-family:monospace; font-size:0.82rem; word-break:break-all; color:var(--text-color); margin-left:6px;">Loading...</span>
+              </div>
+            </div>
+            <div style="font-size:0.8rem; color:var(--text-muted); display:flex; justify-content:space-between; align-items:center;">
+              <span>Role: <strong style="color:var(--color-primary);">Primary Store</strong></span>
+              <span id="primaryFolderSize">0 MB on disk</span>
+            </div>
+          </div>
+
+          <!-- Metric 2: Total Database Storage Footprint -->
+          <div class="storage-metric-box">
+            <div>
+              <div class="storage-metric-label">Database Data Storage Size</div>
+              <div class="storage-metric-val" id="dbSizeVal" style="color:var(--color-primary);">0 KB</div>
+            </div>
+            <div style="font-size:0.8rem; color:var(--text-muted);" id="dbTablesCountText">
+              Across MySQL tables + uploads
+            </div>
+          </div>
+
+          <!-- Metric 3: Active Partition Free Space -->
+          <div class="storage-metric-box">
+            <div>
+              <div class="storage-metric-label">Primary Drive Free Space</div>
+              <div class="storage-metric-val" id="primaryDriveFreeVal" style="color:#16a34a;">0 GB</div>
+            </div>
+            <div>
+              <div class="drive-progress-bar">
+                <div id="primaryDriveProgressFill" class="drive-progress-fill" style="width:0%; background:#16a34a;"></div>
+              </div>
+              <div style="font-size:0.75rem; color:var(--text-muted); display:flex; justify-content:space-between;" id="primaryDriveCapacityText">
+                <span>Used: 0 GB</span>
+                <span>Total: 0 GB</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Metric 4: Configured Storage Destinations -->
+          <div class="storage-metric-box">
+            <div>
+              <div class="storage-metric-label">Configured Storage Destinations</div>
+              <div class="storage-metric-val" id="storageDestCount" style="color:#8b5cf6;">1 Location</div>
+            </div>
+            <div style="font-size:0.8rem; color:var(--text-muted);" id="storageBackupStatusText">
+              Multi-location redundancy active
+            </div>
+          </div>
+        </div>
+
+        <!-- Detected Partitions on System -->
+        <div class="card" style="margin-bottom:24px; padding:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+            <div>
+              <h3 style="margin:0; font-size:1.05rem; font-weight:700; color:var(--text-primary);">
+                Detected Windows Partitions / Drives
+              </h3>
+              <p style="margin:2px 0 0; font-size:0.82rem; color:var(--text-muted);">
+                Click any drive to quickly add a database storage or redundant backup folder on that partition.
+              </p>
+            </div>
+            <span class="badge" style="background:rgba(37,99,235,0.12); color:var(--color-primary); font-size:0.75rem;">
+              Auto-detected Live from System
+            </span>
+          </div>
+          <div class="drive-cards-grid" id="systemDrivesContainer">
+            <div class="text-muted" style="font-size:0.85rem; padding:12px;">Detecting drives...</div>
+          </div>
+        </div>
+
+        <!-- Configured Storage & Backup Locations Table -->
+        <div class="card" style="margin-bottom:24px; padding:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
+            <div>
+              <h3 style="margin:0; font-size:1.05rem; font-weight:700; color:var(--text-primary);">
+                Configured Storage & Backup Folder Locations
+              </h3>
+              <p style="margin:2px 0 0; font-size:0.82rem; color:var(--text-muted);">
+                All active primary and secondary backup folders currently synchronized across partitions.
+              </p>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openAddLocationModal()">
+              <img src="/assets/icons/plus.svg" style="width:12px;height:12px;vertical-align:middle;margin-right:4px;" alt="add"> Add New Location
+            </button>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Partition</th>
+                  <th>Location Name</th>
+                  <th>Folder Path on Disk</th>
+                  <th>Status / Role</th>
+                  <th>Folder Space Used</th>
+                  <th>Backups Saved</th>
+                  <th>Last Backup</th>
+                  <th style="text-align:right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="storageLocationsTableBody">
+                <tr><td colspan="8" class="text-center text-muted" style="padding:24px;">Loading storage locations...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </main>
+      <footer class="app-footer"></footer>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: ADD / CONFIGURE STORAGE LOCATION ==================== -->
+  <div class="modal-overlay" id="modalAddStorageLocation">
+    <div class="modal" style="max-width:620px;">
+      <div class="modal-header">
+        <h3 id="storageModalTitle">Add Database Storage / Backup Location</h3>
+        <button class="modal-close" onclick="closeModal('modalAddStorageLocation')">&times;</button>
+      </div>
+      <form onsubmit="saveStorageLocation(event)" style="padding:22px;">
+        <input type="hidden" id="locId">
+        
+        <div class="form-row" style="display:grid; grid-template-columns:1fr 1.5fr; gap:14px; margin-bottom:14px;">
+          <div class="form-group">
+            <label class="form-label">Select Partition / Drive *</label>
+            <select id="locPartitionSelect" class="form-input" onchange="onPartitionSelectChange()">
+              <option value="C:">C: System Drive</option>
+              <option value="D:">D: Secondary Drive</option>
+              <option value="custom">Other / Custom Drive...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Location Name *</label>
+            <input type="text" id="locName" class="form-input" placeholder="e.g. Drive D Backup Folder (auto-filled if blank)">
+          </div>
+        </div>
+
+        <!-- Target Folder Path with Browse Options -->
+        <div class="form-group" style="margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label class="form-label" style="margin:0;">Target Folder Path on Disk *</label>
+            <div style="display:flex; gap:6px;">
+              <button type="button" class="btn btn-outline btn-sm" onclick="triggerNativeFolderPicker()" id="btnNativeBrowse" title="Open native Windows Folder Picker dialog">
+                <img src="/assets/icons/folder.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="browse"> Browse Computer...
+              </button>
+              <button type="button" class="btn btn-outline btn-sm" onclick="openDirectoryExplorerModal()" title="Explore folder tree in web modal">
+                <img src="/assets/icons/search.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="tree"> Explore Drives
+              </button>
+            </div>
+          </div>
+          
+          <div style="display:flex; gap:6px;">
+            <input type="text" id="locPath" class="form-input" required placeholder="e.g. D:\GTVC_Database or F:\Backup" style="flex:1; font-family:monospace;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="testLocationPath()">Test Path</button>
+          </div>
+          <div id="pathTestResult" style="font-size:0.8rem; margin-top:6px;"></div>
+        </div>
+
+        <div class="form-group" style="background:var(--bg-hover); padding:12px 14px; border-radius:6px; margin-bottom:10px;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem; font-weight:600;">
+            <input type="checkbox" id="locIsPrimary">
+            <span>Set as Primary Database Storage Location</span>
+          </label>
+          <p style="margin:4px 0 0 24px; font-size:0.78rem; color:var(--text-muted);">
+            If selected, this becomes the primary folder for database operations and file storage.
+          </p>
+        </div>
+
+        <div class="form-group" style="background:var(--bg-hover); padding:12px 14px; border-radius:6px; margin-bottom:18px;">
+          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.9rem; font-weight:600;">
+            <input type="checkbox" id="locAutoBackup" checked>
+            <span>Include in 1-Click Multi-Location Backups</span>
+          </label>
+          <p style="margin:4px 0 0 24px; font-size:0.78rem; color:var(--text-muted);">
+            When clicking "Backup Database Now", database snapshots will automatically duplicate into this folder.
+          </p>
+        </div>
+
+        <div class="modal-footer" style="display:flex; justify-content:flex-end; gap:10px;">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modalAddStorageLocation')">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="btnSaveLoc">Save Location</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: IN-APP DIRECTORY TREE EXPLORER ==================== -->
+  <div class="modal-overlay" id="modalDirectoryBrowser">
+    <div class="modal" style="max-width:680px; display:flex; flex-direction:column; max-height:85vh;">
+      <div class="modal-header">
+        <div>
+          <h3 style="margin:0;">Browse Disk Partitions & Folders</h3>
+          <p class="text-muted" style="margin:2px 0 0; font-size:0.82rem;">Click on drives or subfolders to navigate into them, then click "Select This Folder".</p>
+        </div>
+        <button class="modal-close" onclick="closeModal('modalDirectoryBrowser')">&times;</button>
+      </div>
+
+      <div style="padding:16px 20px; flex:1; display:flex; flex-direction:column; overflow:hidden;">
+        <!-- Path Navigation Bar -->
+        <div class="folder-browser-path-bar">
+          <button type="button" class="btn btn-outline btn-sm" id="btnBrowserUp" onclick="navigateDirectoryUp()" style="padding:4px 8px;" title="Go Up One Folder">
+            ↑ Up
+          </button>
+          <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+            Path: <strong id="browserCurrentPathText" style="color:var(--color-primary);">My Computer (Drives)</strong>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" onclick="refreshDirectoryExplorer()" style="padding:4px 8px;" title="Refresh">
+            ↻
+          </button>
+        </div>
+
+        <!-- Folder List -->
+        <div class="folder-browser-list" id="browserFolderList">
+          <div class="text-muted" style="padding:24px; text-align:center;">Loading drives and directories...</div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center; padding:14px 20px; border-top:1px solid var(--border-color);">
+        <div style="font-size:0.82rem; color:var(--text-muted); overflow:hidden; text-overflow:ellipsis; max-width:380px;">
+          Selected: <strong id="browserSelectedPathText" style="color:var(--text-primary); font-family:monospace;">(None)</strong>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="btn btn-outline" onclick="closeModal('modalDirectoryBrowser')">Cancel</button>
+          <button type="button" class="btn btn-primary" onclick="confirmSelectedFolder()">Select This Folder</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: TABLE STORAGE BREAKDOWN ==================== -->
+  <div class="modal-overlay" id="modalTableBreakdown">
+    <div class="modal" style="max-width:750px; max-height:85vh; display:flex; flex-direction:column;">
+      <div class="modal-header">
+        <div>
+          <h3 style="margin:0;">Database Tables Storage Footprint</h3>
+          <p class="text-muted" style="margin:4px 0 0; font-size:0.85rem;" id="breakdownSubtitle">Detailed storage consumption by each table in gtvc_db</p>
+        </div>
+        <button class="modal-close" onclick="closeModal('modalTableBreakdown')">&times;</button>
+      </div>
+      <div class="table-wrapper" style="flex:1; overflow-y:auto; padding:16px;">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Table Name</th>
+              <th>Total Rows</th>
+              <th>Size (KB)</th>
+              <th>Size (MB)</th>
+              <th>Share</th>
+            </tr>
+          </thead>
+          <tbody id="tableBreakdownBody">
+            <tr><td colspan="6" class="text-center text-muted" style="padding:20px;">Loading breakdown...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let globalStorageData = null;
+    let browserCurrentPath = '';
+    let browserParentPath = null;
+    let browserSelectedPath = '';
+
+    // Modal helpers (not available from app.js globally)
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (el) { el.classList.add('active'); document.body.style.overflow = 'hidden'; }
+    }
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) { el.classList.remove('active'); document.body.style.overflow = ''; }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!requireAuth(['admin'])) return;
+      renderLayout('admin', 'Storage & Partitions', 'storage-manager.html');
+      loadStorageData();
+
+      // Close modals on overlay click
+      document.querySelectorAll('.modal-overlay').forEach(overlay => {
+        overlay.addEventListener('click', (e) => {
+          if (e.target === overlay) closeModal(overlay.id);
+        });
+      });
+    });
+
+    // Load full storage and drive information
+    async function loadStorageData() {
+      try {
+        const data = await apiCall('/api/admin/database/storage');
+        if (data) {
+          globalStorageData = data;
+          renderStorageUI(data);
+        }
+      } catch (err) {
+        console.error('Failed to load storage metrics', err);
+      }
+    }
+
+    function renderStorageUI(data) {
+      const { drives, primaryLocation, locations, dbStats } = data;
+
+      // 1. Metric 1: Primary location
+      const primaryLocObj = (locations && locations.find(l => l.isPrimary)) || (locations && locations[0]) || {};
+      const primaryPart = primaryLocObj.partition || 'C:';
+      document.getElementById('primaryPartitionBadge').textContent = primaryPart;
+      document.getElementById('primaryLocationPath').textContent = primaryLocation || primaryLocObj.path || 'N/A';
+      document.getElementById('primaryFolderSize').textContent = `${primaryLocObj.folderSizeMB || 0} MB on disk`;
+
+      // 2. Metric 2: DB Data storage size
+      const totalMB = dbStats ? dbStats.totalCombinedMB : 0;
+      const mysqlKB = dbStats ? dbStats.mysqlTotalKB : 0;
+      document.getElementById('dbSizeVal').textContent = totalMB > 1 ? `${totalMB} MB` : `${mysqlKB} KB`;
+      document.getElementById('dbTablesCountText').textContent = `Across ${dbStats ? dbStats.tablesCount : 0} MySQL tables + uploads`;
+
+      // 3. Metric 3: Primary Drive Free Space
+      const primaryDrive = (drives && drives.find(d => primaryPart.toUpperCase().startsWith(d.driveLetter.toUpperCase()))) || (drives && drives[0]);
+      if (primaryDrive) {
+        document.getElementById('primaryDriveFreeVal').textContent = `${primaryDrive.freeGB} GB Free`;
+        const fill = document.getElementById('primaryDriveProgressFill');
+        fill.style.width = `${primaryDrive.usedPercent}%`;
+        fill.style.background = primaryDrive.usedPercent > 90 ? '#dc2626' : (primaryDrive.usedPercent > 75 ? '#d97706' : '#16a34a');
+        document.getElementById('primaryDriveCapacityText').innerHTML = `
+          <span>Used: <b>${primaryDrive.usedGB} GB</b> (${primaryDrive.usedPercent}%)</span>
+          <span>Drive ${primaryDrive.driveLetter} Total: <b>${primaryDrive.totalGB} GB</b></span>
+        `;
+      }
+
+      // 4. Metric 4: Destinations count
+      const locLen = locations ? locations.length : 0;
+      document.getElementById('storageDestCount').textContent = `${locLen} Location${locLen !== 1 ? 's' : ''}`;
+      const autoCount = locations ? locations.filter(l => l.autoBackup).length : 0;
+      document.getElementById('storageBackupStatusText').textContent = `${autoCount} folder(s) included in auto-backup`;
+
+      // 5. System Drives Cards
+      const drivesContainer = document.getElementById('systemDrivesContainer');
+      if (drives && drives.length > 0) {
+        drivesContainer.innerHTML = drives.map(d => {
+          const isPrimary = primaryPart.toUpperCase().startsWith(d.driveLetter.toUpperCase());
+          const barColor = d.usedPercent > 90 ? '#dc2626' : (d.usedPercent > 75 ? '#d97706' : '#16a34a');
+          return `
+            <div class="drive-card ${isPrimary ? 'active' : ''}" onclick="selectDriveForStorage('${d.driveLetter}')" title="Click to add storage folder on partition ${d.driveLetter}">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="partition-badge">${d.driveLetter}</span>
+                ${isPrimary ? '<span class="badge" style="background:rgba(37,99,235,0.15); color:var(--color-primary); font-size:0.7rem;">Primary Drive</span>' : ''}
+              </div>
+              <div style="font-weight:600; font-size:0.85rem; margin-top:6px; color:var(--text-color);">${d.name}</div>
+              <div class="drive-progress-bar">
+                <div class="drive-progress-fill" style="width:${d.usedPercent}%; background:${barColor};"></div>
+              </div>
+              <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted);">
+                <span><b>${d.freeGB} GB</b> free</span>
+                <span>${d.totalGB} GB</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } else {
+        drivesContainer.innerHTML = '<div class="text-muted" style="padding:8px;">No logical drives detected.</div>';
+      }
+
+      // 6. Configured Locations Table
+      const tbody = document.getElementById('storageLocationsTableBody');
+      if (locations && locations.length > 0) {
+        tbody.innerHTML = locations.map((loc) => {
+          const isPrimary = loc.isPrimary;
+          const statusBadge = isPrimary 
+            ? '<span class="badge" style="background:rgba(37,99,235,0.15); color:var(--color-primary); font-weight:600;">Primary Storage</span>'
+            : (loc.autoBackup 
+                ? '<span class="badge" style="background:rgba(16,185,129,0.15); color:#16a34a;">Redundant Backup</span>'
+                : '<span class="badge" style="background:rgba(107,114,128,0.15); color:#6b7280;">Mirror Archive</span>');
+
+          const lastBackup = loc.lastBackupAt 
+            ? new Date(loc.lastBackupAt).toLocaleString() 
+            : '<span class="text-muted">Not yet backed up</span>';
+
+          const driveFree = loc.driveInfo ? `${loc.driveInfo.freeGB} GB free` : '';
+
+          return `
+            <tr style="${isPrimary ? 'background:rgba(37,99,235,0.03);' : ''}">
+              <td><span class="partition-badge">${escapeHtml(loc.partition)}</span></td>
+              <td>
+                <strong>${escapeHtml(loc.name)}</strong>
+                ${driveFree ? `<div class="text-muted" style="font-size:0.75rem;">Partition: ${driveFree}</div>` : ''}
+              </td>
+              <td>
+                <span style="font-family:monospace; font-size:0.82rem; word-break:break-all;">${escapeHtml(loc.path)}</span>
+                ${!loc.exists ? '<div style="color:#dc2626; font-size:0.75rem;">⚠️ Folder does not exist on disk</div>' : ''}
+              </td>
+              <td>${statusBadge}</td>
+              <td>
+                <strong>${loc.folderSizeMB} MB</strong>
+                <div class="text-muted" style="font-size:0.75rem;">${(loc.folderSizeBytes || 0).toLocaleString()} bytes</div>
+              </td>
+              <td>
+                <span class="badge" style="background:var(--bg-hover); color:var(--text-color); border:1px solid var(--border-color);">
+                  ${loc.backupCount || 0} .sql file(s)
+                </span>
+              </td>
+              <td style="font-size:0.8rem;">${lastBackup}</td>
+              <td style="text-align:right;">
+                <div class="btn-group" style="justify-content:flex-end;">
+                  ${!isPrimary ? `<button class="btn btn-outline btn-sm" onclick="setPrimaryLocation(${loc.id})" title="Switch to this location as Primary">Make Primary</button>` : ''}
+                  <button class="btn btn-outline btn-sm" onclick="testLocationPathDirect('${escapeJs(loc.path)}')">Test</button>
+                  ${!isPrimary ? `<button class="btn btn-danger btn-sm" onclick="deleteStorageLocation(${loc.id}, '${escapeJs(loc.name)}')">Remove</button>` : ''}
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } else {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted" style="padding:20px;">No storage locations configured.</td></tr>';
+      }
+    }
+
+    function selectDriveForStorage(driveLetter) {
+      openAddLocationModal(driveLetter);
+    }
+
+    function openAddLocationModal(prefillDrive) {
+      document.getElementById('locId').value = '';
+      document.getElementById('pathTestResult').innerHTML = '';
+      const sel = document.getElementById('locPartitionSelect');
+      sel.innerHTML = '';
+
+      if (globalStorageData && globalStorageData.drives) {
+        globalStorageData.drives.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = d.driveLetter;
+          opt.textContent = `${d.driveLetter} ${d.name} (${d.freeGB} GB free)`;
+          sel.appendChild(opt);
+        });
+      }
+      const customOpt = document.createElement('option');
+      customOpt.value = 'custom';
+      customOpt.textContent = 'Custom Path / Network Partition...';
+      sel.appendChild(customOpt);
+
+      if (prefillDrive) {
+        sel.value = prefillDrive;
+      }
+
+      onPartitionSelectChange();
+      openModal('modalAddStorageLocation');
+    }
+
+    function onPartitionSelectChange() {
+      const part = document.getElementById('locPartitionSelect').value;
+      const pathInput = document.getElementById('locPath');
+      const nameInput = document.getElementById('locName');
+
+      if (part !== 'custom') {
+        pathInput.value = `${part}\\GTVC_Database_Backup`;
+        nameInput.value = `Drive ${part} Database Storage`;
+      } else {
+        pathInput.value = 'F:\\GTVC_Database';
+        nameInput.value = 'External Drive F Storage';
+      }
+    }
+
+    // ==================== BROWSE PATH OPTIONS ====================
+
+    // Option 1: Native Windows Folder Picker Dialog
+    async function triggerNativeFolderPicker() {
+      const btn = document.getElementById('btnNativeBrowse');
+      const originalHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = 'Waiting for folder selection...';
+      
+      const testRes = document.getElementById('pathTestResult');
+      testRes.innerHTML = '<span class="text-muted">📁 Look at your screen: Select your database folder in the Windows dialog...</span>';
+
+      try {
+        const res = await apiCall('/api/admin/database/storage/browse-folder', 'POST');
+        if (res && res.success && res.path) {
+          document.getElementById('locPath').value = res.path;
+          
+          // Auto-adjust drive dropdown if recognized
+          if (res.drive) {
+            const sel = document.getElementById('locPartitionSelect');
+            for (let i = 0; i < sel.options.length; i++) {
+              if (sel.options[i].value.toUpperCase() === res.drive.toUpperCase()) {
+                sel.selectedIndex = i;
+                break;
+              }
+            }
+          }
+          
+          testRes.innerHTML = `<span style="color:#16a34a; font-weight:600;">✓ Selected: ${escapeHtml(res.path)}</span>`;
+          testLocationPath();
+        } else if (res && res.cancelled) {
+          testRes.innerHTML = '<span class="text-muted">Folder selection cancelled.</span>';
+        } else {
+          testRes.innerHTML = `<span style="color:#d97706;">Notice: ${res && res.message ? res.message : 'Please enter path or use Explore Drives.'}</span>`;
+        }
+      } catch (err) {
+        testRes.innerHTML = `<span style="color:#dc2626;">Error: ${err.message}</span>`;
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalHtml;
+      }
+    }
+
+    // Option 2: In-App Interactive Directory Browser Modal
+    function openDirectoryExplorerModal() {
+      const currentVal = document.getElementById('locPath').value.trim();
+      let startPath = '';
+      if (currentVal && /^[A-Za-z]:/.test(currentVal)) {
+        startPath = currentVal;
+      }
+      loadDirectoryBrowser(startPath);
+      openModal('modalDirectoryBrowser');
+    }
+
+    async function loadDirectoryBrowser(pathQuery) {
+      const listEl = document.getElementById('browserFolderList');
+      listEl.innerHTML = '<div class="text-muted" style="padding:24px; text-align:center;">Loading directories...</div>';
+
+      try {
+        const url = pathQuery ? `/api/admin/database/storage/explore-directory?path=${encodeURIComponent(pathQuery)}` : '/api/admin/database/storage/explore-directory';
+        const data = await apiCall(url);
+
+        if (!data || !data.success) {
+          listEl.innerHTML = `<div class="text-danger" style="padding:16px; text-align:center;">${data ? data.message : 'Failed to load folders'}</div>`;
+          return;
+        }
+
+        browserCurrentPath = data.currentPath || '';
+        browserParentPath = data.parentPath;
+        browserSelectedPath = browserCurrentPath;
+
+        document.getElementById('browserCurrentPathText').textContent = browserCurrentPath || 'My Computer (Available Drives)';
+        document.getElementById('browserSelectedPathText').textContent = browserSelectedPath || '(No folder selected)';
+
+        const upBtn = document.getElementById('btnBrowserUp');
+        upBtn.disabled = data.isRoot;
+
+        if (!data.items || data.items.length === 0) {
+          listEl.innerHTML = '<div class="text-muted" style="padding:20px; text-align:center;">No subfolders found inside this directory.</div>';
+          return;
+        }
+
+        listEl.innerHTML = data.items.map(item => {
+          if (item.isDrive) {
+            return `
+              <div class="folder-browser-item" onclick="onDirectoryItemClick('${escapeJs(item.path)}')">
+                <div class="folder-browser-item-left">
+                  <span class="partition-badge">${escapeHtml(item.partition)}</span>
+                  <strong>${escapeHtml(item.name)}</strong>
+                </div>
+                <span class="text-muted" style="font-size:0.8rem;">${item.freeGB} GB free</span>
+              </div>
+            `;
+          } else {
+            return `
+              <div class="folder-browser-item" onclick="onDirectoryItemClick('${escapeJs(item.path)}')">
+                <div class="folder-browser-item-left">
+                  <img src="/assets/icons/folder.svg" alt="folder" style="width:18px;height:18px;">
+                  <span>${escapeHtml(item.name)}</span>
+                </div>
+                <span class="text-muted" style="font-size:0.75rem;">Folder</span>
+              </div>
+            `;
+          }
+        }).join('');
+      } catch (err) {
+        listEl.innerHTML = `<div class="text-danger" style="padding:16px; text-align:center;">Error: ${err.message}</div>`;
+      }
+    }
+
+    function onDirectoryItemClick(targetPath) {
+      browserSelectedPath = targetPath;
+      document.getElementById('browserSelectedPathText').textContent = browserSelectedPath;
+      loadDirectoryBrowser(targetPath);
+    }
+
+    function navigateDirectoryUp() {
+      if (browserParentPath !== null) {
+        loadDirectoryBrowser(browserParentPath);
+      }
+    }
+
+    function refreshDirectoryExplorer() {
+      loadDirectoryBrowser(browserCurrentPath);
+    }
+
+    function confirmSelectedFolder() {
+      if (!browserSelectedPath) {
+        alert('Please click on a folder or drive to select it.');
+        return;
+      }
+      document.getElementById('locPath').value = browserSelectedPath;
+      
+      const match = browserSelectedPath.match(/^([A-Za-z]:)/);
+      if (match) {
+        const d = match[1].toUpperCase();
+        const sel = document.getElementById('locPartitionSelect');
+        for (let i = 0; i < sel.options.length; i++) {
+          if (sel.options[i].value.toUpperCase() === d) {
+            sel.selectedIndex = i;
+            break;
+          }
+        }
+      }
+
+      closeModal('modalDirectoryBrowser');
+      testLocationPath();
+    }
+
+    // ==================== PATH TESTING & SAVING ====================
+
+    async function testLocationPath() {
+      const p = document.getElementById('locPath').value.trim();
+      const resEl = document.getElementById('pathTestResult');
+      if (!p) {
+        resEl.innerHTML = '<span style="color:#dc2626;">Please enter or browse for a folder path.</span>';
+        return;
+      }
+      resEl.innerHTML = '<span class="text-muted">Testing path & write permissions...</span>';
+      try {
+        const res = await apiCall('/api/admin/database/storage/test-path', 'POST', { path: p });
+        if (res && res.writable) {
+          resEl.innerHTML = `<span style="color:#16a34a; font-weight:600;">✓ Valid & Writable! Partition: ${res.drive || 'Ready'}</span>`;
+        } else {
+          resEl.innerHTML = `<span style="color:#dc2626;">✗ Error: ${res ? res.error || 'Path is not writable' : 'Test failed'}</span>`;
+        }
+      } catch (err) {
+        resEl.innerHTML = `<span style="color:#dc2626;">✗ ${err.message}</span>`;
+      }
+    }
+
+    async function testLocationPathDirect(pathStr) {
+      try {
+        const res = await apiCall('/api/admin/database/storage/test-path', 'POST', { path: pathStr });
+        if (res && res.writable) {
+          alert(`Location is valid and writable!\nFolder: ${pathStr}\nPartition: ${res.drive || 'OK'}`);
+        } else {
+          alert(`Write test failed for "${pathStr}": ${res ? res.error || 'Permission denied' : 'Unknown error'}`);
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function saveStorageLocation(e) {
+      e.preventDefault();
+      const saveBtn = document.getElementById('btnSaveLoc');
+      const origText = saveBtn.textContent;
+      
+      const pathVal = document.getElementById('locPath').value.trim();
+      const partVal = document.getElementById('locPartitionSelect').value || 'C:';
+      let nameVal = document.getElementById('locName').value.trim();
+      
+      if (!pathVal) {
+        document.getElementById('pathTestResult').innerHTML = '<span style="color:#dc2626; font-weight:600;">⚠ Please enter or browse for a folder path first.</span>';
+        document.getElementById('locPath').focus();
+        return;
+      }
+      if (!nameVal) {
+        const driveLetter = pathVal.match(/^([A-Za-z]:)/)?.[1]?.toUpperCase() || partVal;
+        nameVal = `Database Storage (${driveLetter})`;
+        document.getElementById('locName').value = nameVal;
+      }
+
+      const payload = {
+        name: nameVal,
+        path: pathVal,
+        partition: partVal,
+        isPrimary: document.getElementById('locIsPrimary').checked,
+        autoBackup: document.getElementById('locAutoBackup').checked
+      };
+
+      saveBtn.disabled = true;
+      saveBtn.textContent = '⏳ Saving...';
+
+      try {
+        const res = await apiCall('/api/admin/database/storage/locations', 'POST', payload);
+        if (res && (res.success || res.location)) {
+          closeModal('modalAddStorageLocation');
+          await loadStorageData();
+          showToast(`✓ Storage location "${payload.name}" saved!`, 'success');
+        } else {
+          const errMsg = res && res.message ? res.message : 'Unknown server error. Check console.';
+          document.getElementById('pathTestResult').innerHTML = `<span style="color:#dc2626;">✗ Failed: ${escapeHtml(errMsg)}</span>`;
+          saveBtn.disabled = false;
+          saveBtn.textContent = origText;
+        }
+      } catch (err) {
+        document.getElementById('pathTestResult').innerHTML = `<span style="color:#dc2626;">✗ Network error: ${escapeHtml(err.message)}</span>`;
+        saveBtn.disabled = false;
+        saveBtn.textContent = origText;
+      }
+    }
+
+    function showToast(message, type = 'success') {
+      let toast = document.getElementById('storageToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'storageToast';
+        toast.style.cssText = 'position:fixed;bottom:28px;right:28px;z-index:9999;padding:14px 22px;border-radius:10px;font-weight:600;font-size:0.9rem;box-shadow:0 4px 20px rgba(0,0,0,0.18);transition:opacity 0.4s;max-width:380px;';
+        document.body.appendChild(toast);
+      }
+      toast.style.background = type === 'success' ? '#16a34a' : '#dc2626';
+      toast.style.color = '#fff';
+      toast.style.opacity = '1';
+      toast.textContent = message;
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => { toast.style.opacity = '0'; }, 3500);
+    }
+
+    async function setPrimaryLocation(id) {
+      if (!confirm('Are you sure you want to set this folder as the Primary Database Storage Location?')) {
+        return;
+      }
+      try {
+        const res = await apiCall(`/api/admin/database/storage/locations/${id}`, 'PUT', { isPrimary: true });
+        if (res && res.success) {
+          await loadStorageData();
+          alert('Primary database storage location updated!');
+        } else {
+          alert(res && res.message ? res.message : 'Failed to set primary');
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function deleteStorageLocation(id, name) {
+      if (!confirm(`Are you sure you want to remove storage location "${name}"? Existing files on disk will NOT be deleted.`)) {
+        return;
+      }
+      try {
+        const res = await apiCall(`/api/admin/database/storage/locations/${id}`, 'DELETE');
+        if (res && res.success) {
+          await loadStorageData();
+          alert('Storage location removed.');
+        } else {
+          alert(res && res.message ? res.message : 'Failed to remove location');
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function triggerBackupNow() {
+      const btn = document.getElementById('btnBackupNow');
+      const originalText = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = 'Backing up database to all locations...';
+
+      try {
+        const res = await apiCall('/api/admin/database/storage/backup-now', 'POST');
+        if (res && res.success) {
+          await loadStorageData();
+          const detailStr = (res.results || []).map(r => `• ${r.locationName} (${r.partition}): ${r.success ? '✓ Saved ' + r.fileSizeMB + ' MB' : '✗ ' + r.error}`).join('\n');
+          alert(`${res.message}\n\nDestinations:\n${detailStr}`);
+        } else {
+          alert(res && res.message ? res.message : 'Backup failed');
+        }
+      } catch (err) {
+        alert(err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+      }
+    }
+
+    function openTableBreakdownModal() {
+      if (!globalStorageData || !globalStorageData.dbStats) {
+        alert('Storage stats not ready yet. Please wait a moment.');
+        return;
+      }
+
+      const { tables, mysqlTotalKB, databaseName } = globalStorageData.dbStats;
+      document.getElementById('breakdownSubtitle').textContent = `Total size: ${(mysqlTotalKB || 0).toLocaleString()} KB across ${tables.length} tables in database "${databaseName}"`;
+
+      const tbody = document.getElementById('tableBreakdownBody');
+      if (tables && tables.length > 0) {
+        tbody.innerHTML = tables.map((t, idx) => {
+          const share = mysqlTotalKB > 0 ? Math.round((t.size_kb / mysqlTotalKB) * 100) : 0;
+          return `
+            <tr>
+              <td>${idx + 1}</td>
+              <td><strong style="font-family:monospace; color:var(--color-primary);">${escapeHtml(t.table_name)}</strong></td>
+              <td>${(t.table_rows || 0).toLocaleString()} rows</td>
+              <td><strong>${t.size_kb} KB</strong></td>
+              <td>${t.size_mb} MB</td>
+              <td style="min-width:120px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <div style="flex:1; height:6px; background:rgba(0,0,0,0.08); border-radius:3px; overflow:hidden;">
+                    <div style="width:${share}%; height:100%; background:var(--color-primary); border-radius:3px;"></div>
+                  </div>
+                  <span style="font-size:0.75rem; font-weight:600;">${share}%</span>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+      } else {
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted" style="padding:20px;">No tables found.</td></tr>';
+      }
+
+      openModal('modalTableBreakdown');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function escapeJs(str) {
+      if (!str) return '';
+      return String(str).replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
+  </script>
+</body>
+</html>

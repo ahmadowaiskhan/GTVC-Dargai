@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -99,9 +99,9 @@
             <p>Manage college funds, incomings, outgoings, lab maintenance, machinery purchases, utility bills, and payment receipts.</p>
           </div>
           <div class="btn-group">
-            <button class="btn btn-outline" onclick="window.print()">🖨️ Print Financial Report</button>
+            <button class="btn btn-outline" onclick="window.print()"><img src="/assets/icons/printer.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="print"> Print Financial Report</button>
             <button class="btn btn-primary" onclick="openTransactionModal()">
-              ➕ Record Transaction / Bill
+              <img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Record Transaction / Bill
             </button>
           </div>
         </div>
@@ -132,13 +132,13 @@
             Expense & Fund Allocations:
           </div>
           <div id="categoryChipsContainer" style="display:flex; flex-wrap:wrap; gap:10px;">
-            <span class="category-chip">🔬 Lab Maintenance</span>
-            <span class="category-chip">⚙️ Buy New Lab Machines</span>
-            <span class="category-chip">⚡ Electricity Bills</span>
-            <span class="category-chip">🌐 Internet Bills</span>
-            <span class="category-chip">🏛️ College Funds</span>
-            <span class="category-chip">🎓 Student Fees</span>
-            <span class="category-chip">📦 Other College Expenses</span>
+            <span class="category-chip"><img src="/assets/icons/microscope.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="lab"> Lab Maintenance</span>
+            <span class="category-chip"><img src="/assets/icons/settings.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="machine"> Buy New Lab Machines</span>
+            <span class="category-chip"><img src="/assets/icons/bolt.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="electric"> Electricity Bills</span>
+            <span class="category-chip"><img src="/assets/icons/globe.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="internet"> Internet Bills</span>
+            <span class="category-chip"><img src="/assets/icons/building.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="college"> College Funds</span>
+            <span class="category-chip"><img src="/assets/icons/graduation.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="fees"> Student Fees</span>
+            <span class="category-chip"><img src="/assets/icons/package.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="other"> Other College Expenses</span>
           </div>
         </div>
 
@@ -154,14 +154,14 @@
           </select>
           <select id="filterCategory" class="form-select" style="width:auto; min-width:180px;" onchange="loadTransactions()">
             <option value="">All Categories</option>
-            <option value="lab_maintenance">🔬 Lab Maintenance</option>
-            <option value="lab_equipment">⚙️ Buy New Lab Machine</option>
-            <option value="electricity_bill">⚡ Electricity Bill</option>
-            <option value="internet_bill">🌐 Internet Bill</option>
-            <option value="college_fund">🏛️ College Funds</option>
-            <option value="student_fee">🎓 Student Fees</option>
-            <option value="salaries">👥 Salaries / Honorarium</option>
-            <option value="other">📦 Other Expenses</option>
+            <option value="lab_maintenance"><img src="/assets/icons/microscope.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="lab"> Lab Maintenance</option>
+            <option value="lab_equipment">Buy New Lab Machine</option>
+            <option value="electricity_bill">Electricity Bill</option>
+            <option value="internet_bill">Internet Bill</option>
+            <option value="college_fund"><img src="/assets/icons/building.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="college"> College Funds</option>
+            <option value="student_fee"><img src="/assets/icons/graduation.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="fees"> Student Fees</option>
+            <option value="salaries">Salaries / Honorarium</option>
+            <option value="other">Other Expenses</option>
           </select>
           <button class="btn btn-outline" onclick="loadAllAccountingData()">↻ Refresh</button>
         </div>
@@ -245,14 +245,14 @@
           <div class="form-group">
             <label class="form-label">Category *</label>
             <select id="tCategory" class="form-select" required>
-              <option value="lab_maintenance">🔬 Lab Maintenance</option>
-              <option value="lab_equipment">⚙️ Buy New Lab Machine / Equipment</option>
-              <option value="electricity_bill">⚡ Electricity Bill</option>
-              <option value="internet_bill">🌐 Internet Bill</option>
-              <option value="college_fund">🏛️ College Funds / Grant</option>
-              <option value="student_fee">🎓 Student Fees</option>
-              <option value="salaries">👥 Salaries / Honorarium</option>
-              <option value="other">📦 Other College Expenses</option>
+              <option value="lab_maintenance"><img src="/assets/icons/microscope.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="lab"> Lab Maintenance</option>
+              <option value="lab_equipment">Buy New Lab Machine / Equipment</option>
+              <option value="electricity_bill">Electricity Bill</option>
+              <option value="internet_bill">Internet Bill</option>
+              <option value="college_fund"><img src="/assets/icons/building.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="college"> College Funds / Grant</option>
+              <option value="student_fee"><img src="/assets/icons/graduation.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="fees"> Student Fees</option>
+              <option value="salaries">Salaries / Honorarium</option>
+              <option value="other"><img src="/assets/icons/package.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="other"> Other College Expenses</option>
             </select>
           </div>
           <div class="form-group">
@@ -293,7 +293,7 @@
           <label class="form-label">Attach Image of Bill or Payment Receipt</label>
           <div class="dropzone" onclick="document.getElementById('receiptFileInput').click()">
             <div id="dropzoneText">
-              📸 Click to upload Bill Image / Payment Receipt (JPG, PNG, WebP)
+              Click to upload Bill Image / Payment Receipt (JPG, PNG, WebP)
             </div>
             <img id="receiptFormPreview" src="" alt="Receipt Preview" style="max-height:120px; display:none; margin:10px auto; border-radius:6px; border:1px solid var(--border-color);">
           </div>
@@ -508,10 +508,10 @@
       if (t.receipt_image) {
         preview.src = t.receipt_image;
         preview.style.display = 'block';
-        document.getElementById('dropzoneText').textContent = '✅ Attached Bill Image (Click to replace)';
+        document.getElementById('dropzoneText').textContent = 'Attached Bill Image (Click to replace)';
       } else {
         preview.style.display = 'none';
-        document.getElementById('dropzoneText').textContent = '📸 Click to upload Bill Image / Payment Receipt (JPG, PNG, WebP)';
+        document.getElementById('dropzoneText').textContent = 'Click to upload Bill Image / Payment Receipt (JPG, PNG, WebP)';
       }
 
       handleTypeChange();
@@ -620,3 +620,5 @@
   </script>
 </body>
 </html>
+
+

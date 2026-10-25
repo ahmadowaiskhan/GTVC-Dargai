@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('gtvc_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+  <title>Academic Sessions & Admissions — GTVC Dargai</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="app-sidebar"></aside>
+    <div class="app-main">
+      <header class="app-navbar"></header>
+      <main class="app-content">
+
+        <!-- Page Header -->
+        <div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px;">
+          <div>
+            <h1>Academic Sessions & Admissions</h1>
+            <p>Track academic sessions, student admissions across trades (DIT, CCVT, GIT, etc.), completion status, and curriculum subjects.</p>
+          </div>
+          <div class="btn-group" style="flex-wrap:wrap; gap:8px;">
+            <button class="btn btn-primary" onclick="openAddSessionModal()">
+              <img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Add New Session
+            </button>
+            <button class="btn btn-success" onclick="openQuickEnrollModal()">
+              <img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="enroll"> Quick Admission
+            </button>
+            <button class="btn btn-outline" onclick="openAddSubjectModal()">
+              <img src="/assets/icons/book.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="subject"> Add Subject
+            </button>
+            <button class="btn btn-outline" onclick="printReport()">
+              <img src="/assets/icons/printer.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="print"> Print Summary
+            </button>
+          </div>
+        </div>
+
+        <!-- KPI Metrics Grid -->
+        <div class="kpi-grid">
+          <!-- Total Admissions -->
+          <div class="kpi-card" style="--kpi-accent:#2563eb;">
+            <div>
+              <div class="kpi-header">
+                <span class="kpi-title">Total Student Admissions</span>
+                <span class="kpi-icon"><img src="/assets/icons/graduation.svg" style="width:20px;height:20px;" alt="students"></span>
+              </div>
+              <div class="kpi-value" id="kpiTotalAdmissions">0</div>
+            </div>
+            <div class="kpi-subtext">Total students enrolled across all sessions</div>
+          </div>
+
+          <!-- Completed Sessions -->
+          <div class="kpi-card" style="--kpi-accent:#16a34a;">
+            <div>
+              <div class="kpi-header">
+                <span class="kpi-title">Completed Sessions</span>
+                <span class="kpi-icon"><img src="/assets/icons/check.svg" style="width:20px;height:20px;" alt="completed"></span>
+              </div>
+              <div class="kpi-value" id="kpiCompletedSessions" style="color:var(--color-success);">0</div>
+            </div>
+            <div class="kpi-subtext" id="kpiCompletedRate">Batches graduated & completed</div>
+          </div>
+
+          <!-- Active Sessions -->
+          <div class="kpi-card" style="--kpi-accent:#0891b2;">
+            <div>
+              <div class="kpi-header">
+                <span class="kpi-title">Active / Ongoing Sessions</span>
+                <span class="kpi-icon"><img src="/assets/icons/calendar.svg" style="width:20px;height:20px;" alt="active"></span>
+              </div>
+              <div class="kpi-value" id="kpiActiveSessions">0</div>
+            </div>
+            <div class="kpi-subtext">Currently ongoing academic programs</div>
+          </div>
+
+          <!-- Total Subjects -->
+          <div class="kpi-card" style="--kpi-accent:#8b5cf6;">
+            <div>
+              <div class="kpi-header">
+                <span class="kpi-title">Total Subjects</span>
+                <span class="kpi-icon"><img src="/assets/icons/book.svg" style="width:20px;height:20px;" alt="subjects"></span>
+              </div>
+              <div class="kpi-value" id="kpiTotalSubjects">0</div>
+            </div>
+            <div class="kpi-subtext">Curriculum subjects across all trades</div>
+          </div>
+
+          <!-- Total Sessions -->
+          <div class="kpi-card" style="--kpi-accent:#f59e0b;">
+            <div>
+              <div class="kpi-header">
+                <span class="kpi-title">Total Sessions Recorded</span>
+                <span class="kpi-icon"><img src="/assets/icons/time.svg" style="width:20px;height:20px;" alt="sessions"></span>
+              </div>
+              <div class="kpi-value" id="kpiTotalSessions">0</div>
+            </div>
+            <div class="kpi-subtext" id="kpiUpcomingSessions">0 Upcoming sessions scheduled</div>
+          </div>
+        </div>
+
+        <!-- Trade/Course Admissions Distribution Strip (DIT, CCVT, GIT, etc.) -->
+        <div class="trades-strip">
+          <div class="trades-strip-header">
+            <span class="trades-strip-title">
+              <img src="/assets/icons/chart.svg" style="width:18px;height:18px;" alt="chart">
+              <span>Student Admissions by Trade (DIT, CCVT, GIT & Technical Courses)</span>
+            </span>
+            <span class="text-muted" style="font-size:0.8rem;">Click trade to filter</span>
+          </div>
+          <div class="trade-chips-container" id="tradeChipsContainer">
+            <div class="text-muted" style="font-size:0.85rem;">Loading trade student counts...</div>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+          <button class="nav-tab-btn active" onclick="switchTab('sessionsTab', this)">
+            <img src="/assets/icons/calendar.svg" style="width:16px;height:16px;" alt="sessions">
+            <span>Academic Sessions & Batches</span>
+          </button>
+          <button class="nav-tab-btn" onclick="switchTab('courseBreakdownTab', this)">
+            <img src="/assets/icons/graduation.svg" style="width:16px;height:16px;" alt="courses">
+            <span>Course-wise Admissions (DIT, CCVT, GIT, etc.)</span>
+          </button>
+          <button class="nav-tab-btn" onclick="switchTab('subjectsTab', this)">
+            <img src="/assets/icons/book.svg" style="width:16px;height:16px;" alt="subjects">
+            <span>Curriculum Subjects Management (<span id="tabSubjectCount">0</span>)</span>
+          </button>
+        </div>
+
+        <!-- ==================== TAB 1: ACADEMIC SESSIONS ==================== -->
+        <div id="sessionsTab" class="tab-pane active">
+          <!-- Toolbar & Filters -->
+          <div class="toolbar" style="margin-bottom:16px;">
+            <div class="search-box">
+              <span class="search-icon"><img src="/assets/icons/search.svg" style="width:16px;height:16px;" alt="search"></span>
+              <input type="text" id="searchSessions" placeholder="Search sessions by name or code..." oninput="filterSessions()">
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+              <select id="statusFilter" class="form-input" style="width:auto; padding:8px 12px;" onchange="filterSessions()">
+                <option value="all">All Session Statuses</option>
+                <option value="active">Active / Ongoing</option>
+                <option value="completed">Completed</option>
+                <option value="upcoming">Upcoming</option>
+              </select>
+              <div class="btn-group">
+                <button class="btn btn-outline btn-sm active" id="viewCardsBtn" onclick="toggleView('cards')">Cards View</button>
+                <button class="btn btn-outline btn-sm" id="viewTableBtn" onclick="toggleView('table')">Table View</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cards View -->
+          <div id="sessionsCardsView" class="session-cards-grid">
+            <div class="text-center text-muted" style="grid-column:1/-1; padding:40px;">Loading sessions...</div>
+          </div>
+
+          <!-- Table View (Hidden by default) -->
+          <div id="sessionsTableView" class="card" style="display:none; margin-top:16px;">
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Session Name & Code</th>
+                    <th>Duration</th>
+                    <th>Status</th>
+                    <th>Admitted Students</th>
+                    <th>Trades Breakdown</th>
+                    <th>Subjects</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="sessionsTableBody">
+                  <tr><td colspan="8" class="text-center text-muted" style="padding:32px;">Loading sessions...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 2: COURSE-WISE ADMISSIONS (DIT, CCVT, GIT, ETC) ==================== -->
+        <div id="courseBreakdownTab" class="tab-pane">
+          <div class="card mb-3" style="padding:16px 20px; background:linear-gradient(135deg, rgba(37,99,235,0.05), rgba(16,185,129,0.05)); border:1px solid rgba(37,99,235,0.2);">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+              <div>
+                <h3 style="margin:0 0 4px 0; font-size:1.1rem; color:var(--text-primary);">Trade Programs Student Admission Breakdown</h3>
+                <p style="margin:0; font-size:0.85rem; color:var(--text-secondary);">Direct breakdown of students enrolled in DIT (Diploma in Information Technology), CCVT (Civil & Computer Vocational Training), GIT (Graphic Information Technology), and other GTVC vocational trades.</p>
+              </div>
+              <button class="btn btn-primary btn-sm" onclick="openQuickEnrollModal()">
+                <img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Enroll Student in Trade
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Course / Trade Name</th>
+                    <th>Trade Code</th>
+                    <th>Duration</th>
+                    <th>Admitted Students</th>
+                    <th>Curriculum Subjects</th>
+                    <th>Admission Share</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="courseBreakdownTableBody">
+                  <tr><td colspan="8" class="text-center text-muted" style="padding:32px;">Loading course breakdown...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ==================== TAB 3: SUBJECTS MANAGEMENT ==================== -->
+        <div id="subjectsTab" class="tab-pane">
+          <div class="toolbar" style="margin-bottom:16px;">
+            <div class="search-box">
+              <span class="search-icon"><img src="/assets/icons/search.svg" style="width:16px;height:16px;" alt="search"></span>
+              <input type="text" id="searchSubjects" placeholder="Search subjects by name or code..." oninput="filterSubjects()">
+            </div>
+            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+              <select id="subjectCourseFilter" class="form-input" style="width:auto; padding:8px 12px;" onchange="filterSubjects()">
+                <option value="all">All Trade Courses</option>
+              </select>
+              <button class="btn btn-primary" onclick="openAddSubjectModal()">
+                <img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Add New Subject
+              </button>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Subject Code</th>
+                    <th>Subject Name</th>
+                    <th>Associated Course / Trade</th>
+                    <th>Total Marks</th>
+                    <th>Passing Marks</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="subjectsTableBody">
+                  <tr><td colspan="7" class="text-center text-muted" style="padding:32px;">Loading subjects...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </main>
+      <footer class="app-footer"></footer>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: ADD / EDIT SESSION ==================== -->
+  <div class="modal-overlay" id="sessionModal">
+    <div class="modal" style="max-width:550px;">
+      <div class="modal-header">
+        <h3 id="sessionModalTitle">Add New Academic Session</h3>
+        <button class="modal-close" onclick="closeSessionModal()"><img src="/assets/icons/close.svg" style="width:16px;height:16px;" alt="close"></button>
+      </div>
+      <form id="sessionForm" onsubmit="saveSession(event)">
+        <input type="hidden" id="sessId">
+        <div class="form-group">
+          <label class="form-label">Session Name *</label>
+          <input type="text" id="sessName" class="form-input" required placeholder="e.g. Session 2024-2025 (Annual)">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Session Code</label>
+            <input type="text" id="sessCode" class="form-input" placeholder="e.g. SESS-2024-25">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Status *</label>
+            <select id="sessStatus" class="form-input" required>
+              <option value="active">Active / Ongoing</option>
+              <option value="completed">Completed</option>
+              <option value="upcoming">Upcoming</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Start Date</label>
+            <input type="date" id="sessStartDate" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">End Date</label>
+            <input type="date" id="sessEndDate" class="form-input">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Initial Admitted Students Count</label>
+          <input type="number" id="sessAdmissions" class="form-input" min="0" placeholder="e.g. 150 (Leave 0 to calculate from student records)">
+          <small class="text-muted">Recorded total admissions for this batch.</small>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description / Remarks</label>
+          <textarea id="sessDesc" class="form-textarea" rows="2" placeholder="e.g. Regular annual session for technical trades..."></textarea>
+        </div>
+        <div class="btn-group" style="margin-top:12px;">
+          <button type="submit" class="btn btn-primary" id="saveSessBtn">Save Session</button>
+          <button type="button" class="btn btn-outline" onclick="closeSessionModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: QUICK STUDENT ADMISSION ==================== -->
+  <div class="modal-overlay" id="quickEnrollModal">
+    <div class="modal" style="max-width:550px;">
+      <div class="modal-header">
+        <h3>Quick Student Admission</h3>
+        <button class="modal-close" onclick="closeQuickEnrollModal()"><img src="/assets/icons/close.svg" style="width:16px;height:16px;" alt="close"></button>
+      </div>
+      <form id="quickEnrollForm" onsubmit="saveQuickEnroll(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Session *</label>
+            <select id="qeSession" class="form-input" required>
+              <option value="">Select Session</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Trade / Course * (DIT, CCVT, GIT, etc.)</label>
+            <select id="qeCourse" class="form-input" required>
+              <option value="">Select Course</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Student Full Name *</label>
+          <input type="text" id="qeName" class="form-input" required placeholder="e.g. Muhammad Ahmad">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Father Name</label>
+            <input type="text" id="qeFather" class="form-input" placeholder="e.g. Tariq Khan">
+          </div>
+          <div class="form-group">
+            <label class="form-label">CNIC Number</label>
+            <input type="text" id="qeCnic" class="form-input" placeholder="e.g. 15402-1234567-1">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Contact Phone</label>
+            <input type="text" id="qePhone" class="form-input" placeholder="e.g. 0300-1234567">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Admission Date</label>
+            <input type="date" id="qeDate" class="form-input">
+          </div>
+        </div>
+        <div class="btn-group" style="margin-top:12px;">
+          <button type="submit" class="btn btn-success">Admit & Register Student</button>
+          <button type="button" class="btn btn-outline" onclick="closeQuickEnrollModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: ADD / EDIT SUBJECT ==================== -->
+  <div class="modal-overlay" id="subjectModal">
+    <div class="modal" style="max-width:500px;">
+      <div class="modal-header">
+        <h3 id="subjectModalTitle">Add Curriculum Subject</h3>
+        <button class="modal-close" onclick="closeSubjectModal()"><img src="/assets/icons/close.svg" style="width:16px;height:16px;" alt="close"></button>
+      </div>
+      <form id="subjectForm" onsubmit="saveSubject(event)">
+        <input type="hidden" id="subId">
+        <div class="form-group">
+          <label class="form-label">Subject Name *</label>
+          <input type="text" id="subName" class="form-input" required placeholder="e.g. Office Automation, Civil CAD, Web Design">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Subject Code</label>
+            <input type="text" id="subCode" class="form-input" placeholder="e.g. DIT-101, CCVT-102">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Associated Course / Trade *</label>
+            <select id="subCourse" class="form-input" required>
+              <option value="">Select Course</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Total Marks *</label>
+            <input type="number" id="subTotalMarks" class="form-input" required value="100" min="10" max="500">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Passing Marks *</label>
+            <input type="number" id="subPassMarks" class="form-input" required value="40" min="1" max="500">
+          </div>
+        </div>
+        <div class="btn-group" style="margin-top:12px;">
+          <button type="submit" class="btn btn-primary" id="saveSubBtn">Save Subject</button>
+          <button type="button" class="btn btn-outline" onclick="closeSubjectModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: SESSION DETAILS & STUDENTS ROSTER ==================== -->
+  <div class="modal-overlay" id="sessionStudentsModal">
+    <div class="modal" style="max-width:800px; max-height:85vh; display:flex; flex-direction:column;">
+      <div class="modal-header">
+        <div>
+          <h3 id="rosterTitle" style="margin:0;">Session Student Admissions</h3>
+          <p id="rosterSubtitle" class="text-muted" style="margin:4px 0 0 0; font-size:0.85rem;"></p>
+        </div>
+        <button class="modal-close" onclick="closeSessionStudentsModal()"><img src="/assets/icons/close.svg" style="width:16px;height:16px;" alt="close"></button>
+      </div>
+      <div style="padding:12px 0; display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
+        <input type="text" id="searchRoster" class="form-input" style="max-width:280px;" placeholder="Search admitted students..." oninput="filterRoster()">
+        <span id="rosterCountBadge" class="badge" style="background:var(--color-primary-light); color:var(--color-primary); font-size:0.85rem;">0 Students</span>
+      </div>
+      <div class="table-wrapper" style="flex:1; overflow-y:auto; border:1px solid var(--border-color); border-radius:6px;">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Student ID</th>
+              <th>Full Name</th>
+              <th>Father Name</th>
+              <th>Trade / Course</th>
+              <th>CNIC</th>
+              <th>Admission Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="rosterTableBody">
+            <tr><td colspan="8" class="text-center text-muted" style="padding:24px;">No students enrolled yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="padding-top:12px; display:flex; justify-content:flex-end;">
+        <button class="btn btn-outline" onclick="closeSessionStudentsModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Script logic -->
+  <script>
+    let allSessions = [];
+    let allCourses = [];
+    let allSubjects = [];
+    let currentRosterStudents = [];
+    let currentViewMode = 'cards';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (!requireAuth(['admin', 'principal', 'teacher'])) return;
+      renderLayout('admin', 'Academic Sessions & Admissions', 'sessions.html');
+
+      // Set today's date for quick admission default
+      const qeDate = document.getElementById('qeDate');
+      if (qeDate) qeDate.value = new Date().toISOString().split('T')[0];
+
+      await loadAllData();
+    });
+
+    async function loadAllData() {
+      await Promise.all([
+        loadStats(),
+        loadSessions(),
+        loadCourses(),
+        loadSubjects()
+      ]);
+    }
+
+    // ==================== STATS ====================
+    async function loadStats() {
+      try {
+        const stats = await apiCall('/api/admin/sessions/stats');
+        if (stats) {
+          document.getElementById('kpiTotalAdmissions').textContent = stats.totalAdmissions || 0;
+          document.getElementById('kpiCompletedSessions').textContent = stats.completedSessions || 0;
+          document.getElementById('kpiActiveSessions').textContent = stats.activeSessions || 0;
+          document.getElementById('kpiTotalSubjects').textContent = stats.totalSubjects || 0;
+          document.getElementById('tabSubjectCount').textContent = stats.totalSubjects || 0;
+          document.getElementById('kpiTotalSessions').textContent = stats.totalSessions || 0;
+          document.getElementById('kpiUpcomingSessions').textContent = `${stats.upcomingSessions || 0} Upcoming sessions scheduled`;
+
+          if (stats.totalSessions > 0) {
+            const pct = Math.round(((stats.completedSessions || 0) / stats.totalSessions) * 100);
+            document.getElementById('kpiCompletedRate').textContent = `${pct}% of all batches completed`;
+          }
+
+          // Populate Trade Chips
+          renderTradeChips(stats.courseBreakdown || []);
+          renderCourseBreakdownTable(stats.courseBreakdown || [], stats.totalAdmissions || 0);
+        }
+      } catch (err) {
+        console.error('Error loading stats', err);
+      }
+    }
+
+    function renderTradeChips(breakdown) {
+      const container = document.getElementById('tradeChipsContainer');
+      if (!container) return;
+      if (!breakdown || breakdown.length === 0) {
+        container.innerHTML = '<span class="text-muted">No trade courses found.</span>';
+        return;
+      }
+
+      // Prioritize DIT, CCVT, GIT at the front
+      const prioritized = [...breakdown].sort((a, b) => {
+        const topTrades = ['DIT', 'CCVT', 'GIT'];
+        const aTop = topTrades.indexOf(a.course_code);
+        const bTop = topTrades.indexOf(b.course_code);
+        if (aTop !== -1 && bTop !== -1) return aTop - bTop;
+        if (aTop !== -1) return -1;
+        if (bTop !== -1) return 1;
+        return (b.enrolled_students || 0) - (a.enrolled_students || 0);
+      });
+
+      container.innerHTML = prioritized.map(c => `
+        <div class="trade-chip" onclick="filterByTrade('${c.course_code}')" title="${c.course_name} (${c.total_subjects || 0} subjects)">
+          <span><strong>${c.course_code}</strong>: ${c.course_name.split('(')[0].trim()}</span>
+          <span class="trade-chip-count">${c.enrolled_students || 0} students</span>
+        </div>
+      `).join('');
+    }
+
+    function filterByTrade(code) {
+      // Switch to course breakdown tab or filter
+      const tabBtn = document.querySelectorAll('.nav-tab-btn')[1];
+      if (tabBtn) switchTab('courseBreakdownTab', tabBtn);
+      const searchBox = document.getElementById('searchSessions');
+      if (searchBox) {
+        searchBox.value = code;
+        filterSessions();
+      }
+    }
+
+    // ==================== SESSIONS ====================
+    async function loadSessions() {
+      try {
+        const sessions = await apiCall('/api/admin/sessions');
+        allSessions = sessions || [];
+        renderSessions();
+        populateSessionDropdowns();
+      } catch (err) {
+        console.error('Error loading sessions', err);
+      }
+    }
+
+    function renderSessions() {
+      const cardsContainer = document.getElementById('sessionsCardsView');
+      const tableBody = document.getElementById('sessionsTableBody');
+      const search = (document.getElementById('searchSessions').value || '').toLowerCase().trim();
+      const statusFilter = document.getElementById('statusFilter').value;
+
+      const filtered = allSessions.filter(s => {
+        const matchesSearch = !search || 
+          (s.session_name && s.session_name.toLowerCase().includes(search)) ||
+          (s.session_code && s.session_code.toLowerCase().includes(search));
+        const matchesStatus = statusFilter === 'all' || s.status === statusFilter;
+        return matchesSearch && matchesStatus;
+      });
+
+      // Render Cards
+      if (cardsContainer) {
+        if (filtered.length === 0) {
+          cardsContainer.innerHTML = '<div class="text-center text-muted" style="grid-column:1/-1; padding:32px;">No sessions found matching filters.</div>';
+        } else {
+          cardsContainer.innerHTML = filtered.map(s => {
+            const statusClass = s.status === 'completed' ? 'completed' : (s.status === 'upcoming' ? 'upcoming' : 'active-session');
+            const badgeClass = s.status === 'completed' ? 'completed' : (s.status === 'upcoming' ? 'upcoming' : 'active');
+            const statusLabel = s.status === 'completed' ? 'Completed' : (s.status === 'upcoming' ? 'Upcoming' : 'Active / Ongoing');
+
+            // Format dates
+            const start = s.start_date ? new Date(s.start_date).toLocaleDateString() : 'N/A';
+            const end = s.end_date ? new Date(s.end_date).toLocaleDateString() : 'N/A';
+
+            // Course counts
+            const courseChips = (s.course_counts || []).map(c => `
+              <span class="course-mini-pill" title="${c.course_name}"><strong>${c.course_code}:</strong> ${c.student_count}</span>
+            `).join('');
+
+            return `
+              <div class="session-item-card ${statusClass}">
+                <div>
+                  <div class="session-meta-row">
+                    <div>
+                      <h4 class="session-name">${escapeHtml(s.session_name)}</h4>
+                      <div class="session-code">${escapeHtml(s.session_code || 'NO-CODE')}</div>
+                    </div>
+                    <span class="status-badge ${badgeClass}">${statusLabel}</span>
+                  </div>
+
+                  <div style="font-size:0.83rem; color:var(--text-secondary); margin-bottom:8px;">
+                    <img src="/assets/icons/calendar.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="cal">
+                    <span>${start} → ${end}</span>
+                  </div>
+
+                  <div class="session-stats-box">
+                    <div>
+                      <div class="session-stat-val" style="color:var(--color-primary);">${s.enrolled_students || 0}</div>
+                      <div class="session-stat-lbl">Admissions</div>
+                    </div>
+                    <div>
+                      <div class="session-stat-val" style="color:var(--text-primary);">${s.total_subjects || 0}</div>
+                      <div class="session-stat-lbl">Subjects</div>
+                    </div>
+                  </div>
+
+                  ${courseChips ? `
+                    <div style="margin-top:8px;">
+                      <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">Trade Admissions:</div>
+                      <div class="course-mini-pills">${courseChips}</div>
+                    </div>
+                  ` : ''}
+
+                  ${s.description ? `<p style="font-size:0.82rem; color:var(--text-muted); margin:10px 0 0 0;">${escapeHtml(s.description)}</p>` : ''}
+                </div>
+
+                <div style="margin-top:16px; pt-2; border-top:1px solid var(--border-color); display:flex; gap:6px; flex-wrap:wrap;">
+                  <button class="btn btn-outline btn-sm" onclick="viewSessionStudents(${s.id}, '${escapeJs(s.session_name)}')">
+                    <img src="/assets/icons/graduation.svg" style="width:12px;height:12px;vertical-align:middle;" alt="students"> View Students
+                  </button>
+                  <button class="btn btn-outline btn-sm" onclick="toggleSessionStatus(${s.id})" title="Toggle Completed / Active">
+                    ${s.status === 'completed' ? 'Reopen Session' : 'Mark Completed'}
+                  </button>
+                  <button class="btn btn-outline btn-sm" onclick="editSession(${s.id})">Edit</button>
+                  <button class="btn btn-danger btn-sm" onclick="deleteSession(${s.id}, '${escapeJs(s.session_name)}')">Delete</button>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      // Render Table
+      if (tableBody) {
+        if (filtered.length === 0) {
+          tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted" style="padding:24px;">No sessions found matching filters.</td></tr>';
+        } else {
+          tableBody.innerHTML = filtered.map((s, idx) => {
+            const badgeClass = s.status === 'completed' ? 'completed' : (s.status === 'upcoming' ? 'upcoming' : 'active');
+            const statusLabel = s.status === 'completed' ? 'Completed' : (s.status === 'upcoming' ? 'Upcoming' : 'Active');
+            const start = s.start_date ? new Date(s.start_date).toLocaleDateString() : 'N/A';
+            const end = s.end_date ? new Date(s.end_date).toLocaleDateString() : 'N/A';
+
+            const courseChips = (s.course_counts || []).map(c => `
+              <span class="course-mini-pill">${c.course_code}: ${c.student_count}</span>
+            `).join(' ');
+
+            return `
+              <tr>
+                <td>${idx + 1}</td>
+                <td>
+                  <strong>${escapeHtml(s.session_name)}</strong>
+                  <div class="text-muted" style="font-size:0.75rem;">${escapeHtml(s.session_code || '—')}</div>
+                </td>
+                <td style="font-size:0.85rem;">${start} — ${end}</td>
+                <td><span class="status-badge ${badgeClass}">${statusLabel}</span></td>
+                <td><strong>${s.enrolled_students || 0}</strong> students</td>
+                <td>${courseChips || '<span class="text-muted">—</span>'}</td>
+                <td>${s.total_subjects || 0}</td>
+                <td>
+                  <div class="btn-group">
+                    <button class="btn btn-outline btn-sm" onclick="viewSessionStudents(${s.id}, '${escapeJs(s.session_name)}')">Students</button>
+                    <button class="btn btn-outline btn-sm" onclick="toggleSessionStatus(${s.id})">${s.status === 'completed' ? 'Reopen' : 'Done'}</button>
+                    <button class="btn btn-outline btn-sm" onclick="editSession(${s.id})">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="deleteSession(${s.id}, '${escapeJs(s.session_name)}')">Delete</button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+    }
+
+    function filterSessions() {
+      renderSessions();
+    }
+
+    function toggleView(mode) {
+      currentViewMode = mode;
+      document.getElementById('sessionsCardsView').style.display = mode === 'cards' ? 'grid' : 'none';
+      document.getElementById('sessionsTableView').style.display = mode === 'table' ? 'block' : 'none';
+      document.getElementById('viewCardsBtn').classList.toggle('active', mode === 'cards');
+      document.getElementById('viewTableBtn').classList.toggle('active', mode === 'table');
+    }
+
+    // ==================== SESSION CRUD ====================
+    function openAddSessionModal() {
+      document.getElementById('sessionModalTitle').textContent = 'Add New Academic Session';
+      document.getElementById('sessionForm').reset();
+      document.getElementById('sessId').value = '';
+      document.getElementById('sessStatus').value = 'active';
+      document.getElementById('sessionModal').classList.add('active');
+    }
+
+    function editSession(id) {
+      const s = allSessions.find(x => x.id === id);
+      if (!s) return;
+      document.getElementById('sessionModalTitle').textContent = 'Edit Academic Session';
+      document.getElementById('sessId').value = s.id;
+      document.getElementById('sessName').value = s.session_name || '';
+      document.getElementById('sessCode').value = s.session_code || '';
+      document.getElementById('sessStatus').value = s.status || 'active';
+      document.getElementById('sessStartDate').value = s.start_date ? s.start_date.split('T')[0] : '';
+      document.getElementById('sessEndDate').value = s.end_date ? s.end_date.split('T')[0] : '';
+      document.getElementById('sessAdmissions').value = s.total_admissions || 0;
+      document.getElementById('sessDesc').value = s.description || '';
+      document.getElementById('sessionModal').classList.add('active');
+    }
+
+    function closeSessionModal() {
+      document.getElementById('sessionModal').classList.remove('active');
+    }
+
+    async function saveSession(e) {
+      e.preventDefault();
+      const id = document.getElementById('sessId').value;
+      const payload = {
+        session_name: document.getElementById('sessName').value.trim(),
+        session_code: document.getElementById('sessCode').value.trim() || null,
+        status: document.getElementById('sessStatus').value,
+        start_date: document.getElementById('sessStartDate').value || null,
+        end_date: document.getElementById('sessEndDate').value || null,
+        total_admissions: parseInt(document.getElementById('sessAdmissions').value) || 0,
+        description: document.getElementById('sessDesc').value.trim() || null
+      };
+
+      try {
+        const url = id ? `/api/admin/sessions/${id}` : '/api/admin/sessions';
+        const method = id ? 'PUT' : 'POST';
+        const res = await apiCall(url, method, payload);
+        if (res && (res.success || res.id)) {
+          closeSessionModal();
+          await loadAllData();
+          alert(id ? 'Session updated successfully!' : 'Session created successfully!');
+        } else {
+          alert(res && res.message ? res.message : 'Failed to save session');
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function toggleSessionStatus(id) {
+      try {
+        const res = await apiCall(`/api/admin/sessions/${id}/toggle-status`, 'POST');
+        if (res && res.success) {
+          await loadAllData();
+        } else {
+          alert(res && res.message ? res.message : 'Failed to toggle status');
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function deleteSession(id, name) {
+      if (!confirm(`Are you sure you want to move session "${name}" to the Recycle Bin? All associated data will be preserved and can be restored.`)) {
+        return;
+      }
+      try {
+        const res = await apiCall(`/api/admin/sessions/${id}`, 'DELETE');
+        if (res && res.success) {
+          await loadAllData();
+          alert('Session moved to Recycle Bin.');
+        } else {
+          alert(res && res.message ? res.message : 'Failed to delete session');
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    // ==================== COURSE-WISE BREAKDOWN TABLE ====================
+    function renderCourseBreakdownTable(breakdown, totalAdmissions) {
+      const tbody = document.getElementById('courseBreakdownTableBody');
+      if (!tbody) return;
+
+      if (!breakdown || breakdown.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted" style="padding:24px;">No course data available.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = breakdown.map((c, idx) => {
+        const share = totalAdmissions > 0 ? Math.round(((c.enrolled_students || 0) / totalAdmissions) * 100) : 0;
+        const isHighlight = ['DIT', 'CCVT', 'GIT'].includes(c.course_code);
+
+        return `
+          <tr style="${isHighlight ? 'background:rgba(37,99,235,0.03); font-weight:500;' : ''}">
+            <td>${idx + 1}</td>
+            <td>
+              <strong>${escapeHtml(c.course_name)}</strong>
+              ${isHighlight ? '<span class="badge" style="background:var(--color-primary-light); color:var(--color-primary); margin-left:6px; font-size:0.7rem;">Featured</span>' : ''}
+            </td>
+            <td><strong style="font-family:monospace; color:var(--color-primary);">${c.course_code}</strong></td>
+            <td>${c.duration_months || 12} Months</td>
+            <td>
+              <span style="font-size:1.1rem; font-weight:700; color:var(--text-primary);">${c.enrolled_students || 0}</span>
+              <span class="text-muted" style="font-size:0.8rem;"> students</span>
+            </td>
+            <td><strong>${c.total_subjects || 0}</strong> subjects</td>
+            <td style="min-width:140px;">
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div style="flex:1; height:6px; background:var(--bg-hover); border-radius:3px; overflow:hidden;">
+                  <div style="width:${share}%; height:100%; background:var(--color-primary); border-radius:3px;"></div>
+                </div>
+                <span style="font-size:0.8rem; font-weight:600;">${share}%</span>
+              </div>
+            </td>
+            <td>
+              <button class="btn btn-outline btn-sm" onclick="quickEnrollInCourse(${c.course_id})">
+                + Enroll Student
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // ==================== COURSES & SUBJECTS ====================
+    async function loadCourses() {
+      try {
+        const courses = await apiCall('/api/admin/courses');
+        allCourses = courses || [];
+        populateCourseDropdowns();
+      } catch (err) {
+        console.error('Error loading courses', err);
+      }
+    }
+
+    function populateCourseDropdowns() {
+      const qeCourse = document.getElementById('qeCourse');
+      const subCourse = document.getElementById('subCourse');
+      const subjectCourseFilter = document.getElementById('subjectCourseFilter');
+
+      const options = allCourses.map(c => `<option value="${c.id}">${c.course_name} (${c.course_code})</option>`).join('');
+
+      if (qeCourse) qeCourse.innerHTML = '<option value="">Select Course</option>' + options;
+      if (subCourse) subCourse.innerHTML = '<option value="">Select Course</option>' + options;
+      if (subjectCourseFilter) subjectCourseFilter.innerHTML = '<option value="all">All Trade Courses</option>' + options;
+    }
+
+    function populateSessionDropdowns() {
+      const qeSession = document.getElementById('qeSession');
+      if (!qeSession) return;
+      qeSession.innerHTML = '<option value="">Select Session</option>' +
+        allSessions.map(s => `<option value="${s.id}" ${s.status === 'active' ? 'selected' : ''}>${s.session_name} (${s.status})</option>`).join('');
+    }
+
+    async function loadSubjects() {
+      try {
+        const subjects = await apiCall('/api/admin/subjects');
+        allSubjects = subjects || [];
+        renderSubjects();
+      } catch (err) {
+        console.error('Error loading subjects', err);
+      }
+    }
+
+    function renderSubjects() {
+      const tbody = document.getElementById('subjectsTableBody');
+      const search = (document.getElementById('searchSubjects').value || '').toLowerCase().trim();
+      const courseFilter = document.getElementById('subjectCourseFilter').value;
+
+      const filtered = allSubjects.filter(s => {
+        const matchesSearch = !search ||
+          (s.subject_name && s.subject_name.toLowerCase().includes(search)) ||
+          (s.subject_code && s.subject_code.toLowerCase().includes(search));
+        const matchesCourse = courseFilter === 'all' || s.course_id == courseFilter;
+        return matchesSearch && matchesCourse;
+      });
+
+      if (!tbody) return;
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted" style="padding:24px;">No curriculum subjects found.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((s, idx) => `
+        <tr>
+          <td>${idx + 1}</td>
+          <td><strong style="font-family:monospace; color:var(--color-primary);">${escapeHtml(s.subject_code || '—')}</strong></td>
+          <td><strong>${escapeHtml(s.subject_name)}</strong></td>
+          <td>
+            <span class="badge" style="background:var(--bg-hover); color:var(--text-primary); border:1px solid var(--border-color);">
+              ${escapeHtml(s.course_name || 'General')} (${escapeHtml(s.course_code || 'GEN')})
+            </span>
+          </td>
+          <td>${s.total_marks || 100}</td>
+          <td><span style="color:var(--color-success); font-weight:600;">${s.pass_marks || 40}</span></td>
+          <td>
+            <div class="btn-group">
+              <button class="btn btn-outline btn-sm" onclick="editSubject(${s.id})">Edit</button>
+              <button class="btn btn-danger btn-sm" onclick="deleteSubject(${s.id}, '${escapeJs(s.subject_name)}')">Delete</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filterSubjects() {
+      renderSubjects();
+    }
+
+    function openAddSubjectModal() {
+      document.getElementById('subjectModalTitle').textContent = 'Add Curriculum Subject';
+      document.getElementById('subjectForm').reset();
+      document.getElementById('subId').value = '';
+      document.getElementById('subTotalMarks').value = 100;
+      document.getElementById('subPassMarks').value = 40;
+      document.getElementById('subjectModal').classList.add('active');
+    }
+
+    function editSubject(id) {
+      const s = allSubjects.find(x => x.id === id);
+      if (!s) return;
+      document.getElementById('subjectModalTitle').textContent = 'Edit Curriculum Subject';
+      document.getElementById('subId').value = s.id;
+      document.getElementById('subName').value = s.subject_name || '';
+      document.getElementById('subCode').value = s.subject_code || '';
+      document.getElementById('subCourse').value = s.course_id || '';
+      document.getElementById('subTotalMarks').value = s.total_marks || 100;
+      document.getElementById('subPassMarks').value = s.pass_marks || 40;
+      document.getElementById('subjectModal').classList.add('active');
+    }
+
+    function closeSubjectModal() {
+      document.getElementById('subjectModal').classList.remove('active');
+    }
+
+    async function saveSubject(e) {
+      e.preventDefault();
+      const id = document.getElementById('subId').value;
+      const payload = {
+        subject_name: document.getElementById('subName').value.trim(),
+        subject_code: document.getElementById('subCode').value.trim() || null,
+        course_id: parseInt(document.getElementById('subCourse').value) || null,
+        total_marks: parseInt(document.getElementById('subTotalMarks').value) || 100,
+        pass_marks: parseInt(document.getElementById('subPassMarks').value) || 40
+      };
+
+      try {
+        const url = id ? `/api/admin/subjects/${id}` : '/api/admin/subjects';
+        const method = id ? 'PUT' : 'POST';
+        const res = await apiCall(url, method, payload);
+        if (res && (res.success || res.id)) {
+          closeSubjectModal();
+          await loadSubjects();
+          await loadStats();
+          alert(id ? 'Subject updated successfully!' : 'Subject added successfully!');
+        } else {
+          alert(res && res.message ? res.message : 'Failed to save subject');
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    async function deleteSubject(id, name) {
+      if (!confirm(`Are you sure you want to move subject "${name}" to the Recycle Bin?`)) {
+        return;
+      }
+      try {
+        const res = await apiCall(`/api/admin/subjects/${id}`, 'DELETE');
+        if (res && res.success) {
+          await loadSubjects();
+          await loadStats();
+          alert('Subject moved to Recycle Bin.');
+        } else {
+          alert(res && res.message ? res.message : 'Failed to delete subject');
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    // ==================== QUICK ENROLL ====================
+    function openQuickEnrollModal() {
+      document.getElementById('quickEnrollForm').reset();
+      populateSessionDropdowns();
+      const qeDate = document.getElementById('qeDate');
+      if (qeDate) qeDate.value = new Date().toISOString().split('T')[0];
+      document.getElementById('quickEnrollModal').classList.add('active');
+    }
+
+    function quickEnrollInCourse(courseId) {
+      openQuickEnrollModal();
+      document.getElementById('qeCourse').value = courseId;
+    }
+
+    function closeQuickEnrollModal() {
+      document.getElementById('quickEnrollModal').classList.remove('active');
+    }
+
+    async function saveQuickEnroll(e) {
+      e.preventDefault();
+      const payload = {
+        full_name: document.getElementById('qeName').value.trim(),
+        father_name: document.getElementById('qeFather').value.trim() || null,
+        cnic: document.getElementById('qeCnic').value.trim() || null,
+        phone: document.getElementById('qePhone').value.trim() || null,
+        session_id: parseInt(document.getElementById('qeSession').value),
+        course_id: parseInt(document.getElementById('qeCourse').value),
+        admission_date: document.getElementById('qeDate').value || new Date().toISOString().split('T')[0]
+      };
+
+      try {
+        const res = await apiCall('/api/admin/sessions/quick-enroll', 'POST', payload);
+        if (res && res.success) {
+          closeQuickEnrollModal();
+          await loadAllData();
+          alert(`Student "${payload.full_name}" registered successfully with ID: ${res.student_id}!`);
+        } else {
+          alert(res && res.message ? res.message : 'Failed to register student');
+        }
+      } catch (err) {
+        alert(err.message);
+      }
+    }
+
+    // ==================== SESSION STUDENTS ROSTER ====================
+    async function viewSessionStudents(sessionId, sessionName) {
+      document.getElementById('rosterTitle').textContent = `Admissions: ${sessionName}`;
+      document.getElementById('rosterSubtitle').textContent = 'Fetching student roster...';
+      document.getElementById('sessionStudentsModal').classList.add('active');
+      document.getElementById('searchRoster').value = '';
+
+      try {
+        const students = await apiCall(`/api/admin/sessions/${sessionId}/students`);
+        currentRosterStudents = students || [];
+        document.getElementById('rosterSubtitle').textContent = `Enrolled students list for ${sessionName}`;
+        renderRosterTable();
+      } catch (err) {
+        document.getElementById('rosterSubtitle').textContent = 'Failed to load students.';
+        console.error(err);
+      }
+    }
+
+    function renderRosterTable() {
+      const tbody = document.getElementById('rosterTableBody');
+      const search = (document.getElementById('searchRoster').value || '').toLowerCase().trim();
+
+      const filtered = currentRosterStudents.filter(s => {
+        return !search ||
+          (s.full_name && s.full_name.toLowerCase().includes(search)) ||
+          (s.student_id && s.student_id.toLowerCase().includes(search)) ||
+          (s.course_name && s.course_name.toLowerCase().includes(search)) ||
+          (s.cnic && s.cnic.includes(search));
+      });
+
+      document.getElementById('rosterCountBadge').textContent = `${filtered.length} Students`;
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted" style="padding:24px;">No student records found in this session.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map((s, idx) => `
+        <tr>
+          <td>${idx + 1}</td>
+          <td><strong style="font-family:monospace; color:var(--color-primary);">${escapeHtml(s.student_id || ('#' + s.id))}</strong></td>
+          <td><strong>${escapeHtml(s.full_name)}</strong></td>
+          <td>${escapeHtml(s.father_name || '—')}</td>
+          <td>
+            <span class="badge" style="background:var(--color-primary-light); color:var(--color-primary);">
+              ${escapeHtml(s.course_code || s.course_name || 'Trade')}
+            </span>
+          </td>
+          <td style="font-size:0.8rem;">${escapeHtml(s.cnic || '—')}</td>
+          <td style="font-size:0.8rem;">${s.admission_date ? s.admission_date.split('T')[0] : '—'}</td>
+          <td>
+            <span class="badge" style="background:var(--color-success-light); color:var(--color-success);">
+              ${escapeHtml(s.status || 'Active')}
+            </span>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filterRoster() {
+      renderRosterTable();
+    }
+
+    function closeSessionStudentsModal() {
+      document.getElementById('sessionStudentsModal').classList.remove('active');
+    }
+
+    // ==================== TABS & NAVIGATION ====================
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      document.querySelectorAll('.nav-tab-btn').forEach(b => b.classList.remove('active'));
+      const target = document.getElementById(tabId);
+      if (target) target.classList.add('active');
+      if (btn) btn.classList.add('active');
+    }
+
+    function printReport() {
+      window.print();
+    }
+
+    // ==================== HELPERS ====================
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function escapeJs(str) {
+      if (!str) return '';
+      return String(str).replace(/'/g, "\\'").replace(/"/g, '\\"');
+    }
+  </script>
+</body>
+</html>
