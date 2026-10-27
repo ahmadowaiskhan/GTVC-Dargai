@@ -596,7 +596,7 @@
     }
 
     async function deleteTransaction(id, title, amount) {
-      if (!confirm(`Are you sure you want to delete transaction "${title}" (PKR ${amount})?\n\nThis record will be moved safely to the Recycle Bin and can be restored.`)) {
+      if (!await confirm(`Are you sure you want to delete transaction "${title}" (PKR ${amount})?\n\nThis record will be moved safely to the Recycle Bin and can be restored.`)) {
         return;
       }
       try {

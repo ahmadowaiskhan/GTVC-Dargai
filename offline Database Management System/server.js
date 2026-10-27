@@ -23,7 +23,8 @@ const JWT_SECRET = process.env.JWT_SECRET || 'gtvc_dargai_secret_key_2024_change
 const uploadDirs = [
   path.join(__dirname, 'uploads'),
   path.join(__dirname, 'uploads', 'students'),
-  path.join(__dirname, 'uploads', 'teachers')
+  path.join(__dirname, 'uploads', 'teachers'),
+  path.join(__dirname, 'uploads', 'documents', 'attendance')
 ];
 uploadDirs.forEach(dir => {
   if (!fs.existsSync(dir)) {
@@ -37,6 +38,7 @@ const storage = multer.diskStorage({
     let dest = path.join(__dirname, 'uploads');
     if (file.fieldname === 'student_photo') dest = path.join(dest, 'students');
     else if (file.fieldname === 'teacher_photo') dest = path.join(dest, 'teachers');
+    else if (file.fieldname === 'report_file') dest = path.join(__dirname, 'uploads', 'documents', 'attendance');
     cb(null, dest);
   },
   filename: (req, file, cb) => {
@@ -106,36 +108,7 @@ async function initDatabase() {
       );
     `);
 
-    await conn.query(`
-      CREATE TABLE IF NOT EXISTS courses (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        course_name VARCHAR(150) NOT NULL,
-        course_code VARCHAR(50) UNIQUE,
-        duration_months INT,
-        description TEXT,
-        is_active TINYINT DEFAULT 1
-      );
-    `);
-
-    await conn.query(`
-      CREATE TABLE IF NOT EXISTS teachers (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        user_id INT NULL,
-        employee_id VARCHAR(50) UNIQUE,
-        full_name VARCHAR(150) NOT NULL,
-        cnic VARCHAR(20) UNIQUE,
-        date_of_birth DATE,
-        gender ENUM('male', 'female', 'other'),
-        qualification VARCHAR(150),
-        specialization VARCHAR(150),
-        joining_date DATE,
-        phone VARCHAR(50),
-        address TEXT,
-        photo_path VARCHAR(255),
-        is_active TINYINT DEFAULT 1,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      );
-    `);
+    // Teachers table deprecated — teacher details now live directly in the users table.
 
     await conn.query(`
       CREATE TABLE IF NOT EXISTS classes (
@@ -180,28 +153,8 @@ async function initDatabase() {
       );
     `);
 
-    await conn.query(`
-      CREATE TABLE IF NOT EXISTS subjects (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        subject_name VARCHAR(150) NOT NULL,
-        course_id INT NULL,
-        total_marks INT DEFAULT 100,
-        pass_marks INT DEFAULT 40
-      );
-    `);
-
-    await conn.query(`
-      CREATE TABLE IF NOT EXISTS attendance (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        student_id INT NOT NULL,
-        class_id INT NOT NULL,
-        date DATE NOT NULL,
-        status ENUM('present', 'absent', 'leave', 'late') NOT NULL,
-        marked_by INT NULL,
-        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-        UNIQUE KEY uq_attendance (student_id, class_id, date)
-      );
-    `);
+    // Legacy daily `attendance` table removed — replaced by attendance_reports below
+    await conn.query('DROP TABLE IF EXISTS attendance;');
 
     await conn.query(`
       CREATE TABLE IF NOT EXISTS results (
@@ -270,6 +223,41 @@ async function initDatabase() {
       );
     `);
 
+    // Monthly Attendance Reports — submitted by teachers (with .xlsx file)
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS attendance_reports (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        class_id INT NOT NULL,
+        teacher_id INT NULL,
+        month TINYINT NOT NULL,
+        year SMALLINT NOT NULL,
+        percentage DECIMAL(5,2) NOT NULL DEFAULT 0,
+        total_students INT NOT NULL DEFAULT 0,
+        file_name VARCHAR(255),
+        file_path VARCHAR(255),
+        submitted_by INT NULL,
+        submitted_by_name VARCHAR(150),
+        submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_report (class_id, month, year),
+        CONSTRAINT ar_ibfk_1 FOREIGN KEY (class_id) REFERENCES classes (id) ON DELETE CASCADE
+      );
+    `);
+
+    // Admin Notifications — persistent alerts shown to admin (e.g. missing monthly reports)
+    await conn.query(`
+      CREATE TABLE IF NOT EXISTS admin_notifications (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        type VARCHAR(50) NOT NULL DEFAULT 'general',
+        dedupe_key VARCHAR(150) NULL,
+        title VARCHAR(255) NOT NULL,
+        message TEXT,
+        is_read TINYINT DEFAULT 0,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY uq_dedupe (dedupe_key)
+      );
+    `);
+
     // User Activity Timeline Table — tracks user login/logout/usage sessions
     await conn.query(`
       CREATE TABLE IF NOT EXISTS user_activity_timeline (
@@ -317,27 +305,9 @@ async function initDatabase() {
     await addCol('users', 'qualification', 'VARCHAR(150) NULL');
     await addCol('users', 'specialization', 'VARCHAR(150) NULL');
     await addCol('users', 'address', 'TEXT NULL');
+    await addCol('users', 'photo_path', 'VARCHAR(255) NULL');
 
-    // Auto-sync teachers with users if needed
-    try {
-      const [allT] = await conn.query('SELECT * FROM teachers WHERE user_id IS NOT NULL');
-      for (const t of allT) {
-        await conn.query(`
-          UPDATE users SET 
-            employee_id = COALESCE(employee_id, ?),
-            cnic = COALESCE(cnic, ?),
-            date_of_birth = COALESCE(date_of_birth, ?),
-            joining_date = COALESCE(joining_date, ?),
-            gender = COALESCE(gender, ?),
-            qualification = COALESCE(qualification, ?),
-            specialization = COALESCE(specialization, ?),
-            address = COALESCE(address, ?)
-          WHERE id = ?
-        `, [t.employee_id, t.cnic, t.date_of_birth, t.joining_date, t.gender, t.qualification, t.specialization, t.address, t.user_id]);
-      }
-    } catch (e) { /* ignore */ }
-
-
+    // Teacher details now stored in the users table; teachers table is migrated & dropped in a later step.
 
     // 4. Seed default admin if table is empty
     const [existingUsers] = await conn.query('SELECT id FROM users LIMIT 1');
@@ -350,34 +320,7 @@ async function initDatabase() {
       console.log('✅ Default admin account created (username: admin, password: admin123)');
     }
 
-    // 5. Seed default trades/courses if empty
-    const [existingCourses] = await conn.query('SELECT id FROM courses LIMIT 1');
-    if (existingCourses.length === 0) {
-      await conn.query(`
-        INSERT INTO courses (course_name, course_code, duration_months, description) VALUES
-        ('Electrician', 'ELC', 12, 'Domestic & Industrial Electrician Trade'),
-        ('Plumber', 'PLM', 6, 'Plumbing and Pipefitting Trade'),
-        ('Computer Operator', 'COM', 12, 'Computer Operator & Programming Assistant'),
-        ('Auto Mechanic', 'AUT', 12, 'Automobile Mechanic Trade'),
-        ('Welder', 'WLD', 6, 'Welding and Fabrication Trade'),
-        ('Mason / Civil Works', 'MSN', 6, 'Masonry and Civil Construction Trade'),
-        ('Refrigeration & AC', 'RAC', 12, 'Refrigeration and Air Conditioning Trade');
-      `);
-      console.log('✅ Default GTVC trade courses initialized');
-    }
-
-    // Ensure DIT, CCVT, GIT are present in courses
-    const gtvCourses = [
-      { name: 'DIT (Diploma in Information Technology)', code: 'DIT', duration: 12, desc: '1-Year Board of Technical Education Diploma in IT' },
-      { name: 'CCVT (Civil & Computer Vocational Training)', code: 'CCVT', duration: 12, desc: 'Technical & Vocational Certification in Computer and Civil Draftsmanship' },
-      { name: 'GIT (Graphic Information Technology)', code: 'GIT', duration: 6, desc: 'Graphic Design, Multimedia & UI/UX Vocational Program' }
-    ];
-    for (const c of gtvCourses) {
-      const [ex] = await conn.query('SELECT id FROM courses WHERE course_code = ? OR course_name LIKE ?', [c.code, `%${c.code}%`]);
-      if (ex.length === 0) {
-        await conn.query('INSERT INTO courses (course_name, course_code, duration_months, description) VALUES (?, ?, ?, ?)', [c.name, c.code, c.duration, c.desc]);
-      }
-    }
+    // 5. Courses module removed — no course seeding
 
     // 6. Academic Sessions Table
     await conn.query(`
@@ -398,8 +341,6 @@ async function initDatabase() {
     // Ensure session_id and subject_code columns exist
     await addCol('students', 'session_id', 'INT NULL');
     await addCol('classes', 'session_id', 'INT NULL');
-    await addCol('subjects', 'session_id', 'INT NULL');
-    await addCol('subjects', 'subject_code', 'VARCHAR(50) NULL');
 
     // Seed default academic sessions if empty
     const [sessCount] = await conn.query('SELECT COUNT(*) as count FROM academic_sessions');
@@ -414,57 +355,14 @@ async function initDatabase() {
       console.log('✅ Default Academic Sessions seeded');
     }
 
-    // Seed default subjects if subjects table is empty
-    const [subjCount] = await conn.query('SELECT COUNT(*) as count FROM subjects');
-    if (subjCount[0].count === 0) {
-      const [allC] = await conn.query('SELECT id, course_code FROM courses');
-      const cMap = {};
-      allC.forEach(c => { cMap[c.course_code] = c.id; });
-
-      const sampleSubjects = [
-        // DIT
-        { name: 'Office Automation & MS Office', code: 'DIT-101', cCode: 'DIT', total: 100, pass: 40 },
-        { name: 'Web Design & HTML/CSS', code: 'DIT-102', cCode: 'DIT', total: 100, pass: 40 },
-        { name: 'Database Management & SQL', code: 'DIT-103', cCode: 'DIT', total: 100, pass: 40 },
-        { name: 'Programming in C/C++', code: 'DIT-104', cCode: 'DIT', total: 100, pass: 40 },
-        { name: 'Operating Systems & Networking', code: 'DIT-105', cCode: 'DIT', total: 100, pass: 40 },
-        // CCVT
-        { name: 'Civil Drawing & CAD Fundamentals', code: 'CCVT-101', cCode: 'CCVT', total: 100, pass: 40 },
-        { name: 'Building Construction & Materials', code: 'CCVT-102', cCode: 'CCVT', total: 100, pass: 40 },
-        { name: 'Computer Application for Estimations', code: 'CCVT-103', cCode: 'CCVT', total: 100, pass: 40 },
-        { name: 'Surveying & Leveling Techniques', code: 'CCVT-104', cCode: 'CCVT', total: 100, pass: 40 },
-        // GIT
-        { name: 'Adobe Photoshop & Photo Editing', code: 'GIT-101', cCode: 'GIT', total: 100, pass: 40 },
-        { name: 'Vector Graphics with Illustrator', code: 'GIT-102', cCode: 'GIT', total: 100, pass: 40 },
-        { name: 'Digital Typography & Brand Design', code: 'GIT-103', cCode: 'GIT', total: 100, pass: 40 },
-        { name: 'UI/UX Basics & Figma Prototyping', code: 'GIT-104', cCode: 'GIT', total: 100, pass: 40 },
-        // Electrician
-        { name: 'Electrical Circuit Fundamentals', code: 'ELC-101', cCode: 'ELC', total: 100, pass: 40 },
-        { name: 'Domestic Wiring & Installation', code: 'ELC-102', cCode: 'ELC', total: 100, pass: 40 },
-        { name: 'Industrial Motor Control & PLC', code: 'ELC-103', cCode: 'ELC', total: 100, pass: 40 },
-        // Computer Operator
-        { name: 'Computer Fundamentals & Hardware', code: 'COM-101', cCode: 'COM', total: 100, pass: 40 },
-        { name: 'Typing & Office Documentation', code: 'COM-102', cCode: 'COM', total: 100, pass: 40 }
-      ];
-
-      for (const s of sampleSubjects) {
-        const cId = cMap[s.cCode] || null;
-        await conn.query(
-          'INSERT INTO subjects (subject_name, subject_code, course_id, total_marks, pass_marks) VALUES (?, ?, ?, ?, ?)',
-          [s.name, s.code, cId, s.total, s.pass]
-        );
-      }
-      console.log('✅ Default GTVC trade subjects seeded');
-    }
+    // Subjects module removed — no subject seeding
 
     // Seed sample students into the active session if students table is empty
     const [stCount] = await conn.query('SELECT COUNT(*) as count FROM students');
     if (stCount[0].count === 0) {
       const [[activeSess]] = await conn.query("SELECT id FROM academic_sessions WHERE status = 'active' LIMIT 1");
       const activeSessId = activeSess ? activeSess.id : 1;
-      const [allC] = await conn.query('SELECT id, course_code FROM courses');
       const cMap = {};
-      allC.forEach(c => { cMap[c.course_code] = c.id; });
 
       const sampleStudents = [
         { id: 'STU-2024-001', name: 'Muhammad Usman Khan', father: 'Tariq Khan', cnic: '15402-1234567-1', phone: '0300-1112233', course: 'DIT' },
@@ -488,6 +386,52 @@ async function initDatabase() {
       }
       console.log('✅ Sample students seeded with DIT, CCVT, GIT, ELC, COM courses');
     }
+
+    // 7 & 8. Courses and Subjects modules already removed — their tables no longer exist, so no action needed here.
+
+    // 9. Teachers module deprecated: teacher details live in users.
+    //    Backfill users from teachers, re-point teacher links (teachers.id -> users.id), then drop teachers.
+    try {
+      const [tTab] = await conn.query(
+        `SELECT COUNT(*) AS c FROM information_schema.TABLES
+         WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'teachers'`,
+        [process.env.DB_NAME || 'gtvc_db']
+      );
+      if (tTab[0].c > 0) {
+        // First drop any FKs that reference teachers so we can re-point the link columns freely
+        const [fkRows3] = await conn.query(
+          `SELECT TABLE_NAME AS tbl, CONSTRAINT_NAME AS cname
+           FROM information_schema.KEY_COLUMN_USAGE
+           WHERE TABLE_SCHEMA = ? AND REFERENCED_TABLE_NAME = 'teachers'`,
+          [process.env.DB_NAME || 'gtvc_db']
+        );
+        for (const f of fkRows3) {
+          try { await conn.query(`ALTER TABLE \`${f.tbl}\` DROP FOREIGN KEY \`${f.cname}\``); } catch (e) { /* ignore */ }
+        }
+        // Backfill any teacher-only details into users
+        const [allT] = await conn.query('SELECT * FROM teachers WHERE user_id IS NOT NULL');
+        for (const t of allT) {
+          await conn.query(`
+            UPDATE users SET
+              employee_id    = COALESCE(employee_id, ?),
+              cnic           = COALESCE(cnic, ?),
+              date_of_birth  = COALESCE(date_of_birth, ?),
+              joining_date   = COALESCE(joining_date, ?),
+              gender         = COALESCE(gender, ?),
+              qualification  = COALESCE(qualification, ?),
+              specialization = COALESCE(specialization, ?),
+              address        = COALESCE(address, ?),
+              photo_path     = COALESCE(photo_path, ?)
+            WHERE id = ?
+          `, [t.employee_id, t.cnic, t.date_of_birth, t.joining_date, t.gender, t.qualification, t.specialization, t.address, t.photo_path, t.user_id]);
+        }
+        // Re-point links that used teachers.id so they now use the teacher's users.id
+        try { await conn.query('UPDATE classes c JOIN teachers t ON c.teacher_id = t.id SET c.teacher_id = t.user_id'); } catch (e) { console.log('⚠️ classes.teacher_id migration skipped:', e.message); }
+        try { await conn.query('UPDATE attendance_reports r JOIN teachers t ON r.teacher_id = t.id SET r.teacher_id = t.user_id'); } catch (e) { console.log('⚠️ attendance_reports.teacher_id migration skipped:', e.message); }
+        await conn.query('DROP TABLE IF EXISTS teachers');
+        console.log('✅ teachers table removed (details merged into users)');
+      }
+    } catch (e) { console.log('⚠️ teachers merge/drop skipped:', e.message); }
 
     conn.release();
     isDbConnected = true;
@@ -654,17 +598,7 @@ const handleSignup = async (req, res) => {
 
     const newUserId = result.insertId;
 
-    // If role is teacher, also create teacher profile placeholder
-    if (assignedRole === 'teacher') {
-      try {
-        await query(
-          `INSERT INTO teachers (user_id, full_name, phone, is_active) VALUES (?, ?, ?, 1)`,
-          [newUserId, full_name.trim(), phone ? phone.trim() : null]
-        );
-      } catch (e) {
-        // Non-fatal, profile can be updated later
-      }
-    }
+    // Teacher details now live directly in the users table — no separate teacher profile row.
 
     const payload = {
       id: newUserId,
@@ -821,21 +755,11 @@ app.get('/api/admin/dashboard', authenticate, authorize(['admin']), async (req, 
       return res.json({ totalStudents: 0, totalTeachers: 0, totalCourses: 0, todayAttendance: 0 });
     }
     const [[{ totalStudents }]] = await pool.query('SELECT COUNT(*) as totalStudents FROM students WHERE status = "active"');
-    const [[{ totalTeachers }]] = await pool.query('SELECT COUNT(*) as totalTeachers FROM teachers WHERE is_active = 1');
-    const [[{ totalCourses }]] = await pool.query('SELECT COUNT(*) as totalCourses FROM courses WHERE is_active = 1');
+    const [[{ totalTeachers }]] = await pool.query("SELECT COUNT(*) as totalTeachers FROM users WHERE role = 'teacher' AND is_active = 1");
+    const totalCourses = 0; // Courses module removed
 
-    const today = new Date().toISOString().split('T')[0];
-    const [[attData]] = await pool.query(`
-      SELECT 
-        COUNT(*) as totalMarked,
-        SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) as totalPresent
-      FROM attendance WHERE date = ?
-    `, [today]);
-
-    let todayAttendance = 0;
-    if (attData && attData.totalMarked > 0) {
-      todayAttendance = Math.round((attData.totalPresent / attData.totalMarked) * 100);
-    }
+    // Daily attendance table removed; today's rate is no longer tracked
+    const todayAttendance = 0;
 
     res.json({
       totalStudents,
@@ -985,23 +909,7 @@ app.post('/api/admin/users', authenticate, authorize(['admin']), async (req, res
 
     const newUserId = result.insertId;
 
-    // If role is teacher, synchronize with teachers table
-    if (role === 'teacher') {
-      try {
-        await query(
-          `INSERT INTO teachers (user_id, employee_id, full_name, cnic, date_of_birth, gender, qualification, specialization, joining_date, phone, address, is_active)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            newUserId, employee_id || null, full_name.trim(), cnic || null,
-            date_of_birth || null, gender || null, qualification || null,
-            specialization || null, joining_date || null, phone || null,
-            address || null, is_active !== undefined ? is_active : 1
-          ]
-        );
-      } catch (te) {
-        console.error('Teachers sync on insert error:', te);
-      }
-    }
+    // All user details (incl. teacher profile fields) are stored directly in the users table.
 
     // Log to edit_log
     try {
@@ -1067,30 +975,7 @@ app.put('/api/admin/users/:id', authenticate, authorize(['admin']), async (req, 
       );
     }
 
-    // Sync with teachers table
-    if (role === 'teacher') {
-      try {
-        const [existingT] = await pool.query('SELECT id FROM teachers WHERE user_id = ? LIMIT 1', [userId]);
-        if (existingT.length > 0) {
-          await query(
-            `UPDATE teachers SET full_name=?, employee_id=?, cnic=?, phone=?, qualification=?, specialization=?, date_of_birth=?, joining_date=?, gender=?, address=?, is_active=COALESCE(?, is_active) WHERE user_id=?`,
-            [full_name, employee_id || null, cnic || null, phone || null, qualification || null, specialization || null, date_of_birth || null, joining_date || null, gender || null, address || null, is_active, userId]
-          );
-        } else {
-          await query(
-            `INSERT INTO teachers (user_id, employee_id, full_name, cnic, date_of_birth, gender, qualification, specialization, joining_date, phone, address, is_active)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, 1))`,
-            [userId, employee_id || null, full_name.trim(), cnic || null, date_of_birth || null, gender || null, qualification || null, specialization || null, joining_date || null, phone || null, address || null, is_active]
-          );
-        }
-      } catch (te) {
-        console.error('Teacher sync on update error:', te);
-      }
-    } else if (oldRec.role === 'teacher' && role !== 'teacher') {
-      try {
-        await query('UPDATE teachers SET is_active=0 WHERE user_id = ?', [userId]);
-      } catch (e) {}
-    }
+    // Teacher details are stored on the user row itself — no separate table to sync.
 
     res.json({ success: true, message: 'User updated successfully' });
   } catch (err) {
@@ -1121,10 +1006,7 @@ app.delete('/api/admin/users/:id', authenticate, authorize(['admin']), async (re
       ['users', record.id, JSON.stringify(record), req.user.id, req.user.full_name, `Deleted user "${record.full_name}" (${record.username})`]
     );
 
-    // If teacher, also clean up teachers table
-    try {
-      await query('DELETE FROM teachers WHERE user_id = ?', [userId]);
-    } catch (te) {}
+    // Teacher details live on the user row, so removing the user removes everything.
 
     await query('DELETE FROM users WHERE id = ?', [userId]);
     res.json({ success: true, message: 'User removed and archived to recycle bin' });
@@ -1133,14 +1015,16 @@ app.delete('/api/admin/users/:id', authenticate, authorize(['admin']), async (re
   }
 });
 
-// Teachers CRUD (Admin & Principal View)
+// Teachers CRUD — teacher details now live in the users table (role = 'teacher')
 app.get('/api/admin/teachers', authenticate, authorize(['admin', 'principal']), async (req, res) => {
   try {
     const rows = await query(`
-      SELECT t.*, u.username, u.email as user_email
-      FROM teachers t
-      LEFT JOIN users u ON t.user_id = u.id
-      ORDER BY t.id DESC
+      SELECT id, username, full_name, role, email, phone, employee_id, cnic, date_of_birth,
+             gender, qualification, specialization, joining_date, address, photo_path,
+             is_active, created_at
+      FROM users
+      WHERE role = 'teacher'
+      ORDER BY id DESC
     `);
     res.json(rows);
   } catch (err) {
@@ -1150,13 +1034,30 @@ app.get('/api/admin/teachers', authenticate, authorize(['admin', 'principal']), 
 
 app.post('/api/admin/teachers', authenticate, authorize(['admin']), async (req, res) => {
   try {
-    const { full_name, employee_id, cnic, phone, qualification, specialization, joining_date, address } = req.body;
+    const { full_name, employee_id, cnic, phone, email, qualification, specialization, joining_date, address, password } = req.body;
+    if (!full_name) return res.status(400).json({ message: 'Full name is required' });
+
+    // Build a unique username from employee_id / CNIC / name
+    let base = (employee_id || cnic || full_name).toString().trim().toLowerCase().replace(/[^a-z0-9]+/g, '');
+    if (!base) base = 'teacher';
+    let username = base, suffix = 1;
+    for (;;) {
+      const [dupe] = await pool.query('SELECT id FROM users WHERE username = ? LIMIT 1', [username]);
+      if (dupe.length === 0) break;
+      username = base + (++suffix);
+    }
+
+    const plainPass = (password && password.trim().length >= 6) ? password.trim() : 'teacher123';
+    const hash = await bcrypt.hash(plainPass, 10);
     const result = await query(
-      `INSERT INTO teachers (full_name, employee_id, cnic, phone, qualification, specialization, joining_date, address)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [full_name, employee_id || null, cnic || null, phone || null, qualification || null, specialization || null, joining_date || null, address || null]
+      `INSERT INTO users (username, password, full_name, role, email, phone, employee_id, cnic, qualification, specialization, joining_date, address, is_active)
+       VALUES (?, ?, ?, 'teacher', ?, ?, ?, ?, ?, ?, ?, ?, COALESCE(?, 1))`,
+      [username, hash, full_name.trim(), email || null, phone || null, employee_id || null, cnic || null,
+       qualification || null, specialization || null, joining_date || null, address || null,
+       req.body.is_active !== undefined ? req.body.is_active : 1]
     );
-    res.status(201).json({ success: true, id: result.insertId });
+
+    res.status(201).json({ success: true, id: result.insertId, username, default_password: plainPass });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -1165,18 +1066,18 @@ app.post('/api/admin/teachers', authenticate, authorize(['admin']), async (req, 
 app.put('/api/admin/teachers/:id', authenticate, authorize(['admin']), async (req, res) => {
   try {
     const { full_name, employee_id, cnic, phone, qualification, specialization, joining_date, address, is_active } = req.body;
-    
-    // Fetch previous data for audit/rollback
-    const oldRows = await query('SELECT * FROM teachers WHERE id = ?', [req.params.id]);
-    if (oldRows.length > 0) {
-      await query(
-        `INSERT INTO edit_log (target_table, target_id, action, old_data, new_data, edited_by, edited_by_name, description) VALUES (?, ?, 'update', ?, ?, ?, ?, ?)`,
-        ['teachers', req.params.id, JSON.stringify(oldRows[0]), JSON.stringify(req.body), req.user.id, req.user.full_name, `Updated teacher "${full_name}"`]
-      );
-    }
+
+    const oldRows = await query("SELECT * FROM users WHERE id = ? AND role = 'teacher'", [req.params.id]);
+    if (oldRows.length === 0) return res.status(404).json({ message: 'Teacher not found' });
+    const oldRec = { ...oldRows[0] }; delete oldRec.password;
 
     await query(
-      `UPDATE teachers SET full_name=?, employee_id=?, cnic=?, phone=?, qualification=?, specialization=?, joining_date=?, address=?, is_active=COALESCE(?, is_active) WHERE id=?`,
+      `INSERT INTO edit_log (target_table, target_id, action, old_data, new_data, edited_by, edited_by_name, description) VALUES (?, ?, 'update', ?, ?, ?, ?, ?)`,
+      ['users', req.params.id, JSON.stringify(oldRec), JSON.stringify(req.body), req.user.id, req.user.full_name, `Updated teacher "${full_name}"`]
+    );
+
+    await query(
+      `UPDATE users SET full_name=?, employee_id=?, cnic=?, phone=?, qualification=?, specialization=?, joining_date=?, address=?, is_active=COALESCE(?, is_active) WHERE id=? AND role='teacher'`,
       [full_name, employee_id || null, cnic || null, phone || null, qualification || null, specialization || null, joining_date || null, address || null, is_active, req.params.id]
     );
     res.json({ success: true });
@@ -1187,18 +1088,18 @@ app.put('/api/admin/teachers/:id', authenticate, authorize(['admin']), async (re
 
 app.delete('/api/admin/teachers/:id', authenticate, authorize(['admin']), async (req, res) => {
   try {
-    const rows = await query('SELECT * FROM teachers WHERE id = ?', [req.params.id]);
+    const rows = await query("SELECT * FROM users WHERE id = ? AND role = 'teacher'", [req.params.id]);
     if (rows.length === 0) return res.status(404).json({ message: 'Teacher not found' });
-    const record = rows[0];
+    const record = { ...rows[0] }; delete record.password;
     await query(
       `INSERT INTO recycle_bin (original_table, original_id, record_data, deleted_by, deleted_by_name) VALUES (?, ?, ?, ?, ?)`,
-      ['teachers', record.id, JSON.stringify(record), req.user.id, req.user.full_name]
+      ['users', record.id, JSON.stringify(record), req.user.id, req.user.full_name]
     );
     await query(
       `INSERT INTO edit_log (target_table, target_id, action, old_data, edited_by, edited_by_name, description) VALUES (?, ?, 'delete', ?, ?, ?, ?)`,
-      ['teachers', record.id, JSON.stringify(record), req.user.id, req.user.full_name, `Deleted teacher "${record.full_name}"`]
+      ['users', record.id, JSON.stringify(record), req.user.id, req.user.full_name, `Deleted teacher "${record.full_name}"`]
     );
-    await query('DELETE FROM teachers WHERE id = ?', [req.params.id]);
+    await query("DELETE FROM users WHERE id = ? AND role = 'teacher'", [req.params.id]);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -1209,13 +1110,10 @@ app.delete('/api/admin/teachers/:id', authenticate, authorize(['admin']), async 
 app.get('/api/admin/students', authenticate, authorize(['admin', 'principal']), async (req, res) => {
   try {
     const rows = await query(`
-      SELECT s.*, c.class_name, co.course_name, 
-             ac.course_name as applied_course_name, ac.course_code as applied_course_code
+      SELECT s.*, c.class_name
       FROM students s
       LEFT JOIN enrollments e ON s.id = e.student_id
       LEFT JOIN classes c ON e.class_id = c.id
-      LEFT JOIN courses co ON c.course_id = co.id
-      LEFT JOIN courses ac ON s.applied_course_id = ac.id
       ORDER BY s.id DESC
     `);
     res.json(rows);
@@ -1228,13 +1126,10 @@ app.get('/api/admin/students', authenticate, authorize(['admin', 'principal']), 
 app.get('/api/admin/students/:id', authenticate, authorize(['admin', 'principal', 'teacher']), async (req, res) => {
   try {
     const rows = await query(`
-      SELECT s.*, c.class_name, co.course_name, 
-             ac.course_name as applied_course_name, ac.course_code as applied_course_code
+      SELECT s.*, c.class_name
       FROM students s
       LEFT JOIN enrollments e ON s.id = e.student_id
       LEFT JOIN classes c ON e.class_id = c.id
-      LEFT JOIN courses co ON c.course_id = co.id
-      LEFT JOIN courses ac ON s.applied_course_id = ac.id
       WHERE s.id = ?
     `, [req.params.id]);
 
@@ -1243,29 +1138,17 @@ app.get('/api/admin/students/:id', authenticate, authorize(['admin', 'principal'
 
     // Fetch results
     const results = await query(`
-      SELECT r.*, sub.subject_name
+      SELECT r.*, NULL as subject_name
       FROM results r
-      JOIN subjects sub ON r.subject_id = sub.id
       WHERE r.student_id = ?
       ORDER BY r.id DESC
     `, [req.params.id]);
 
-    // Fetch attendance summary
-    const [attStats] = await query(`
-      SELECT 
-        COUNT(*) as totalDays,
-        SUM(CASE WHEN status = 'present' THEN 1 ELSE 0 END) as presentDays,
-        SUM(CASE WHEN status = 'absent' THEN 1 ELSE 0 END) as absentDays,
-        SUM(CASE WHEN status = 'late' THEN 1 ELSE 0 END) as lateDays,
-        SUM(CASE WHEN status = 'leave' THEN 1 ELSE 0 END) as leaveDays
-      FROM attendance
-      WHERE student_id = ?
-    `, [req.params.id]);
-
+    // Daily attendance table removed — no per-student attendance summary
     res.json({
       ...student,
       results,
-      attendance: attStats || { totalDays: 0, presentDays: 0, absentDays: 0, lateDays: 0, leaveDays: 0 }
+      attendance: null
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -1377,71 +1260,7 @@ app.delete('/api/admin/students/:id', authenticate, authorize(['admin']), async 
   }
 });
 
-// Courses CRUD (Admin)
-app.get('/api/admin/courses', authenticate, authorize(['admin', 'principal', 'teacher']), async (req, res) => {
-  try {
-    const rows = await query('SELECT * FROM courses ORDER BY id DESC');
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-app.post('/api/admin/courses', authenticate, authorize(['admin']), async (req, res) => {
-  try {
-    const { course_name, course_code, duration_months, description } = req.body;
-    const result = await query(
-      `INSERT INTO courses (course_name, course_code, duration_months, description) VALUES (?, ?, ?, ?)`,
-      [course_name, course_code || null, duration_months || 6, description || null]
-    );
-    res.status(201).json({ success: true, id: result.insertId });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-app.put('/api/admin/courses/:id', authenticate, authorize(['admin']), async (req, res) => {
-  try {
-    const { course_name, course_code, duration_months, description, is_active } = req.body;
-    
-    // Fetch previous data for audit/rollback
-    const oldRows = await query('SELECT * FROM courses WHERE id = ?', [req.params.id]);
-    if (oldRows.length > 0) {
-      await query(
-        `INSERT INTO edit_log (target_table, target_id, action, old_data, new_data, edited_by, edited_by_name, description) VALUES (?, ?, 'update', ?, ?, ?, ?, ?)`,
-        ['courses', req.params.id, JSON.stringify(oldRows[0]), JSON.stringify(req.body), req.user.id, req.user.full_name, `Updated course "${course_name}"`]
-      );
-    }
-
-    await query(
-      `UPDATE courses SET course_name=?, course_code=?, duration_months=?, description=?, is_active=COALESCE(?, is_active) WHERE id=?`,
-      [course_name, course_code || null, duration_months || 6, description || null, is_active, req.params.id]
-    );
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-app.delete('/api/admin/courses/:id', authenticate, authorize(['admin']), async (req, res) => {
-  try {
-    const rows = await query('SELECT * FROM courses WHERE id = ?', [req.params.id]);
-    if (rows.length === 0) return res.status(404).json({ message: 'Course not found' });
-    const record = rows[0];
-    await query(
-      `INSERT INTO recycle_bin (original_table, original_id, record_data, deleted_by, deleted_by_name) VALUES (?, ?, ?, ?, ?)`,
-      ['courses', record.id, JSON.stringify(record), req.user.id, req.user.full_name]
-    );
-    await query(
-      `INSERT INTO edit_log (target_table, target_id, action, old_data, edited_by, edited_by_name, description) VALUES (?, ?, 'delete', ?, ?, ?, ?)`,
-      ['courses', record.id, JSON.stringify(record), req.user.id, req.user.full_name, `Deleted course "${record.course_name}"`]
-    );
-    await query('DELETE FROM courses WHERE id = ?', [req.params.id]);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+// Courses module removed — /api/admin/courses CRUD deprecated
 
 // ==================== SESSIONS & SUBJECTS ROUTES (Admin) ====================
 
@@ -1452,33 +1271,39 @@ app.get('/api/admin/sessions/stats', authenticate, authorize(['admin', 'principa
     const [[{ completedSessions }]] = await pool.query("SELECT COUNT(*) as completedSessions FROM academic_sessions WHERE status = 'completed'");
     const [[{ activeSessions }]] = await pool.query("SELECT COUNT(*) as activeSessions FROM academic_sessions WHERE status = 'active'");
     const [[{ upcomingSessions }]] = await pool.query("SELECT COUNT(*) as upcomingSessions FROM academic_sessions WHERE status = 'upcoming'");
-    const [[{ totalSubjects }]] = await pool.query('SELECT COUNT(*) as totalSubjects FROM subjects');
-    
     // Total student admissions: either sum of session admissions or total students count
     const [[{ totalStudentsCount }]] = await pool.query('SELECT COUNT(*) as totalStudentsCount FROM students');
     const [[{ sumRecordedAdmissions }]] = await pool.query('SELECT COALESCE(SUM(total_admissions), 0) as sumRecordedAdmissions FROM academic_sessions');
     const totalAdmissions = Math.max(totalStudentsCount || 0, sumRecordedAdmissions || 0);
 
-    // Breakdown per course (DIT, CCVT, GIT, Electrician, etc.)
-    const courseBreakdown = await query(`
-      SELECT 
-        c.id as course_id,
-        c.course_name,
-        c.course_code,
-        c.duration_months,
-        (
-          SELECT COUNT(*) 
-          FROM students s 
-          WHERE s.applied_course_id = c.id
-        ) as enrolled_students,
-        (
-          SELECT COUNT(*)
-          FROM subjects sub
-          WHERE sub.course_id = c.id
-        ) as total_subjects
-      FROM courses c
-      ORDER BY c.id ASC
-    `);
+    // Class / Trade breakdown (DIT, CCVT, GIT, ...) from the classes table + enrollments.
+    // (Courses & Subjects modules were removed — trades now come from real classes.)
+    let classBreakdown = [];
+    try {
+      const [rows] = await pool.query(`
+        SELECT c.id AS class_id, c.class_name, c.session_year,
+               COUNT(e.student_id) AS enrolled_students
+        FROM classes c
+        LEFT JOIN enrollments e ON e.class_id = c.id
+        WHERE c.is_active = 1
+        GROUP BY c.id
+        ORDER BY c.class_name ASC
+      `);
+      classBreakdown = rows.map(r => {
+        const name = r.class_name || '';
+        const trade_code = (name.split(/[—–\-\s]/)[0] || '').toUpperCase();
+        return {
+          class_id: r.class_id,
+          class_name: name,
+          trade_code: trade_code || 'GEN',
+          session_year: r.session_year,
+          enrolled_students: r.enrolled_students || 0
+        };
+      });
+    } catch (e) { /* classes table unavailable */ }
+
+    const totalClasses = classBreakdown.length;
+    const totalSubjects = 0; // Subjects module removed
 
     res.json({
       totalSessions,
@@ -1486,9 +1311,10 @@ app.get('/api/admin/sessions/stats', authenticate, authorize(['admin', 'principa
       activeSessions,
       upcomingSessions,
       totalSubjects,
+      totalClasses,
       totalAdmissions,
       totalStudentsCount,
-      courseBreakdown
+      classBreakdown
     });
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -1507,21 +1333,11 @@ app.get('/api/admin/sessions', authenticate, authorize(['admin', 'principal', 't
         [sess.id]
       );
 
-      // Course-wise student counts for this session
-      const courseCounts = await query(`
-        SELECT 
-          c.id as course_id,
-          c.course_name,
-          c.course_code,
-          COUNT(s.id) as student_count
-        FROM courses c
-        LEFT JOIN students s ON (s.applied_course_id = c.id AND s.session_id = ?)
-        GROUP BY c.id
-        ORDER BY student_count DESC, c.id ASC
-      `, [sess.id]);
+      // Course-wise counts removed (Courses module deprecated)
+      const courseCounts = [];
 
       // Total subjects in system
-      const [[{ sessionSubjects }]] = await pool.query('SELECT COUNT(*) as sessionSubjects FROM subjects');
+      const sessionSubjects = 0; // Subjects module removed
 
       const enrolledCount = Math.max(sess.total_admissions || 0, directStudents || 0);
 
@@ -1653,18 +1469,12 @@ app.delete('/api/admin/sessions/:id', authenticate, authorize(['admin']), async 
 // GET /api/admin/sessions/:id/students — List students for a specific session
 app.get('/api/admin/sessions/:id/students', authenticate, authorize(['admin', 'principal', 'teacher']), async (req, res) => {
   try {
-    const { course_id } = req.query;
     let sql = `
-      SELECT s.*, c.course_name, c.course_code
+      SELECT s.*
       FROM students s
-      LEFT JOIN courses c ON s.applied_course_id = c.id
       WHERE s.session_id = ?
     `;
     const params = [req.params.id];
-    if (course_id) {
-      sql += ' AND s.applied_course_id = ?';
-      params.push(course_id);
-    }
     sql += ' ORDER BY s.id DESC';
 
     const rows = await query(sql, params);
@@ -1677,27 +1487,36 @@ app.get('/api/admin/sessions/:id/students', authenticate, authorize(['admin', 'p
 // POST /api/admin/sessions/quick-enroll — Quick student registration in a session & course
 app.post('/api/admin/sessions/quick-enroll', authenticate, authorize(['admin']), async (req, res) => {
   try {
-    const { full_name, father_name, cnic, phone, course_id, session_id, admission_date } = req.body;
-    if (!full_name || !course_id || !session_id) {
-      return res.status(400).json({ message: 'Student name, course, and session are required.' });
+    const { full_name, father_name, cnic, phone, session_id, admission_date, class_id } = req.body;
+    if (!full_name || !session_id) {
+      return res.status(400).json({ message: 'Student name and session are required.' });
     }
 
     const autoStudentId = 'STU-' + Date.now().toString().slice(-6);
 
     const result = await query(
-      `INSERT INTO students (student_id, full_name, father_name, cnic, phone, applied_course_id, session_id, admission_date, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')`,
+      `INSERT INTO students (student_id, full_name, father_name, cnic, phone, session_id, admission_date, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'active')`,
       [
         autoStudentId,
         full_name,
         father_name || null,
         cnic || null,
         phone || null,
-        course_id,
         session_id,
         admission_date || new Date().toISOString().split('T')[0]
       ]
     );
+
+    // Enroll the student into the selected class/trade (DIT, CCVT, GIT, ...) so trade counts update
+    if (class_id) {
+      try {
+        await query(
+          'INSERT INTO enrollments (student_id, class_id, roll_number) VALUES (?, ?, ?)',
+          [result.insertId, class_id, autoStudentId]
+        );
+      } catch (e) { /* ignore duplicate / missing class */ }
+    }
 
     // Update session admissions count if present
     await query('UPDATE academic_sessions SET total_admissions = total_admissions + 1 WHERE id = ?', [session_id]);
@@ -1713,100 +1532,7 @@ app.post('/api/admin/sessions/quick-enroll', authenticate, authorize(['admin']),
   }
 });
 
-// GET /api/admin/subjects — List all subjects with course info
-app.get('/api/admin/subjects', authenticate, authorize(['admin', 'principal', 'teacher']), async (req, res) => {
-  try {
-    const { course_id } = req.query;
-    let sql = `
-      SELECT s.*, c.course_name, c.course_code
-      FROM subjects s
-      LEFT JOIN courses c ON s.course_id = c.id
-    `;
-    const params = [];
-    if (course_id) {
-      sql += ' WHERE s.course_id = ?';
-      params.push(course_id);
-    }
-    sql += ' ORDER BY s.course_id ASC, s.id ASC';
-
-    const rows = await query(sql, params);
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// POST /api/admin/subjects — Add new subject
-app.post('/api/admin/subjects', authenticate, authorize(['admin']), async (req, res) => {
-  try {
-    const { subject_name, subject_code, course_id, total_marks, pass_marks, session_id } = req.body;
-    if (!subject_name) {
-      return res.status(400).json({ message: 'Subject name is required' });
-    }
-
-    const result = await query(
-      `INSERT INTO subjects (subject_name, subject_code, course_id, total_marks, pass_marks, session_id)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      [subject_name, subject_code || null, course_id || null, total_marks || 100, pass_marks || 40, session_id || null]
-    );
-
-    await query(
-      `INSERT INTO edit_log (target_table, target_id, action, new_data, edited_by, edited_by_name, description) VALUES (?, ?, 'create', ?, ?, ?, ?)`,
-      ['subjects', result.insertId, JSON.stringify(req.body), req.user.id, req.user.full_name, `Added new subject "${subject_name}"`]
-    );
-
-    res.status(201).json({ success: true, id: result.insertId });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// PUT /api/admin/subjects/:id — Edit subject
-app.put('/api/admin/subjects/:id', authenticate, authorize(['admin']), async (req, res) => {
-  try {
-    const { subject_name, subject_code, course_id, total_marks, pass_marks, session_id } = req.body;
-    const oldRows = await query('SELECT * FROM subjects WHERE id = ?', [req.params.id]);
-    if (oldRows.length === 0) return res.status(404).json({ message: 'Subject not found' });
-
-    await query(
-      `INSERT INTO edit_log (target_table, target_id, action, old_data, new_data, edited_by, edited_by_name, description) VALUES (?, ?, 'update', ?, ?, ?, ?, ?)`,
-      ['subjects', req.params.id, JSON.stringify(oldRows[0]), JSON.stringify(req.body), req.user.id, req.user.full_name, `Updated subject "${subject_name || oldRows[0].subject_name}"`]
-    );
-
-    await query(
-      `UPDATE subjects SET subject_name=?, subject_code=?, course_id=?, total_marks=?, pass_marks=?, session_id=? WHERE id=?`,
-      [subject_name, subject_code || null, course_id || null, total_marks || 100, pass_marks || 40, session_id || null, req.params.id]
-    );
-
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// DELETE /api/admin/subjects/:id — Move subject to recycle bin
-app.delete('/api/admin/subjects/:id', authenticate, authorize(['admin']), async (req, res) => {
-  try {
-    const rows = await query('SELECT * FROM subjects WHERE id = ?', [req.params.id]);
-    if (rows.length === 0) return res.status(404).json({ message: 'Subject not found' });
-    const record = rows[0];
-
-    await query(
-      `INSERT INTO recycle_bin (original_table, original_id, record_data, deleted_by, deleted_by_name) VALUES (?, ?, ?, ?, ?)`,
-      ['subjects', record.id, JSON.stringify(record), req.user.id, req.user.full_name]
-    );
-
-    await query(
-      `INSERT INTO edit_log (target_table, target_id, action, old_data, edited_by, edited_by_name, description) VALUES (?, ?, 'delete', ?, ?, ?, ?)`,
-      ['subjects', record.id, JSON.stringify(record), req.user.id, req.user.full_name, `Deleted subject "${record.subject_name}"`]
-    );
-
-    await query('DELETE FROM subjects WHERE id = ?', [req.params.id]);
-    res.json({ success: true });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+// Subjects module removed — /api/admin/subjects CRUD deprecated
 
 // ==================== RECYCLE BIN ROUTES (Admin Only) ====================
 
@@ -2116,14 +1842,14 @@ app.delete('/api/accounting/transactions/:id', authenticate, authorize(['admin',
 app.get('/api/admin/control/stats', authenticate, authorize(['admin']), async (req, res) => {
   try {
     const [[{ usersCount }]] = await pool.query('SELECT COUNT(*) as usersCount FROM users');
-    const [[{ teachersCount }]] = await pool.query('SELECT COUNT(*) as teachersCount FROM teachers');
+    const [[{ teachersCount }]] = await pool.query("SELECT COUNT(*) as teachersCount FROM users WHERE role = 'teacher'");
     const [[{ studentsCount }]] = await pool.query('SELECT COUNT(*) as studentsCount FROM students');
-    const [[{ coursesCount }]] = await pool.query('SELECT COUNT(*) as coursesCount FROM courses');
+    const coursesCount = 0; // Courses module removed
     const [[{ resultsCount }]] = await pool.query('SELECT COUNT(*) as resultsCount FROM results');
     const [[{ recycleCount }]] = await pool.query('SELECT COUNT(*) as recycleCount FROM recycle_bin');
     const [[{ editCount }]] = await pool.query('SELECT COUNT(*) as editCount FROM edit_log');
     const [[{ sessionsCount }]] = await pool.query('SELECT COUNT(*) as sessionsCount FROM academic_sessions');
-    const [[{ subjectsCount }]] = await pool.query('SELECT COUNT(*) as subjectsCount FROM subjects');
+    const subjectsCount = 0; // Subjects module removed
     
     // Accounting stats
     const [[acc]] = await pool.query(`
@@ -2812,8 +2538,8 @@ app.get('/api/teacher/dashboard', authenticate, authorize(['teacher', 'admin']),
     }
 
     // Find teacher record for this user
-    const teacherRows = await query('SELECT id FROM teachers WHERE user_id = ?', [req.user.id]);
-    const teacherId = teacherRows.length > 0 ? teacherRows[0].id : null;
+    // teacherId is now the user's own id (teachers table merged into users)
+    const teacherId = req.user.id;
 
     let classCount = 0;
     let studentCount = 0;
@@ -2848,32 +2574,29 @@ app.get('/api/teacher/dashboard', authenticate, authorize(['teacher', 'admin']),
 // GET /api/teacher/my-classes
 app.get('/api/teacher/my-classes', authenticate, authorize(['teacher', 'admin', 'principal']), async (req, res) => {
   try {
-    const teacherRows = await query('SELECT id FROM teachers WHERE user_id = ?', [req.user.id]);
-    const teacherId = teacherRows.length > 0 ? teacherRows[0].id : null;
+    // teacherId is now the user's own id (teachers table merged into users)
+    const teacherId = req.user.id;
 
     let classes;
     if (teacherId && req.user.role === 'teacher') {
       classes = await query(`
-        SELECT c.*, co.course_name 
+        SELECT c.*, NULL as course_name 
         FROM classes c
-        LEFT JOIN courses co ON c.course_id = co.id
         WHERE c.teacher_id = ? AND c.is_active = 1
       `, [teacherId]);
 
       // If no specific class assigned to this teacher yet, fallback to all active classes
       if (classes.length === 0) {
         classes = await query(`
-          SELECT c.*, co.course_name 
+          SELECT c.*, NULL as course_name 
           FROM classes c
-          LEFT JOIN courses co ON c.course_id = co.id
           WHERE c.is_active = 1
         `);
       }
     } else {
       classes = await query(`
-        SELECT c.*, co.course_name 
+        SELECT c.*, NULL as course_name 
         FROM classes c
-        LEFT JOIN courses co ON c.course_id = co.id
         WHERE c.is_active = 1
       `);
     }
@@ -2884,27 +2607,7 @@ app.get('/api/teacher/my-classes', authenticate, authorize(['teacher', 'admin', 
   }
 });
 
-// GET /api/teacher/subjects
-app.get('/api/teacher/subjects', authenticate, async (req, res) => {
-  try {
-    const { class_id } = req.query;
-    let sql = 'SELECT * FROM subjects';
-    let params = [];
-
-    if (class_id) {
-      sql = `
-        SELECT s.* FROM subjects s
-        JOIN classes c ON s.course_id = c.course_id
-        WHERE c.id = ?
-      `;
-      params = [class_id];
-    }
-    const rows = await query(sql, params);
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
+// Subjects module removed — /api/teacher/subjects deprecated
 
 // GET /api/teacher/my-students
 app.get('/api/teacher/my-students', authenticate, async (req, res) => {
@@ -2924,55 +2627,6 @@ app.get('/api/teacher/my-students', authenticate, async (req, res) => {
     sql += ' ORDER BY s.full_name ASC';
     const rows = await query(sql, params);
     res.json(rows);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// GET /api/teacher/attendance/students
-app.get('/api/teacher/attendance/students', authenticate, async (req, res) => {
-  try {
-    const { class_id, date } = req.query;
-    if (!class_id || !date) {
-      return res.status(400).json({ message: 'class_id and date are required' });
-    }
-
-    const rows = await query(`
-      SELECT 
-        s.id as student_id,
-        s.full_name,
-        e.roll_number,
-        COALESCE(a.status, 'present') as status
-      FROM enrollments e
-      JOIN students s ON e.student_id = s.id
-      LEFT JOIN attendance a ON a.student_id = s.id AND a.class_id = e.class_id AND a.date = ?
-      WHERE e.class_id = ?
-      ORDER BY s.full_name ASC
-    `, [date, class_id]);
-
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// POST /api/teacher/attendance
-app.post('/api/teacher/attendance', authenticate, authorize(['teacher', 'admin']), async (req, res) => {
-  try {
-    const { class_id, date, records } = req.body;
-    if (!class_id || !date || !Array.isArray(records)) {
-      return res.status(400).json({ message: 'Invalid attendance submission payload' });
-    }
-
-    for (const rec of records) {
-      await query(`
-        INSERT INTO attendance (student_id, class_id, date, status, marked_by)
-        VALUES (?, ?, ?, ?, ?)
-        ON DUPLICATE KEY UPDATE status = VALUES(status), marked_by = VALUES(marked_by)
-      `, [rec.student_id, class_id, date, rec.status, req.user.id]);
-    }
-
-    res.json({ success: true, message: 'Attendance recorded successfully' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -3009,6 +2663,149 @@ app.post('/api/teacher/results', authenticate, authorize(['teacher', 'admin']), 
   }
 });
 
+// ---- Monthly Attendance Reports (teacher submits class % + .xlsx) ----
+
+// POST /api/teacher/attendance-reports  (multipart/form-data, field 'report_file')
+app.post('/api/teacher/attendance-reports', authenticate, authorize(['teacher', 'admin', 'principal']), upload.single('report_file'), async (req, res) => {
+  try {
+    const { class_id, month, year, percentage, total_students } = req.body;
+    if (!class_id || !month || !year || percentage === undefined || percentage === '' || total_students === undefined || total_students === '') {
+      // clean up orphan upload if validation fails
+      if (req.file) fs.unlink(path.join(__dirname, req.file.path), () => {});
+      return res.status(400).json({ message: 'Class, month, year, percentage and total students are all required' });
+    }
+
+    // teacherId is now the user's own id (teachers table merged into users)
+    const teacherId = req.user.id;
+    const fileName = req.file ? req.file.originalname : null;
+    const filePath = req.file ? 'uploads/documents/attendance/' + req.file.filename : null;
+
+    await query(`
+      INSERT INTO attendance_reports
+        (class_id, teacher_id, month, year, percentage, total_students, file_name, file_path, submitted_by, submitted_by_name)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON DUPLICATE KEY UPDATE
+        percentage = VALUES(percentage),
+        total_students = VALUES(total_students),
+        file_name = VALUES(file_name),
+        file_path = VALUES(file_path),
+        teacher_id = VALUES(teacher_id),
+        submitted_by = VALUES(submitted_by),
+        submitted_by_name = VALUES(submitted_by_name)
+    `, [class_id, teacherId, month, year, percentage, total_students, fileName, filePath, req.user.id, req.user.full_name || req.user.username || '']);
+
+    // Resolve any matching "missing report" notification for this class + period
+    const dedupe = `attendance_missing_${class_id}_${year}_${month}`;
+    await query('DELETE FROM admin_notifications WHERE dedupe_key = ?', [dedupe]).catch(() => {});
+
+    res.json({ success: true, message: 'Monthly attendance report submitted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/teacher/attendance-reports  (this teacher's submitted reports)
+app.get('/api/teacher/attendance-reports', authenticate, async (req, res) => {
+  try {
+    // teacherId is now the user's own id (teachers table merged into users)
+    const teacherId = req.user.id;
+
+    let rows;
+    if (req.user.role === 'teacher' && teacherId) {
+      rows = await query(`
+        SELECT r.*, c.class_name, NULL as course_name
+        FROM attendance_reports r
+        JOIN classes c ON r.class_id = c.id
+        WHERE c.teacher_id = ? OR r.teacher_id = ?
+        ORDER BY r.year DESC, r.month DESC, c.class_name ASC
+      `, [teacherId, teacherId]);
+    } else {
+      rows = await query(`
+        SELECT r.*, c.class_name, NULL as course_name
+        FROM attendance_reports r
+        JOIN classes c ON r.class_id = c.id
+        ORDER BY r.year DESC, r.month DESC, c.class_name ASC
+      `);
+    }
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// DELETE /api/teacher/attendance-reports/:id
+app.delete('/api/teacher/attendance-reports/:id', authenticate, authorize(['teacher', 'admin']), async (req, res) => {
+  try {
+    const [rep] = await query('SELECT * FROM attendance_reports WHERE id = ?', [req.params.id]);
+    if (!rep.length) return res.status(404).json({ message: 'Report not found' });
+    if (rep[0].file_path) fs.unlink(path.join(__dirname, rep[0].file_path), () => {});
+    await query('DELETE FROM attendance_reports WHERE id = ?', [req.params.id]);
+    res.json({ success: true, message: 'Report deleted' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/admin/attendance-reports  (all reports, admin only)
+app.get('/api/admin/attendance-reports', authenticate, authorize(['admin']), async (req, res) => {
+  try {
+    const rows = await query(`
+      SELECT r.*, c.class_name, NULL as course_name, tu.full_name AS teacher_name
+      FROM attendance_reports r
+      JOIN classes c ON r.class_id = c.id
+      LEFT JOIN users tu ON r.teacher_id = tu.id
+      ORDER BY r.year DESC, r.month DESC, c.class_name ASC
+    `);
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// GET /api/admin/notifications  (persistent admin alerts)
+app.get('/api/admin/notifications', authenticate, authorize(['admin']), async (req, res) => {
+  try {
+    const rows = await query('SELECT * FROM admin_notifications ORDER BY is_read ASC, created_at DESC LIMIT 100');
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/admin/notifications/read  (mark one by {id} or all if no id)
+app.post('/api/admin/notifications/read', authenticate, authorize(['admin']), async (req, res) => {
+  try {
+    const { id } = req.body || {};
+    if (id) await query('UPDATE admin_notifications SET is_read = 1 WHERE id = ?', [id]);
+    else await query('UPDATE admin_notifications SET is_read = 1');
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// DELETE /api/admin/notifications/:id  (dismiss a single notification)
+app.delete('/api/admin/notifications/:id', authenticate, authorize(['admin']), async (req, res) => {
+  try {
+    await query('DELETE FROM admin_notifications WHERE id = ?', [req.params.id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// POST /api/admin/notifications/clear  (scope: 'read' | 'all')
+app.post('/api/admin/notifications/clear', authenticate, authorize(['admin']), async (req, res) => {
+  try {
+    const scope = (req.body && req.body.scope) || 'read';
+    if (scope === 'all') await query('DELETE FROM admin_notifications');
+    else await query('DELETE FROM admin_notifications WHERE is_read = 1');
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // ==================== PRINCIPAL ROUTES ====================
 
 // GET /api/principal/dashboard
@@ -3018,8 +2815,8 @@ app.get('/api/principal/dashboard', authenticate, authorize(['principal', 'admin
       return res.json({ totalStudents: 0, totalTeachers: 0, totalCourses: 0, overallAttendance: '0%' });
     }
     const [[{ totalStudents }]] = await pool.query('SELECT COUNT(*) as totalStudents FROM students WHERE status = "active"');
-    const [[{ totalTeachers }]] = await pool.query('SELECT COUNT(*) as totalTeachers FROM teachers WHERE is_active = 1');
-    const [[{ totalCourses }]] = await pool.query('SELECT COUNT(*) as totalCourses FROM courses WHERE is_active = 1');
+    const [[{ totalTeachers }]] = await pool.query("SELECT COUNT(*) as totalTeachers FROM users WHERE role = 'teacher' AND is_active = 1");
+    const totalCourses = 0; // Courses module removed
 
     res.json({
       totalStudents,
@@ -3034,7 +2831,7 @@ app.get('/api/principal/dashboard', authenticate, authorize(['principal', 'admin
 
 app.get('/api/principal/teachers', authenticate, authorize(['principal', 'admin']), async (req, res) => {
   try {
-    const rows = await query('SELECT * FROM teachers ORDER BY id DESC');
+    const rows = await query("SELECT id, username, full_name, email, phone, employee_id, cnic, qualification, specialization, joining_date, address, is_active FROM users WHERE role = 'teacher' ORDER BY id DESC");
     res.json(rows);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -3044,11 +2841,10 @@ app.get('/api/principal/teachers', authenticate, authorize(['principal', 'admin'
 app.get('/api/principal/students', authenticate, authorize(['principal', 'admin']), async (req, res) => {
   try {
     const rows = await query(`
-      SELECT s.*, c.class_name, co.course_name
+      SELECT s.*, c.class_name, NULL as course_name
       FROM students s
       LEFT JOIN enrollments e ON s.id = e.student_id
       LEFT JOIN classes c ON e.class_id = c.id
-      LEFT JOIN courses co ON c.course_id = co.id
       ORDER BY s.id DESC
     `);
     res.json(rows);
@@ -3061,10 +2857,9 @@ app.get('/api/principal/students', authenticate, authorize(['principal', 'admin'
 const getResultsHandler = async (req, res) => {
   try {
     const rows = await query(`
-      SELECT r.*, s.full_name as student_name, sub.subject_name, c.class_name
+      SELECT r.*, s.full_name as student_name, NULL as subject_name, c.class_name
       FROM results r
       JOIN students s ON r.student_id = s.id
-      JOIN subjects sub ON r.subject_id = sub.id
       JOIN classes c ON r.class_id = c.id
       ORDER BY r.id DESC
     `);
@@ -3104,21 +2899,12 @@ app.get('/api/reports/:type', authenticate, authorize(['admin', 'principal']), a
     if (type === 'students') {
       data = await query('SELECT student_id, full_name, father_name, phone, district, status, admission_date FROM students ORDER BY full_name ASC');
     } else if (type === 'teachers') {
-      data = await query('SELECT employee_id, full_name, qualification, specialization, phone, joining_date FROM teachers WHERE is_active = 1 ORDER BY full_name ASC');
-    } else if (type === 'attendance') {
-      data = await query(`
-        SELECT a.date, s.full_name, c.class_name, a.status 
-        FROM attendance a
-        JOIN students s ON a.student_id = s.id
-        JOIN classes c ON a.class_id = c.id
-        ORDER BY a.date DESC LIMIT 100
-      `);
+      data = await query("SELECT employee_id, full_name, qualification, specialization, phone, joining_date FROM users WHERE role = 'teacher' AND is_active = 1 ORDER BY full_name ASC");
     } else if (type === 'results') {
       data = await query(`
-        SELECT s.full_name, sub.subject_name, r.exam_type, r.marks_obtained, r.total_marks, r.grade
+        SELECT s.full_name, NULL as subject_name, r.exam_type, r.marks_obtained, r.total_marks, r.grade
         FROM results r
         JOIN students s ON r.student_id = s.id
-        JOIN subjects sub ON r.subject_id = sub.id
         ORDER BY r.id DESC LIMIT 100
       `);
     }
@@ -3143,16 +2929,53 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
+// ==================== SCHEDULED: MISSING MONTHLY ATTENDANCE ====================
+// Flags any active class that has no attendance report for the PREVIOUS month,
+// creating a persistent admin notification (deduped per class + period).
+async function checkMissingAttendanceReports() {
+  if (!isDbConnected) return;
+  try {
+    const now = new Date();
+    const target = new Date(now.getFullYear(), now.getMonth() - 1, 1); // previous month
+    const month = target.getMonth() + 1;
+    const year = target.getFullYear();
+    const monthName = target.toLocaleString('en-US', { month: 'long' });
+
+    const classes = await query('SELECT id, class_name FROM classes WHERE is_active = 1');
+    let missing = 0;
+    for (const cls of classes) {
+      const existing = await query('SELECT id FROM attendance_reports WHERE class_id = ? AND month = ? AND year = ?', [cls.id, month, year]);
+      if (existing.length === 0) {
+        missing++;
+        const dedupe = `attendance_missing_${cls.id}_${year}_${month}`;
+        await query(
+          `INSERT IGNORE INTO admin_notifications (type, dedupe_key, title, message)
+           VALUES ('attendance_missing', ?, ?, ?)`,
+          [dedupe, 'Monthly attendance report missing',
+           `Class "${cls.class_name}" has no attendance report submitted for ${monthName} ${year}.`]
+        );
+      }
+    }
+    console.log(`[attendance-check] ${monthName} ${year}: ${classes.length} active class(es) scanned, ${missing} missing report(s).`);
+  } catch (err) {
+    console.error('[attendance-check] error:', err.message);
+  }
+}
+
 // ==================== SERVER START ====================
 const server = app.listen(PORT, async () => {
   console.log(`\n============================================================`);
-  console.log(`🚀 GTVC Dargai Offline DBMS Server running on:`);
+  console.log(` GTVC Dargai Offline DBMS Server running on:`);
   console.log(`   Local URL: http://localhost:${PORT}`);
   console.log(`   Login:     http://localhost:${PORT}/index.html`);
   console.log(`   Signup:    http://localhost:${PORT}/index.html?tab=signup`);
   console.log(`============================================================\n`);
 
   await initDatabase();
+
+  // Run the attendance-missing scan on startup and then every 24 hours
+  checkMissingAttendanceReports();
+  setInterval(checkMissingAttendanceReports, 24 * 60 * 60 * 1000);
 });
 
 server.on('error', (err) => {

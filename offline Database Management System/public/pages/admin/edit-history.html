@@ -282,7 +282,7 @@
     async function restoreFromLog(id) {
       const log = allLogs.find(x => x.id === id);
       const desc = log ? log.description : `Log #${id}`;
-      if (!confirm(`Are you sure you want to revert the changes and restore the previous state from: "${desc}"?`)) return;
+      if (!await confirm(`Are you sure you want to revert the changes and restore the previous state from: "${desc}"?`)) return;
 
       try {
         const res = await apiCall(`/api/admin/edit-log/${id}/restore`, 'POST');
@@ -302,7 +302,7 @@
         alert('Edit log is already empty.');
         return;
       }
-      if (!confirm('Are you sure you want to clear all edit history records?')) return;
+      if (!await confirm('Are you sure you want to clear all edit history records?')) return;
       try {
         const res = await apiCall('/api/admin/edit-log', 'DELETE');
         if (res && res.success) {

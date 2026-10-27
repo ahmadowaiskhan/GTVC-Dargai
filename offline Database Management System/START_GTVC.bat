@@ -20,6 +20,15 @@ if %ERRORLEVEL% NEQ 0 (
     exit /b 1
 )
 
+REM Check if npm is installed
+where npm >nul 2>&1
+if %ERRORLEVEL% NEQ 0 (
+    echo [ERROR] npm is not installed or not in PATH.
+    echo Please install Node.js from https://nodejs.org/
+    pause
+    exit /b 1
+)
+
 REM Check if XAMPP MySQL exists
 if exist "C:\xampp\mysql\bin\mysqld.exe" (
     echo [INFO] XAMPP MySQL found at C:\xampp\mysql\bin\
@@ -35,34 +44,34 @@ if exist "C:\xampp\mysql\bin\mysqld.exe" (
     )
 ) else (
     echo [WARNING] XAMPP not found at C:\xampp\. 
-    echo Make sure MySQL/MariaDB is running separately.
-    timeout /t 5 /nobreak >nul
+    echo Make sure MySQL/MariaDB is running separately (or use standalone MySQL service).
+    timeout /t 3 /nobreak >nul
 )
 
 REM Check node_modules
 if not exist "node_modules\" (
     echo [INFO] Installing dependencies...
-    call npm install
+    call npm install --no-audit --no-fund
     echo.
 )
 
-REM Start the Node.js server
+REM Start the Node.js server in a new window
 echo [INFO] Starting GTVC Server...
-start "" cmd /c "title GTVC Server && npm start"
+start "GTVC Server" cmd /k "cd /d "%~dp0" && npm start"
 
 REM Wait for server to start
-echo [INFO] Waiting for server to start (5 seconds)...
-timeout /t 5 /nobreak >nul
+echo [INFO] Waiting for server to start (8 seconds)...
+timeout /t 8 /nobreak >nul
 
 REM Open website in default browser
 echo [INFO] Opening website in browser...
-start "" http://localhost:3000
+start "" "http://localhost:3000"
 
 echo.
 echo ========================================
-echo   Server is running at http://localhost:3000
-echo   Close this window to keep server running
-echo   or press Ctrl+C in the server window to stop
+echo   Server should be running at http://localhost:3000
+echo   A separate "GTVC Server" window has been opened
+echo   Close that window to stop the server
 echo ========================================
 echo.
 pause

@@ -8,7 +8,7 @@
       "partition": "C:",
       "isPrimary": true,
       "autoBackup": true,
-      "lastBackupAt": "2026-10-24T00:09:51.680Z",
+      "lastBackupAt": "2026-10-24T22:39:11.229Z",
       "createdAt": "2026-10-23T23:09:06.175Z"
     },
     {
@@ -18,7 +18,7 @@
       "partition": "D:",
       "isPrimary": false,
       "autoBackup": true,
-      "lastBackupAt": "2026-10-24T00:09:51.680Z",
+      "lastBackupAt": "2026-10-24T22:39:11.229Z",
       "createdAt": "2026-10-23T23:16:36.868Z"
     },
     {
@@ -28,7 +28,7 @@
       "partition": "D:",
       "isPrimary": false,
       "autoBackup": true,
-      "lastBackupAt": null,
+      "lastBackupAt": "2026-10-24T22:39:11.229Z",
       "createdAt": "2026-10-24T00:16:41.820Z"
     }
   ]

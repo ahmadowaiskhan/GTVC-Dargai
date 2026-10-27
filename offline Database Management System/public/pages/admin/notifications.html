@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <script>
+    (function () {
+      try {
+        var t = localStorage.getItem('gtvc_theme') || 'light';
+        document.documentElement.setAttribute('data-theme', t);
+      } catch (e) {}
+    })();
+  </script>
+  <title>Notifications — GTVC Dargai</title>
+  <link rel="stylesheet" href="/assets/style.css">
+  <script src="/app.js" defer></script>
+  <style>
+    /* KPI stat cards */
+    .notif-stat-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .notif-stat {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-hover);
+      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: 14px 16px;
+    }
+    .notif-stat .val { font-size: 1.6rem; font-weight: 700; color: var(--text-primary); line-height: 1; }
+    .notif-stat .lbl { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); margin-top: 4px; }
+    .notif-stat .ico { font-size: 1.6rem; opacity: 0.55; }
+
+    /* Filter toolbar */
+    .notif-toolbar .search-box { flex: 1 1 240px; }
+    .notif-toolbar .nf-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+    .notif-toolbar .form-select,
+    .notif-toolbar .form-input { width: auto; padding: 8px 12px; font-size: 0.85rem; line-height: 1.2; }
+    .notif-toolbar #typeFilter { min-width: 170px; }
+    .notif-toolbar #statusFilter { min-width: 150px; }
+
+    /* Notification list */
+    .notif-list { display: flex; flex-direction: column; gap: 12px; }
+    .notif-item {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+      background: var(--bg-card, var(--bg-hover));
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--border-color);
+      border-radius: var(--border-radius);
+      padding: 14px 16px;
+      transition: var(--transition);
+    }
+    .notif-item.unread { border-left-color: var(--color-primary); box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .notif-item.unread .notif-title { color: var(--text-primary); }
+    .notif-item.read { opacity: 0.72; }
+    .notif-item.t-warning { border-left-color: var(--color-warning); }
+    .notif-item.t-general { border-left-color: var(--color-primary); }
+
+    .notif-ico {
+      flex: 0 0 auto;
+      width: 38px; height: 38px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%;
+      background: var(--bg-hover);
+      border: 1px solid var(--border-color);
+    }
+    .notif-ico img { width: 20px; height: 20px; }
+
+    .notif-body { flex: 1; min-width: 0; }
+    .notif-title { font-weight: 600; color: var(--text-secondary); margin: 0 0 3px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .notif-msg { font-size: 0.88rem; color: var(--text-secondary); margin: 0; word-wrap: break-word; }
+    .notif-meta { margin-top: 6px; font-size: 0.74rem; color: var(--text-muted); }
+    .notif-tag {
+      font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.4px;
+      padding: 2px 8px; border-radius: 20px; background: var(--bg-hover);
+      border: 1px solid var(--border-color); color: var(--text-muted); font-weight: 600;
+    }
+    .notif-actions { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; flex: 0 0 auto; }
+
+    .notif-empty { text-align: center; color: var(--text-muted); padding: 48px 16px; }
+    .notif-empty img { width: 40px; height: 40px; opacity: 0.5; margin-bottom: 10px; }
+
+    @media (max-width: 560px) {
+      .notif-item { flex-wrap: wrap; }
+      .notif-actions { flex-direction: row; width: 100%; justify-content: flex-end; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="app-sidebar"></aside>
+    <div class="app-main">
+      <header class="app-navbar"></header>
+      <main class="app-content">
+
+        <div class="page-header flex-between" style="flex-wrap:wrap; gap:12px;">
+          <div>
+            <h1>Notifications</h1>
+            <p>System alerts and action items for the administrator (e.g. missing monthly attendance reports).</p>
+          </div>
+          <div class="flex gap-1" style="align-items:center; flex-wrap:wrap;">
+            <button class="btn btn-outline btn-sm" onclick="loadNotif()">
+              <img src="/assets/icons/refresh.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="refresh"> Refresh
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="markAllRead()">
+              <img src="/assets/icons/check.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="read"> Mark All Read
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="clearRead()">Clear Read</button>
+          </div>
+        </div>
+
+        <!-- KPI Stats -->
+        <div class="notif-stat-row">
+          <div class="notif-stat">
+            <div><div class="val" id="statTotal">0</div><div class="lbl">Total</div></div>
+            <div class="ico"><img src="/assets/icons/database.svg" style="width:24px;height:24px;" alt=""></div>
+          </div>
+          <div class="notif-stat">
+            <div><div class="val" style="color:var(--color-primary);" id="statUnread">0</div><div class="lbl">Unread</div></div>
+            <div class="ico"><img src="/assets/icons/eye.svg" style="width:24px;height:24px;" alt=""></div>
+          </div>
+          <div class="notif-stat">
+            <div><div class="val" style="color:#10b981;" id="statRead">0</div><div class="lbl">Read</div></div>
+            <div class="ico"><img src="/assets/icons/check.svg" style="width:24px;height:24px;" alt=""></div>
+          </div>
+          <div class="notif-stat">
+            <div><div class="val" style="color:var(--color-warning);" id="statWarn">0</div><div class="lbl">Action Required</div></div>
+            <div class="ico"><img src="/assets/icons/alert.svg" style="width:24px;height:24px;" alt=""></div>
+          </div>
+        </div>
+
+        <!-- Filter Toolbar -->
+        <div class="toolbar notif-toolbar">
+          <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search notifications..." oninput="applyFilters()">
+          </div>
+          <div class="nf-filters">
+            <select id="typeFilter" class="form-select" onchange="applyFilters()">
+              <option value="">All Types</option>
+              <option value="attendance_missing">Attendance Missing</option>
+              <option value="general">General</option>
+            </select>
+            <select id="statusFilter" class="form-select" onchange="applyFilters()">
+              <option value="">All</option>
+              <option value="unread">Unread Only</option>
+              <option value="read">Read Only</option>
+            </select>
+            <button class="btn btn-outline btn-sm" onclick="clearFilters()">Clear</button>
+            <span class="badge badge-gray" id="notifCount">0 notifications</span>
+          </div>
+        </div>
+
+        <!-- List -->
+        <div id="notifList" class="notif-list">
+          <div class="notif-empty">Loading notifications…</div>
+        </div>
+
+      </main>
+      <footer class="app-footer"></footer>
+    </div>
+  </div>
+
+  <script>
+    let allNotif = [];
+
+    const TYPE_META = {
+      attendance_missing: { label: 'Attendance', icon: 'alert.svg', cls: 't-warning' },
+      general:            { label: 'General',    icon: 'info.svg',  cls: 't-general' },
+    };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!requireAuth(['admin'])) return;
+      renderLayout('admin', 'Notifications', 'notifications.html');
+      loadNotif();
+    });
+
+    function esc(s) {
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+
+    function toDate(v) {
+      if (!v) return null;
+      const d = new Date(typeof v === 'string' ? v.replace(' ', 'T') : v);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    function timeAgo(d) {
+      if (!d) return '';
+      const s = Math.floor((Date.now() - d.getTime()) / 1000);
+      if (s < 60) return 'just now';
+      const m = Math.floor(s / 60); if (m < 60) return `${m} min ago`;
+      const h = Math.floor(m / 60); if (h < 24) return `${h} hr ago`;
+      const days = Math.floor(h / 24); if (days < 30) return `${days} day${days > 1 ? 's' : ''} ago`;
+      return d.toLocaleDateString();
+    }
+
+    function fullWhen(d) {
+      if (!d) return '';
+      return d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
+    async function loadNotif() {
+      const list = document.getElementById('notifList');
+      list.innerHTML = '<div class="notif-empty">Loading notifications…</div>';
+      try {
+        const data = await apiCall('/api/admin/notifications');
+        allNotif = data || [];
+        updateStats(allNotif);
+        applyFilters();
+      } catch (e) {
+        list.innerHTML = '<div class="notif-empty">Could not load notifications.<br><small>' + esc(e.message) + '</small></div>';
+      }
+    }
+
+    function updateStats(items) {
+      const unread = items.filter(x => !x.is_read).length;
+      const warn = items.filter(x => x.type === 'attendance_missing' && !x.is_read).length;
+      document.getElementById('statTotal').textContent = items.length;
+      document.getElementById('statUnread').textContent = unread;
+      document.getElementById('statRead').textContent = items.length - unread;
+      document.getElementById('statWarn').textContent = warn;
+    }
+
+    function applyFilters() {
+      const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+      const type = document.getElementById('typeFilter').value;
+      const status = document.getElementById('statusFilter').value;
+
+      const rows = allNotif.filter(n => {
+        if (type && n.type !== type) return false;
+        if (status === 'unread' && n.is_read) return false;
+        if (status === 'read' && !n.is_read) return false;
+        if (q) {
+          const hay = ((n.title || '') + ' ' + (n.message || '')).toLowerCase();
+          if (!hay.includes(q)) return false;
+        }
+        return true;
+      });
+
+      renderList(rows);
+    }
+
+    function renderList(items) {
+      const list = document.getElementById('notifList');
+      document.getElementById('notifCount').textContent =
+        `${items.length} notification${items.length === 1 ? '' : 's'}`;
+
+      if (!items.length) {
+        list.innerHTML = `<div class="notif-empty">
+          <img src="/assets/icons/check.svg" alt="">
+          <div>You're all caught up — no notifications to show.</div>
+        </div>`;
+        return;
+      }
+
+      list.innerHTML = items.map(n => {
+        const meta = TYPE_META[n.type] || { label: n.type || 'Notice', icon: 'info.svg', cls: 't-general' };
+        const d = toDate(n.created_at);
+        const isUnread = !n.is_read;
+        return `
+          <div class="notif-item ${isUnread ? 'unread' : 'read'} ${meta.cls}">
+            <div class="notif-ico"><img src="/assets/icons/${meta.icon}" alt=""></div>
+            <div class="notif-body">
+              <div class="notif-title">
+                ${esc(n.title || 'Notification')}
+                <span class="notif-tag">${esc(meta.label)}</span>
+                ${isUnread ? '<span class="notif-tag" style="color:var(--color-primary);border-color:var(--color-primary);">New</span>' : ''}
+              </div>
+              <p class="notif-msg">${esc(n.message || '')}</p>
+              <div class="notif-meta" title="${esc(fullWhen(d))}">${esc(timeAgo(d))}</div>
+            </div>
+            <div class="notif-actions">
+              ${isUnread ? `<button class="btn btn-outline btn-sm" onclick="markRead(${n.id})">Mark Read</button>` : ''}
+              <button class="btn btn-outline btn-sm" style="color:var(--color-danger);" onclick="dismiss(${n.id})" title="Delete">
+                <img src="/assets/icons/trash.svg" style="width:13px;height:13px;vertical-align:middle;" alt="delete">
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function markRead(id) {
+      try {
+        await apiCall('/api/admin/notifications/read', 'POST', { id });
+        await loadNotif();
+      } catch (e) { showToast('Could not mark as read.', 'error'); }
+    }
+
+    async function markAllRead() {
+      try {
+        await apiCall('/api/admin/notifications/read', 'POST', {});
+        showToast('All notifications marked as read.', 'success');
+        await loadNotif();
+      } catch (e) { showToast('Action failed.', 'error'); }
+    }
+
+    async function dismiss(id) {
+      const ok = await confirmAction('Delete this notification?', { title: 'Delete notification', type: 'danger', confirmText: 'Yes, delete' });
+      if (!ok) return;
+      try {
+        await apiCall(`/api/admin/notifications/${id}`, 'DELETE');
+        await loadNotif();
+      } catch (e) { showToast('Delete failed.', 'error'); }
+    }
+
+    async function clearRead() {
+      const ok = await confirmAction('Remove all READ notifications? Unread ones will stay.', { title: 'Clear read', type: 'warning', confirmText: 'Clear read' });
+      if (!ok) return;
+      try {
+        await apiCall('/api/admin/notifications/clear', 'POST', { scope: 'read' });
+        showToast('Read notifications cleared.', 'success');
+        await loadNotif();
+      } catch (e) { showToast('Clear failed.', 'error'); }
+    }
+
+    function clearFilters() {
+      document.getElementById('searchInput').value = '';
+      document.getElementById('typeFilter').value = '';
+      document.getElementById('statusFilter').value = '';
+      applyFilters();
+    }
+  </script>
+</body>
+</html>

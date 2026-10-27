@@ -1,6 +1,10 @@
 in admin give me opstion to choolse the location or partion where the database will be store C: , D: , ect and multiple location like D:,F:/database ect folder . and a section where the admin can the the database folder location and how mach stroare it takes
 
-inside teacher/attendance.html :
+update a sessitions page:
+in the page will store data i can edit delete and add like. how many studen get addmissition in this year of sessitions . sessitions date . sessition name and class name like DIT, CCTV, GIT, etc like how many students get addmissition in DIT , CCTV etc the number of studen. how may sessition are completed and the tottle subject.
+
+
+inside pages/attendance.html :
 her the teacher will add attendance persantage of there class and the tottle studen also add the .elx file with it monthley if the teacher not submet it send the notifaction to the admin every month the teacher will add this any month.
 
 Remove this notifaction like open addmissition advertiesment or close it.. also remove the notices.html accounting/dashboard.html from my all website
@@ -8,8 +12,7 @@ Remove this notifaction like open addmissition advertiesment or close it.. also 
 login Roles :
 when the teacher or accountent login in the user name they will fill there user name in password they enter the password afther that they will get remdomley 2 step verefication like enter date of birth , joining date , CNIC number or the Full Name this will be case sensitiv . conform this from database
 
-create a sessition page:
-in the page will store how many studen get addmissition and DIT, CCVT, GIT, etc the number of studen . how may sessition are completed and the tottle subject.
+
 
 
 sessions.html ,session.html , manage-courses.html
@@ -32,8 +35,6 @@ admin page:
 can comrtoll the all database.. add delete edit restore the all data if any mistake happen. can add new teacher and new student and new course and new results and new notices.
 
 
-
-Navebar: create a navebar i want these pages in Navebar.
 
 
 Recycle Bin page : it will store the deleted data to only the admin will be abel to delete and retore 

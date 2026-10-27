@@ -36,9 +36,6 @@
             <button class="btn btn-success" onclick="openQuickEnrollModal()">
               <img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="enroll"> Quick Admission
             </button>
-            <button class="btn btn-outline" onclick="openAddSubjectModal()">
-              <img src="/assets/icons/book.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="subject"> Add Subject
-            </button>
             <button class="btn btn-outline" onclick="printReport()">
               <img src="/assets/icons/printer.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="print"> Print Summary
             </button>
@@ -83,16 +80,16 @@
             <div class="kpi-subtext">Currently ongoing academic programs</div>
           </div>
 
-          <!-- Total Subjects -->
+          <!-- Total Classes / Trades -->
           <div class="kpi-card" style="--kpi-accent:#8b5cf6;">
             <div>
               <div class="kpi-header">
-                <span class="kpi-title">Total Subjects</span>
-                <span class="kpi-icon"><img src="/assets/icons/book.svg" style="width:20px;height:20px;" alt="subjects"></span>
+                <span class="kpi-title">Total Classes / Trades</span>
+                <span class="kpi-icon"><img src="/assets/icons/building.svg" style="width:20px;height:20px;" alt="classes"></span>
               </div>
-              <div class="kpi-value" id="kpiTotalSubjects">0</div>
+              <div class="kpi-value" id="kpiTotalClasses">0</div>
             </div>
-            <div class="kpi-subtext">Curriculum subjects across all trades</div>
+            <div class="kpi-subtext">Active trade programs (DIT, CCVT, GIT, etc.)</div>
           </div>
 
           <!-- Total Sessions -->
@@ -128,13 +125,9 @@
             <img src="/assets/icons/calendar.svg" style="width:16px;height:16px;" alt="sessions">
             <span>Academic Sessions & Batches</span>
           </button>
-          <button class="nav-tab-btn" onclick="switchTab('courseBreakdownTab', this)">
-            <img src="/assets/icons/graduation.svg" style="width:16px;height:16px;" alt="courses">
-            <span>Course-wise Admissions (DIT, CCVT, GIT, etc.)</span>
-          </button>
-          <button class="nav-tab-btn" onclick="switchTab('subjectsTab', this)">
-            <img src="/assets/icons/book.svg" style="width:16px;height:16px;" alt="subjects">
-            <span>Curriculum Subjects Management (<span id="tabSubjectCount">0</span>)</span>
+          <button class="nav-tab-btn" onclick="switchTab('classAdmissionsTab', this)">
+            <img src="/assets/icons/graduation.svg" style="width:16px;height:16px;" alt="trades">
+            <span>Trade / Class Admissions (DIT, CCVT, GIT, etc.)</span>
           </button>
         </div>
 
@@ -176,29 +169,28 @@
                     <th>Duration</th>
                     <th>Status</th>
                     <th>Admitted Students</th>
-                    <th>Trades Breakdown</th>
-                    <th>Subjects</th>
+                    <th>Student Records</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody id="sessionsTableBody">
-                  <tr><td colspan="8" class="text-center text-muted" style="padding:32px;">Loading sessions...</td></tr>
+                  <tr><td colspan="7" class="text-center text-muted" style="padding:32px;">Loading sessions...</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
         </div>
 
-        <!-- ==================== TAB 2: COURSE-WISE ADMISSIONS (DIT, CCVT, GIT, ETC) ==================== -->
-        <div id="courseBreakdownTab" class="tab-pane">
+        <!-- ==================== TAB 2: TRADE / CLASS ADMISSIONS (DIT, CCVT, GIT, ETC) ==================== -->
+        <div id="classAdmissionsTab" class="tab-pane">
           <div class="card mb-3" style="padding:16px 20px; background:linear-gradient(135deg, rgba(37,99,235,0.05), rgba(16,185,129,0.05)); border:1px solid rgba(37,99,235,0.2);">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
               <div>
-                <h3 style="margin:0 0 4px 0; font-size:1.1rem; color:var(--text-primary);">Trade Programs Student Admission Breakdown</h3>
-                <p style="margin:0; font-size:0.85rem; color:var(--text-secondary);">Direct breakdown of students enrolled in DIT (Diploma in Information Technology), CCVT (Civil & Computer Vocational Training), GIT (Graphic Information Technology), and other GTVC vocational trades.</p>
+                <h3 style="margin:0 0 4px 0; font-size:1.1rem; color:var(--text-primary);">Trade / Class Admission Breakdown</h3>
+                <p style="margin:0; font-size:0.85rem; color:var(--text-secondary);">Number of students admitted in each trade class — DIT (Diploma in IT), CCVT (Computer & Vocational Training), GIT (Graphic IT), and other GTVC vocational classes. Counts are taken from live class enrollments.</p>
               </div>
               <button class="btn btn-primary btn-sm" onclick="openQuickEnrollModal()">
-                <img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Enroll Student in Trade
+                <img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Admit Student into Class
               </button>
             </div>
           </div>
@@ -209,61 +201,23 @@
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>Course / Trade Name</th>
+                    <th>Class / Trade Name</th>
                     <th>Trade Code</th>
-                    <th>Duration</th>
-                    <th>Admitted Students</th>
-                    <th>Curriculum Subjects</th>
+                    <th>Session Year</th>
+                    <th>Students Admitted</th>
                     <th>Admission Share</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
-                <tbody id="courseBreakdownTableBody">
-                  <tr><td colspan="8" class="text-center text-muted" style="padding:32px;">Loading course breakdown...</td></tr>
+                <tbody id="classAdmissionsTableBody">
+                  <tr><td colspan="7" class="text-center text-muted" style="padding:32px;">Loading class breakdown...</td></tr>
                 </tbody>
               </table>
             </div>
           </div>
         </div>
 
-        <!-- ==================== TAB 3: SUBJECTS MANAGEMENT ==================== -->
-        <div id="subjectsTab" class="tab-pane">
-          <div class="toolbar" style="margin-bottom:16px;">
-            <div class="search-box">
-              <span class="search-icon"><img src="/assets/icons/search.svg" style="width:16px;height:16px;" alt="search"></span>
-              <input type="text" id="searchSubjects" placeholder="Search subjects by name or code..." oninput="filterSubjects()">
-            </div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
-              <select id="subjectCourseFilter" class="form-input" style="width:auto; padding:8px 12px;" onchange="filterSubjects()">
-                <option value="all">All Trade Courses</option>
-              </select>
-              <button class="btn btn-primary" onclick="openAddSubjectModal()">
-                <img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Add New Subject
-              </button>
-            </div>
-          </div>
-
-          <div class="card">
-            <div class="table-wrapper">
-              <table>
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Subject Code</th>
-                    <th>Subject Name</th>
-                    <th>Associated Course / Trade</th>
-                    <th>Total Marks</th>
-                    <th>Passing Marks</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody id="subjectsTableBody">
-                  <tr><td colspan="7" class="text-center text-muted" style="padding:32px;">Loading subjects...</td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
+        <!-- ==================== (Subjects module removed — no subjects tab) ==================== -->
 
       </main>
       <footer class="app-footer"></footer>
@@ -340,9 +294,9 @@
             </select>
           </div>
           <div class="form-group">
-            <label class="form-label">Trade / Course * (DIT, CCVT, GIT, etc.)</label>
-            <select id="qeCourse" class="form-input" required>
-              <option value="">Select Course</option>
+            <label class="form-label">Class / Trade</label>
+            <select id="qeClass" class="form-input">
+              <option value="">Select Class (DIT, CCVT, GIT...)</option>
             </select>
           </div>
         </div>
@@ -373,49 +327,6 @@
         <div class="btn-group" style="margin-top:12px;">
           <button type="submit" class="btn btn-success">Admit & Register Student</button>
           <button type="button" class="btn btn-outline" onclick="closeQuickEnrollModal()">Cancel</button>
-        </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- ==================== MODAL: ADD / EDIT SUBJECT ==================== -->
-  <div class="modal-overlay" id="subjectModal">
-    <div class="modal" style="max-width:500px;">
-      <div class="modal-header">
-        <h3 id="subjectModalTitle">Add Curriculum Subject</h3>
-        <button class="modal-close" onclick="closeSubjectModal()"><img src="/assets/icons/close.svg" style="width:16px;height:16px;" alt="close"></button>
-      </div>
-      <form id="subjectForm" onsubmit="saveSubject(event)">
-        <input type="hidden" id="subId">
-        <div class="form-group">
-          <label class="form-label">Subject Name *</label>
-          <input type="text" id="subName" class="form-input" required placeholder="e.g. Office Automation, Civil CAD, Web Design">
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Subject Code</label>
-            <input type="text" id="subCode" class="form-input" placeholder="e.g. DIT-101, CCVT-102">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Associated Course / Trade *</label>
-            <select id="subCourse" class="form-input" required>
-              <option value="">Select Course</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Total Marks *</label>
-            <input type="number" id="subTotalMarks" class="form-input" required value="100" min="10" max="500">
-          </div>
-          <div class="form-group">
-            <label class="form-label">Passing Marks *</label>
-            <input type="number" id="subPassMarks" class="form-input" required value="40" min="1" max="500">
-          </div>
-        </div>
-        <div class="btn-group" style="margin-top:12px;">
-          <button type="submit" class="btn btn-primary" id="saveSubBtn">Save Subject</button>
-          <button type="button" class="btn btn-outline" onclick="closeSubjectModal()">Cancel</button>
         </div>
       </form>
     </div>
@@ -463,8 +374,7 @@
   <!-- Script logic -->
   <script>
     let allSessions = [];
-    let allCourses = [];
-    let allSubjects = [];
+    let allClasses = [];
     let currentRosterStudents = [];
     let currentViewMode = 'cards';
 
@@ -482,9 +392,7 @@
     async function loadAllData() {
       await Promise.all([
         loadStats(),
-        loadSessions(),
-        loadCourses(),
-        loadSubjects()
+        loadSessions()
       ]);
     }
 
@@ -496,8 +404,7 @@
           document.getElementById('kpiTotalAdmissions').textContent = stats.totalAdmissions || 0;
           document.getElementById('kpiCompletedSessions').textContent = stats.completedSessions || 0;
           document.getElementById('kpiActiveSessions').textContent = stats.activeSessions || 0;
-          document.getElementById('kpiTotalSubjects').textContent = stats.totalSubjects || 0;
-          document.getElementById('tabSubjectCount').textContent = stats.totalSubjects || 0;
+          document.getElementById('kpiTotalClasses').textContent = stats.totalClasses || 0;
           document.getElementById('kpiTotalSessions').textContent = stats.totalSessions || 0;
           document.getElementById('kpiUpcomingSessions').textContent = `${stats.upcomingSessions || 0} Upcoming sessions scheduled`;
 
@@ -506,12 +413,22 @@
             document.getElementById('kpiCompletedRate').textContent = `${pct}% of all batches completed`;
           }
 
-          // Populate Trade Chips
-          renderTradeChips(stats.courseBreakdown || []);
-          renderCourseBreakdownTable(stats.courseBreakdown || [], stats.totalAdmissions || 0);
+          // Cache class/trade list for dropdowns & breakdown
+          allClasses = stats.classBreakdown || [];
+          renderTradeChips(allClasses);
+          renderClassAdmissions(allClasses, stats.totalAdmissions || 0);
+          populateClassDropdowns();
         }
       } catch (err) {
         console.error('Error loading stats', err);
+      }
+    }
+
+    function populateClassDropdowns() {
+      const qeClass = document.getElementById('qeClass');
+      if (qeClass) {
+        qeClass.innerHTML = '<option value="">Select Class (DIT, CCVT, GIT...)</option>' +
+          allClasses.map(c => `<option value="${c.class_id}">${escapeHtml(c.class_name)} (${c.enrolled_students || 0} students)</option>`).join('');
       }
     }
 
@@ -519,15 +436,15 @@
       const container = document.getElementById('tradeChipsContainer');
       if (!container) return;
       if (!breakdown || breakdown.length === 0) {
-        container.innerHTML = '<span class="text-muted">No trade courses found.</span>';
+        container.innerHTML = '<span class="text-muted">No classes / trades found.</span>';
         return;
       }
 
       // Prioritize DIT, CCVT, GIT at the front
       const prioritized = [...breakdown].sort((a, b) => {
         const topTrades = ['DIT', 'CCVT', 'GIT'];
-        const aTop = topTrades.indexOf(a.course_code);
-        const bTop = topTrades.indexOf(b.course_code);
+        const aTop = topTrades.indexOf(a.trade_code);
+        const bTop = topTrades.indexOf(b.trade_code);
         if (aTop !== -1 && bTop !== -1) return aTop - bTop;
         if (aTop !== -1) return -1;
         if (bTop !== -1) return 1;
@@ -535,22 +452,17 @@
       });
 
       container.innerHTML = prioritized.map(c => `
-        <div class="trade-chip" onclick="filterByTrade('${c.course_code}')" title="${c.course_name} (${c.total_subjects || 0} subjects)">
-          <span><strong>${c.course_code}</strong>: ${c.course_name.split('(')[0].trim()}</span>
+        <div class="trade-chip" onclick="filterByTrade('${escapeJs(c.trade_code)}')" title="${escapeHtml(c.class_name)}">
+          <span><strong>${escapeHtml(c.trade_code)}</strong>: ${escapeHtml(c.class_name)}</span>
           <span class="trade-chip-count">${c.enrolled_students || 0} students</span>
         </div>
       `).join('');
     }
 
     function filterByTrade(code) {
-      // Switch to course breakdown tab or filter
+      // Switch to the Trade / Class Admissions tab
       const tabBtn = document.querySelectorAll('.nav-tab-btn')[1];
-      if (tabBtn) switchTab('courseBreakdownTab', tabBtn);
-      const searchBox = document.getElementById('searchSessions');
-      if (searchBox) {
-        searchBox.value = code;
-        filterSessions();
-      }
+      if (tabBtn) switchTab('classAdmissionsTab', tabBtn);
     }
 
     // ==================== SESSIONS ====================
@@ -593,11 +505,6 @@
             const start = s.start_date ? new Date(s.start_date).toLocaleDateString() : 'N/A';
             const end = s.end_date ? new Date(s.end_date).toLocaleDateString() : 'N/A';
 
-            // Course counts
-            const courseChips = (s.course_counts || []).map(c => `
-              <span class="course-mini-pill" title="${c.course_name}"><strong>${c.course_code}:</strong> ${c.student_count}</span>
-            `).join('');
-
             return `
               <div class="session-item-card ${statusClass}">
                 <div>
@@ -620,17 +527,10 @@
                       <div class="session-stat-lbl">Admissions</div>
                     </div>
                     <div>
-                      <div class="session-stat-val" style="color:var(--text-primary);">${s.total_subjects || 0}</div>
-                      <div class="session-stat-lbl">Subjects</div>
+                      <div class="session-stat-val" style="color:var(--text-primary);">${s.direct_students || 0}</div>
+                      <div class="session-stat-lbl">Student Records</div>
                     </div>
                   </div>
-
-                  ${courseChips ? `
-                    <div style="margin-top:8px;">
-                      <div style="font-size:0.75rem; color:var(--text-muted); margin-bottom:4px;">Trade Admissions:</div>
-                      <div class="course-mini-pills">${courseChips}</div>
-                    </div>
-                  ` : ''}
 
                   ${s.description ? `<p style="font-size:0.82rem; color:var(--text-muted); margin:10px 0 0 0;">${escapeHtml(s.description)}</p>` : ''}
                 </div>
@@ -654,17 +554,13 @@
       // Render Table
       if (tableBody) {
         if (filtered.length === 0) {
-          tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted" style="padding:24px;">No sessions found matching filters.</td></tr>';
+          tableBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted" style="padding:24px;">No sessions found matching filters.</td></tr>';
         } else {
           tableBody.innerHTML = filtered.map((s, idx) => {
             const badgeClass = s.status === 'completed' ? 'completed' : (s.status === 'upcoming' ? 'upcoming' : 'active');
             const statusLabel = s.status === 'completed' ? 'Completed' : (s.status === 'upcoming' ? 'Upcoming' : 'Active');
             const start = s.start_date ? new Date(s.start_date).toLocaleDateString() : 'N/A';
             const end = s.end_date ? new Date(s.end_date).toLocaleDateString() : 'N/A';
-
-            const courseChips = (s.course_counts || []).map(c => `
-              <span class="course-mini-pill">${c.course_code}: ${c.student_count}</span>
-            `).join(' ');
 
             return `
               <tr>
@@ -676,8 +572,7 @@
                 <td style="font-size:0.85rem;">${start} — ${end}</td>
                 <td><span class="status-badge ${badgeClass}">${statusLabel}</span></td>
                 <td><strong>${s.enrolled_students || 0}</strong> students</td>
-                <td>${courseChips || '<span class="text-muted">—</span>'}</td>
-                <td>${s.total_subjects || 0}</td>
+                <td>${s.direct_students || 0}</td>
                 <td>
                   <div class="btn-group">
                     <button class="btn btn-outline btn-sm" onclick="viewSessionStudents(${s.id}, '${escapeJs(s.session_name)}')">Students</button>
@@ -776,7 +671,7 @@
     }
 
     async function deleteSession(id, name) {
-      if (!confirm(`Are you sure you want to move session "${name}" to the Recycle Bin? All associated data will be preserved and can be restored.`)) {
+      if (!await confirm(`Are you sure you want to move session "${name}" to the Recycle Bin? All associated data will be preserved and can be restored.`)) {
         return;
       }
       try {
@@ -792,34 +687,45 @@
       }
     }
 
-    // ==================== COURSE-WISE BREAKDOWN TABLE ====================
-    function renderCourseBreakdownTable(breakdown, totalAdmissions) {
-      const tbody = document.getElementById('courseBreakdownTableBody');
+    // ==================== TRADE / CLASS ADMISSIONS TABLE ====================
+    function renderClassAdmissions(breakdown, totalAdmissions) {
+      const tbody = document.getElementById('classAdmissionsTableBody');
       if (!tbody) return;
 
       if (!breakdown || breakdown.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted" style="padding:24px;">No course data available.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted" style="padding:24px;">No class / trade data available.</td></tr>';
         return;
       }
 
-      tbody.innerHTML = breakdown.map((c, idx) => {
-        const share = totalAdmissions > 0 ? Math.round(((c.enrolled_students || 0) / totalAdmissions) * 100) : 0;
-        const isHighlight = ['DIT', 'CCVT', 'GIT'].includes(c.course_code);
+      // Prioritize DIT, CCVT, GIT at the front
+      const topTrades = ['DIT', 'CCVT', 'GIT'];
+      const ordered = [...breakdown].sort((a, b) => {
+        const aTop = topTrades.indexOf(a.trade_code);
+        const bTop = topTrades.indexOf(b.trade_code);
+        if (aTop !== -1 && bTop !== -1) return aTop - bTop;
+        if (aTop !== -1) return -1;
+        if (bTop !== -1) return 1;
+        return (b.enrolled_students || 0) - (a.enrolled_students || 0);
+      });
 
+      const totalInClasses = ordered.reduce((sum, c) => sum + (c.enrolled_students || 0), 0);
+
+      tbody.innerHTML = ordered.map((c, idx) => {
+        const share = totalInClasses > 0 ? Math.round(((c.enrolled_students || 0) / totalInClasses) * 100) : 0;
+        const isHighlight = topTrades.includes(c.trade_code);
         return `
           <tr style="${isHighlight ? 'background:rgba(37,99,235,0.03); font-weight:500;' : ''}">
             <td>${idx + 1}</td>
             <td>
-              <strong>${escapeHtml(c.course_name)}</strong>
+              <strong>${escapeHtml(c.class_name)}</strong>
               ${isHighlight ? '<span class="badge" style="background:var(--color-primary-light); color:var(--color-primary); margin-left:6px; font-size:0.7rem;">Featured</span>' : ''}
             </td>
-            <td><strong style="font-family:monospace; color:var(--color-primary);">${c.course_code}</strong></td>
-            <td>${c.duration_months || 12} Months</td>
+            <td><strong style="font-family:monospace; color:var(--color-primary);">${escapeHtml(c.trade_code)}</strong></td>
+            <td>${escapeHtml(c.session_year || '—')}</td>
             <td>
               <span style="font-size:1.1rem; font-weight:700; color:var(--text-primary);">${c.enrolled_students || 0}</span>
               <span class="text-muted" style="font-size:0.8rem;"> students</span>
             </td>
-            <td><strong>${c.total_subjects || 0}</strong> subjects</td>
             <td style="min-width:140px;">
               <div style="display:flex; align-items:center; gap:8px;">
                 <div style="flex:1; height:6px; background:var(--bg-hover); border-radius:3px; overflow:hidden;">
@@ -829,8 +735,8 @@
               </div>
             </td>
             <td>
-              <button class="btn btn-outline btn-sm" onclick="quickEnrollInCourse(${c.course_id})">
-                + Enroll Student
+              <button class="btn btn-outline btn-sm" onclick="enrollInClass(${c.class_id})">
+                + Admit Student
               </button>
             </td>
           </tr>
@@ -838,175 +744,27 @@
       }).join('');
     }
 
-    // ==================== COURSES & SUBJECTS ====================
-    async function loadCourses() {
-      try {
-        const courses = await apiCall('/api/admin/courses');
-        allCourses = courses || [];
-        populateCourseDropdowns();
-      } catch (err) {
-        console.error('Error loading courses', err);
-      }
-    }
-
-    function populateCourseDropdowns() {
-      const qeCourse = document.getElementById('qeCourse');
-      const subCourse = document.getElementById('subCourse');
-      const subjectCourseFilter = document.getElementById('subjectCourseFilter');
-
-      const options = allCourses.map(c => `<option value="${c.id}">${c.course_name} (${c.course_code})</option>`).join('');
-
-      if (qeCourse) qeCourse.innerHTML = '<option value="">Select Course</option>' + options;
-      if (subCourse) subCourse.innerHTML = '<option value="">Select Course</option>' + options;
-      if (subjectCourseFilter) subjectCourseFilter.innerHTML = '<option value="all">All Trade Courses</option>' + options;
-    }
-
     function populateSessionDropdowns() {
       const qeSession = document.getElementById('qeSession');
       if (!qeSession) return;
       qeSession.innerHTML = '<option value="">Select Session</option>' +
-        allSessions.map(s => `<option value="${s.id}" ${s.status === 'active' ? 'selected' : ''}>${s.session_name} (${s.status})</option>`).join('');
-    }
-
-    async function loadSubjects() {
-      try {
-        const subjects = await apiCall('/api/admin/subjects');
-        allSubjects = subjects || [];
-        renderSubjects();
-      } catch (err) {
-        console.error('Error loading subjects', err);
-      }
-    }
-
-    function renderSubjects() {
-      const tbody = document.getElementById('subjectsTableBody');
-      const search = (document.getElementById('searchSubjects').value || '').toLowerCase().trim();
-      const courseFilter = document.getElementById('subjectCourseFilter').value;
-
-      const filtered = allSubjects.filter(s => {
-        const matchesSearch = !search ||
-          (s.subject_name && s.subject_name.toLowerCase().includes(search)) ||
-          (s.subject_code && s.subject_code.toLowerCase().includes(search));
-        const matchesCourse = courseFilter === 'all' || s.course_id == courseFilter;
-        return matchesSearch && matchesCourse;
-      });
-
-      if (!tbody) return;
-      if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted" style="padding:24px;">No curriculum subjects found.</td></tr>';
-        return;
-      }
-
-      tbody.innerHTML = filtered.map((s, idx) => `
-        <tr>
-          <td>${idx + 1}</td>
-          <td><strong style="font-family:monospace; color:var(--color-primary);">${escapeHtml(s.subject_code || '—')}</strong></td>
-          <td><strong>${escapeHtml(s.subject_name)}</strong></td>
-          <td>
-            <span class="badge" style="background:var(--bg-hover); color:var(--text-primary); border:1px solid var(--border-color);">
-              ${escapeHtml(s.course_name || 'General')} (${escapeHtml(s.course_code || 'GEN')})
-            </span>
-          </td>
-          <td>${s.total_marks || 100}</td>
-          <td><span style="color:var(--color-success); font-weight:600;">${s.pass_marks || 40}</span></td>
-          <td>
-            <div class="btn-group">
-              <button class="btn btn-outline btn-sm" onclick="editSubject(${s.id})">Edit</button>
-              <button class="btn btn-danger btn-sm" onclick="deleteSubject(${s.id}, '${escapeJs(s.subject_name)}')">Delete</button>
-            </div>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    function filterSubjects() {
-      renderSubjects();
-    }
-
-    function openAddSubjectModal() {
-      document.getElementById('subjectModalTitle').textContent = 'Add Curriculum Subject';
-      document.getElementById('subjectForm').reset();
-      document.getElementById('subId').value = '';
-      document.getElementById('subTotalMarks').value = 100;
-      document.getElementById('subPassMarks').value = 40;
-      document.getElementById('subjectModal').classList.add('active');
-    }
-
-    function editSubject(id) {
-      const s = allSubjects.find(x => x.id === id);
-      if (!s) return;
-      document.getElementById('subjectModalTitle').textContent = 'Edit Curriculum Subject';
-      document.getElementById('subId').value = s.id;
-      document.getElementById('subName').value = s.subject_name || '';
-      document.getElementById('subCode').value = s.subject_code || '';
-      document.getElementById('subCourse').value = s.course_id || '';
-      document.getElementById('subTotalMarks').value = s.total_marks || 100;
-      document.getElementById('subPassMarks').value = s.pass_marks || 40;
-      document.getElementById('subjectModal').classList.add('active');
-    }
-
-    function closeSubjectModal() {
-      document.getElementById('subjectModal').classList.remove('active');
-    }
-
-    async function saveSubject(e) {
-      e.preventDefault();
-      const id = document.getElementById('subId').value;
-      const payload = {
-        subject_name: document.getElementById('subName').value.trim(),
-        subject_code: document.getElementById('subCode').value.trim() || null,
-        course_id: parseInt(document.getElementById('subCourse').value) || null,
-        total_marks: parseInt(document.getElementById('subTotalMarks').value) || 100,
-        pass_marks: parseInt(document.getElementById('subPassMarks').value) || 40
-      };
-
-      try {
-        const url = id ? `/api/admin/subjects/${id}` : '/api/admin/subjects';
-        const method = id ? 'PUT' : 'POST';
-        const res = await apiCall(url, method, payload);
-        if (res && (res.success || res.id)) {
-          closeSubjectModal();
-          await loadSubjects();
-          await loadStats();
-          alert(id ? 'Subject updated successfully!' : 'Subject added successfully!');
-        } else {
-          alert(res && res.message ? res.message : 'Failed to save subject');
-        }
-      } catch (err) {
-        alert(err.message);
-      }
-    }
-
-    async function deleteSubject(id, name) {
-      if (!confirm(`Are you sure you want to move subject "${name}" to the Recycle Bin?`)) {
-        return;
-      }
-      try {
-        const res = await apiCall(`/api/admin/subjects/${id}`, 'DELETE');
-        if (res && res.success) {
-          await loadSubjects();
-          await loadStats();
-          alert('Subject moved to Recycle Bin.');
-        } else {
-          alert(res && res.message ? res.message : 'Failed to delete subject');
-        }
-      } catch (err) {
-        alert(err.message);
-      }
+        allSessions.map(s => `<option value="${s.id}" ${s.status === 'active' ? 'selected' : ''}>${escapeHtml(s.session_name)} (${s.status})</option>`).join('');
     }
 
     // ==================== QUICK ENROLL ====================
     function openQuickEnrollModal() {
       document.getElementById('quickEnrollForm').reset();
       populateSessionDropdowns();
+      populateClassDropdowns();
       const qeDate = document.getElementById('qeDate');
       if (qeDate) qeDate.value = new Date().toISOString().split('T')[0];
       document.getElementById('quickEnrollModal').classList.add('active');
     }
 
-    function quickEnrollInCourse(courseId) {
+    function enrollInClass(classId) {
       openQuickEnrollModal();
-      document.getElementById('qeCourse').value = courseId;
+      const qeClass = document.getElementById('qeClass');
+      if (qeClass) qeClass.value = classId;
     }
 
     function closeQuickEnrollModal() {
@@ -1021,7 +779,7 @@
         cnic: document.getElementById('qeCnic').value.trim() || null,
         phone: document.getElementById('qePhone').value.trim() || null,
         session_id: parseInt(document.getElementById('qeSession').value),
-        course_id: parseInt(document.getElementById('qeCourse').value),
+        class_id: parseInt(document.getElementById('qeClass').value) || null,
         admission_date: document.getElementById('qeDate').value || new Date().toISOString().split('T')[0]
       };
 

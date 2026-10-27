@@ -1,10 +1,10 @@
 {
   "database": "gtvc_db",
-  "timestamp": "2026-10-24T00:09:51.680Z",
-  "backupFileName": "gtvc_db_backup_2026-10-24T00-09-51-680Z.sql",
-  "fileSizeBytes": 28544,
-  "fileSizeMB": "0.027",
+  "timestamp": "2026-10-24T22:39:11.229Z",
+  "backupFileName": "gtvc_db_backup_2026-10-24T22-39-11-229Z.sql",
+  "fileSizeBytes": 66143,
+  "fileSizeMB": "0.063",
   "locationName": "Default Project Database Folder",
   "partition": "C:",
-  "backedUpBy": "Administrator (Offline Demo)"
+  "backedUpBy": "System Administrator"
 }

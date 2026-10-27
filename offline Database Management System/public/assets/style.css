@@ -2479,4 +2479,183 @@ tbody tr:nth-child(even):hover {
   word-break: break-word;
 }
 
+/* ---------- Notification System (Toasts + Dialog) ---------- */
+.gtvc-toast-container {
+  position: fixed;
+  top: 74px;
+  right: 20px;
+  z-index: 10000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  pointer-events: none;
+  max-width: 380px;
+}
+
+.gtvc-toast {
+  pointer-events: auto;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--color-primary);
+  border-radius: var(--border-radius-lg);
+  padding: 14px 36px 14px 14px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  animation: gtvcToastIn 0.35s cubic-bezier(0.21, 1.02, 0.73, 1);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.gtvc-toast-success { border-left-color: var(--color-success); }
+.gtvc-toast-error  { border-left-color: var(--color-danger); }
+.gtvc-toast-warning { border-left-color: var(--color-warning); }
+.gtvc-toast-info   { border-left-color: var(--color-info); }
+
+.gtvc-toast-icon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gtvc-toast-icon svg { width: 18px; height: 18px; }
+.gtvc-toast-success .gtvc-toast-icon { background: var(--color-success-light); color: var(--color-success); }
+.gtvc-toast-error   .gtvc-toast-icon { background: var(--color-danger-light);  color: var(--color-danger); }
+.gtvc-toast-warning .gtvc-toast-icon { background: var(--color-warning-light); color: var(--color-warning); }
+.gtvc-toast-info    .gtvc-toast-icon { background: var(--color-info-light);    color: var(--color-info); }
+
+.gtvc-toast-body { flex: 1; min-width: 0; }
+.gtvc-toast-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 2px;
+}
+.gtvc-toast-msg {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  white-space: pre-line;
+  word-break: break-word;
+}
+
+.gtvc-toast-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: var(--transition);
+}
+.gtvc-toast-close:hover { color: var(--text-primary); background: var(--bg-hover); }
+
+.gtvc-toast-progress {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  transform-origin: left;
+  animation: gtvcToastProgress linear forwards;
+}
+.gtvc-toast-success .gtvc-toast-progress { background: var(--color-success); }
+.gtvc-toast-error   .gtvc-toast-progress { background: var(--color-danger); }
+.gtvc-toast-warning .gtvc-toast-progress { background: var(--color-warning); }
+.gtvc-toast-info    .gtvc-toast-progress { background: var(--color-info); }
+
+@keyframes gtvcToastIn {
+  from { transform: translateX(110%); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+@keyframes gtvcToastOut {
+  from { transform: translateX(0); opacity: 1; }
+  to   { transform: translateX(120%); opacity: 0; }
+}
+@keyframes gtvcToastProgress {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+/* Confirm / Alert Dialog */
+.gtvc-dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+  z-index: 10001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+.gtvc-dialog-overlay.visible { opacity: 1; }
+
+.gtvc-dialog {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  width: min(420px, calc(100vw - 32px));
+  padding: 28px 26px 22px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  text-align: center;
+  transform: scale(0.92) translateY(10px);
+  transition: transform 0.22s cubic-bezier(0.21, 1.02, 0.73, 1);
+}
+.gtvc-dialog-overlay.visible .gtvc-dialog {
+  transform: scale(1) translateY(0);
+}
+
+.gtvc-dialog-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 14px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.gtvc-dialog-icon svg { width: 28px; height: 28px; }
+.gtvc-dialog.question .gtvc-dialog-icon { background: var(--color-info-light); color: var(--color-info); }
+.gtvc-dialog.warning  .gtvc-dialog-icon { background: var(--color-warning-light); color: var(--color-warning); }
+.gtvc-dialog.danger   .gtvc-dialog-icon { background: var(--color-danger-light); color: var(--color-danger); }
+.gtvc-dialog.success  .gtvc-dialog-icon { background: var(--color-success-light); color: var(--color-success); }
+
+.gtvc-dialog-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.gtvc-dialog-msg {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  white-space: pre-line;
+  word-break: break-word;
+  margin-bottom: 22px;
+}
+
+.gtvc-dialog-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.gtvc-dialog-actions .btn {
+  min-width: 108px;
+  justify-content: center;
+  padding: 10px 20px;
+}
+
 

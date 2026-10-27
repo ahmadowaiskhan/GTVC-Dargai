@@ -339,23 +339,8 @@
     });
 
     async function loadCourses() {
-      try {
-        const res = await apiCall('/api/courses');
-        if (Array.isArray(res)) {
-          coursesList = res;
-          const select = document.getElementById('fAppliedCourse');
-          const filter = document.getElementById('courseFilter');
-          select.innerHTML = '<option value="">Select Course</option>';
-          filter.innerHTML = '<option value="">All Applied Courses</option>';
-
-          res.forEach(c => {
-            select.innerHTML += `<option value="${c.id}">${c.course_name} (${c.course_code || 'CODE'})</option>`;
-            filter.innerHTML += `<option value="${c.id}">${c.course_name}</option>`;
-          });
-        }
-      } catch (e) {
-        console.error('Failed to load courses', e);
-      }
+      // Courses module removed — no course options to load
+      coursesList = [];
     }
 
     async function loadStudents() {
@@ -541,23 +526,6 @@
             ${s.projects ? escapeHtml(s.projects).replace(/\\n/g, '<br>') : '<span style="color:var(--text-muted);">No projects recorded for this student yet.</span>'}
           </div>
 
-          ${s.attendance ? `
-            <div class="profile-section-title"><img src="/assets/icons/chart.svg" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;" alt="attendance"> Attendance Summary</div>
-            <div class="profile-info-grid">
-              <div class="info-box">
-                <div class="info-box-label">Total Days Marked</div>
-                <div class="info-box-value">${s.attendance.totalDays}</div>
-              </div>
-              <div class="info-box">
-                <div class="info-box-label">Present Days</div>
-                <div class="info-box-value" style="color:#22c55e;">${s.attendance.presentDays}</div>
-              </div>
-              <div class="info-box">
-                <div class="info-box-label">Absent / Leave Days</div>
-                <div class="info-box-value" style="color:#ef4444;">${s.attendance.absentDays} / ${s.attendance.leaveDays}</div>
-              </div>
-            </div>
-          ` : ''}
         `;
 
         document.getElementById('profileModal').classList.add('active');
@@ -655,7 +623,7 @@
     }
 
     async function deleteStudent(id, name) {
-      if (!confirm(`Are you sure you want to delete student "${name}"?\n\nThe record will be moved safely to the Recycle Bin and can be restored at any time.`)) {
+      if (!await confirm(`Are you sure you want to delete student "${name}"?\n\nThe record will be moved safely to the Recycle Bin and can be restored at any time.`)) {
         return;
       }
       try {

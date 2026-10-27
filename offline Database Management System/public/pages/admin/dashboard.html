@@ -58,6 +58,9 @@
           </div>
         </div>
 
+        <!-- Attendance / System Notifications for Admin -->
+        <div id="adminNotifications" style="display:none; margin-bottom:18px;"></div>
+
         <!-- 1-Click Action Hub -->
         <div class="card mb-3" style="padding:16px 20px;">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
@@ -68,7 +71,7 @@
           <div class="btn-group" style="flex-wrap:wrap; gap:10px;">
             <button class="btn btn-primary" onclick="openModal('modalAddStudent')"><img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Add New Student</button>
             <button class="btn btn-success" onclick="openModal('modalAddTeacher')"><img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Add New Teacher</button>
-            <button class="btn btn-outline" onclick="openModal('modalAddCourse')"><img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Add New Course</button>
+            <button class="btn btn-outline" style="display:none;" onclick="openModal('modalAddCourse')"><img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Add New Course</button>
             <button class="btn btn-outline" onclick="openModal('modalAddResult')"><img src="/assets/icons/plus.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="add"> Add Exam Result</button>
             <a href="sessions.html" class="btn btn-outline"><img src="/assets/icons/calendar.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="sessions"> Sessions & Admissions</a>
             <a href="accounting.html" class="btn btn-outline"><img src="/assets/icons/money.svg" style="width:13px;height:13px;vertical-align:middle;margin-right:4px;" alt="accounting"> Record Bill / Expense</a>
@@ -590,9 +593,9 @@
           </div>
         </div>
         <div class="form-row">
-          <div class="form-group">
-            <label class="form-label">Applied Trade / Course *</label>
-            <select id="qsCourse" class="form-select" required>
+          <div class="form-group" style="display:none;">
+            <label class="form-label">Applied Trade / Course</label>
+            <select id="qsCourse" class="form-select">
               <option value="">Select Trade Course</option>
             </select>
           </div>
@@ -630,6 +633,7 @@
       await loadAllAdminData();
       await loadDropdownData();
       await loadStorageData();
+      await loadAdminNotifications();
     });
 
     async function loadAllAdminData() {
@@ -657,26 +661,60 @@
       }
     }
 
+    async function loadAdminNotifications() {
+      const box = document.getElementById('adminNotifications');
+      if (!box) return;
+      try {
+        const items = await apiCall('/api/admin/notifications') || [];
+        const unread = items.filter(n => !n.is_read);
+        if (!unread.length) { box.style.display = 'none'; box.innerHTML = ''; return; }
+        box.style.display = 'block';
+        box.innerHTML = `
+          <div class="card" style="border-left:4px solid var(--color-warning); padding:16px 18px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:8px;">
+              <h3 style="margin:0; font-size:0.98rem; color:var(--text-primary);">
+                ⚠️ Notifications (${unread.length})
+              </h3>
+              <button class="btn btn-outline btn-sm" onclick="markAllNotificationsRead()">Mark all as read</button>
+            </div>
+            <ul style="list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:8px;">
+              ${unread.map(n => `
+                <li style="padding:10px 12px; background:var(--bg-hover); border:1px solid var(--border-color); border-radius:8px;">
+                  <div style="font-weight:600; font-size:0.88rem; color:var(--text-primary);">${n.title || 'Notification'}</div>
+                  <div style="font-size:0.82rem; color:var(--text-secondary); margin-top:2px;">${n.message || ''}</div>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        `;
+      } catch (e) {
+        box.style.display = 'none';
+      }
+    }
+
+    async function markAllNotificationsRead() {
+      try {
+        await apiCall('/api/admin/notifications/read', 'POST', {});
+        await loadAdminNotifications();
+        showToast('All notifications marked as read.', 'success');
+      } catch (e) {
+        showToast('Could not update notifications.', 'error');
+      }
+    }
+
     async function loadDropdownData() {
       try {
-        const [courses, students, classes, subjects] = await Promise.all([
-          apiCall('/api/courses'),
+        const [students, classes, subjects] = await Promise.all([
           apiCall('/api/admin/students'),
           apiCall('/api/classes'),
           apiCall('/api/subjects')
         ]);
 
-        globalCourses = courses || [];
         globalStudents = students || [];
         globalClasses = classes || [];
         globalSubjects = subjects || [];
 
-        // Populate quick student course
-        const qsCourse = document.getElementById('qsCourse');
-        qsCourse.innerHTML = '<option value="">Select Trade Course</option>';
-        globalCourses.forEach(c => {
-          qsCourse.innerHTML += `<option value="${c.id}">${c.course_name}</option>`;
-        });
+        // Courses module removed — no trade-course dropdown to populate
 
         // Populate results dropdowns
         const rStudent = document.getElementById('rStudentSelect');
@@ -786,7 +824,6 @@
         father_name: document.getElementById('qsFather').value.trim(),
         cnic: document.getElementById('qsCnic').value.trim(),
         phone: document.getElementById('qsPhone').value.trim(),
-        applied_course_id: parseInt(document.getElementById('qsCourse').value),
         degree_status: document.getElementById('qsDegreeStatus').value,
         status: 'active'
       };
@@ -1093,7 +1130,7 @@
     }
 
     async function setPrimaryLocation(id) {
-      if (!confirm('Are you sure you want to set this folder as the Primary Database Storage Location?')) {
+      if (!await confirm('Are you sure you want to set this folder as the Primary Database Storage Location?')) {
         return;
       }
       try {
@@ -1110,7 +1147,7 @@
     }
 
     async function deleteStorageLocation(id, name) {
-      if (!confirm(`Are you sure you want to remove storage location "${name}"? Existing files on disk will NOT be deleted.`)) {
+      if (!await confirm(`Are you sure you want to remove storage location "${name}"? Existing files on disk will NOT be deleted.`)) {
         return;
       }
       try {

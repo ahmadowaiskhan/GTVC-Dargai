@@ -192,16 +192,16 @@ const NAV_CONFIG = {
     basePath: '/pages/admin/',
     tree: [
       { label: 'Admin Control', href: 'dashboard.html' },
+      { label: 'Notifications', href: 'notifications.html' },
       {
         label: 'Management',
         expanded: true,
         children: [
           { label: 'Sessions & Admissions', href: 'sessions.html' },
           { label: 'Users (Admin, Teacher, Accounts)', href: 'user.html' },
-          { label: 'Students',        href: 'manage-students.html' },
           { label: 'Student Details', href: 'student-details.html' },
-          { label: 'Courses',         href: 'manage-courses.html' },
           { label: 'Results',         href: 'view-results.html' },
+          { label: 'Monthly Attendance', href: '/pages/attendance.html' },
         ]
       },
       {
@@ -225,17 +225,9 @@ const NAV_CONFIG = {
   },
   teacher: {
     title: 'Teacher Panel',
-    basePath: '/pages/teacher/',
+    basePath: '/pages/',
     tree: [
-      { label: 'Dashboard', href: 'dashboard.html' },
-      {
-        label: 'My Work',
-        expanded: true,
-        children: [
-          { label: 'My Students', href: 'my-students.html' },
-          { label: 'Results',     href: 'results.html' },
-        ]
-      },
+      { label: 'Monthly Attendance', href: 'attendance.html' },
     ]
   },
   accounting: {
@@ -267,11 +259,15 @@ function renderLayout(role, pageTitle, activeHref) {
 
   // Build tree HTML
   function buildTreeHTML(items, basePath) {
+    // Support both relative hrefs (joined with basePath) and absolute hrefs (start with '/').
+    const baseName = (h) => String(h).split('/').pop();
+    const resolveHref = (h) => String(h).startsWith('/') ? h : basePath + h;
+    const isCurrent = (h) => baseName(h) === currentFile;
     let html = '';
     items.forEach(item => {
       if (item.children) {
         // This is a folder / collapsible node
-        const hasActiveChild = item.children.some(c => c.href === currentFile);
+        const hasActiveChild = item.children.some(c => isCurrent(c.href));
         const isExpanded = item.expanded || hasActiveChild;
         html += `<div class="tree-node${isExpanded ? ' expanded' : ''}">`;
         html += `<div class="tree-node-header" onclick="this.parentElement.classList.toggle('expanded')">`;
@@ -282,7 +278,7 @@ function renderLayout(role, pageTitle, activeHref) {
         item.children.forEach(child => {
           if (child.children) {
             // Nested folder (level 2)
-            const hasActiveL2 = child.children.some(c2 => c2.href === currentFile);
+            const hasActiveL2 = child.children.some(c2 => isCurrent(c2.href));
             const isExpL2 = child.expanded || hasActiveL2;
             html += `<div class="tree-node${isExpL2 ? ' expanded' : ''}">`;
             html += `<div class="tree-node-header" style="padding-left:30px;" onclick="this.parentElement.classList.toggle('expanded')">`;
@@ -291,16 +287,16 @@ function renderLayout(role, pageTitle, activeHref) {
             html += `</div>`;
             html += `<div class="tree-children">`;
             child.children.forEach(leaf => {
-              const isActive = currentFile === leaf.href ? ' active' : '';
-              html += `<a href="${basePath}${leaf.href}" class="tree-leaf tree-leaf-l2${isActive}">`;
+              const isActive = isCurrent(leaf.href) ? ' active' : '';
+              html += `<a href="${resolveHref(leaf.href)}" class="tree-leaf tree-leaf-l2${isActive}">`;
               html += `<span class="tree-node-label">${leaf.label}</span>`;
               html += `</a>`;
             });
             html += `</div></div>`;
           } else {
             // Leaf link
-            const isActive = currentFile === child.href ? ' active' : '';
-            html += `<a href="${basePath}${child.href}" class="tree-leaf${isActive}">`;
+            const isActive = isCurrent(child.href) ? ' active' : '';
+            html += `<a href="${resolveHref(child.href)}" class="tree-leaf${isActive}">`;
             html += `<span class="tree-node-label">${child.label}</span>`;
             html += `</a>`;
           }
@@ -308,8 +304,8 @@ function renderLayout(role, pageTitle, activeHref) {
         html += `</div></div>`;
       } else {
         // Top-level leaf (e.g. Dashboard)
-        const isActive = currentFile === item.href ? ' active' : '';
-        html += `<a href="${basePath}${item.href}" class="tree-leaf${isActive}" style="padding-left:12px;">`;
+        const isActive = isCurrent(item.href) ? ' active' : '';
+        html += `<a href="${resolveHref(item.href)}" class="tree-leaf${isActive}" style="padding-left:12px;">`;
         html += `<span class="tree-node-label">${item.label}</span>`;
         html += `</a>`;
       }
@@ -433,30 +429,170 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('en-PK', { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
-// Show a toast notification
-function showToast(message, type = 'success') {
-  const toast = document.createElement('div');
-  toast.className = `alert alert-${type}`;
-  toast.style.cssText = 'position:fixed; top:80px; right:24px; z-index:9999; min-width:280px; animation: fadeIn 0.3s ease;';
-  toast.textContent = message;
-  document.body.appendChild(toast);
-  setTimeout(() => {
-    toast.style.opacity = '0';
-    toast.style.transition = 'opacity 0.3s ease';
-    setTimeout(() => toast.remove(), 300);
-  }, 3000);
+// ==================== NOTIFICATION SYSTEM ====================
+// Custom toasts + styled confirm/alert dialogs (replaces native browser popups)
+
+const GTVC_NOTIF_ICONS = {
+  success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>',
+  error:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>',
+  warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  info:    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+  question:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>'
+};
+
+const GTVC_NOTIF_TITLES = {
+  success: 'Success',
+  error: 'Error',
+  warning: 'Warning',
+  info: 'Notice'
+};
+
+function getToastContainer() {
+  let c = document.getElementById('gtvcToastContainer');
+  if (!c) {
+    c = document.createElement('div');
+    c.id = 'gtvcToastContainer';
+    c.className = 'gtvc-toast-container';
+    document.body.appendChild(c);
+  }
+  return c;
 }
 
-// Confirmation dialog
-function confirmAction(message) {
-  return confirm(message);
+/**
+ * Show a toast notification (top-right, auto-dismiss).
+ * @param {string} message
+ * @param {string} type - 'success' | 'error' | 'warning' | 'info'
+ * @param {object} [opts] - { title, duration }
+ */
+function showToast(message, type = 'success', opts = {}) {
+  const duration = opts.duration ?? (type === 'error' ? 6000 : 4000);
+  const container = getToastContainer();
+
+  const toast = document.createElement('div');
+  toast.className = `gtvc-toast gtvc-toast-${type}`;
+  toast.setAttribute('role', 'status');
+  toast.innerHTML = `
+    <div class="gtvc-toast-icon">${GTVC_NOTIF_ICONS[type] || GTVC_NOTIF_ICONS.info}</div>
+    <div class="gtvc-toast-body">
+      <div class="gtvc-toast-title">${opts.title || GTVC_NOTIF_TITLES[type] || 'Notification'}</div>
+      <div class="gtvc-toast-msg"></div>
+    </div>
+    <button class="gtvc-toast-close" title="Dismiss">&times;</button>
+    <div class="gtvc-toast-progress" style="animation-duration:${duration}ms;"></div>
+  `;
+  toast.querySelector('.gtvc-toast-msg').textContent = message;
+  container.appendChild(toast);
+
+  let timer = setTimeout(dismiss, duration);
+  function dismiss() {
+    clearTimeout(timer);
+    toast.style.animation = 'gtvcToastOut 0.3s ease forwards';
+    setTimeout(() => toast.remove(), 300);
+  }
+  toast.querySelector('.gtvc-toast-close').addEventListener('click', dismiss);
+  // Pause auto-dismiss on hover
+  toast.addEventListener('mouseenter', () => { clearTimeout(timer); const p = toast.querySelector('.gtvc-toast-progress'); if (p) p.style.animationPlayState = 'paused'; });
+  toast.addEventListener('mouseleave', () => { timer = setTimeout(dismiss, 1200); const p = toast.querySelector('.gtvc-toast-progress'); if (p) p.style.animationPlayState = 'running'; });
+  return toast;
 }
+
+/**
+ * Show a styled modal dialog (replaces native confirm/alert).
+ * @param {object} opts - { title, message, type, confirmText, cancelText, showCancel }
+ * @returns {Promise<boolean>} resolves true when confirmed
+ */
+function showConfirmDialog(opts = {}) {
+  const {
+    title = 'Are you sure?',
+    message = '',
+    type = 'question',            // 'question' | 'warning' | 'danger' | 'success'
+    confirmText = 'Confirm',
+    cancelText = 'Cancel',
+    showCancel = true
+  } = opts;
+
+  return new Promise(resolve => {
+    const overlay = document.createElement('div');
+    overlay.className = 'gtvc-dialog-overlay';
+    const confirmClass = type === 'danger' ? 'btn-danger' : 'btn-primary';
+    overlay.innerHTML = `
+      <div class="gtvc-dialog ${type}" role="dialog" aria-modal="true">
+        <div class="gtvc-dialog-icon">${GTVC_NOTIF_ICONS[type] || GTVC_NOTIF_ICONS.question}</div>
+        <div class="gtvc-dialog-title"></div>
+        <div class="gtvc-dialog-msg"></div>
+        <div class="gtvc-dialog-actions">
+          ${showCancel ? '<button class="btn btn-outline" data-action="cancel"></button>' : ''}
+          <button class="btn ${confirmClass}" data-action="ok">${confirmText}</button>
+        </div>
+      </div>
+    `;
+    overlay.querySelector('.gtvc-dialog-title').textContent = title;
+    overlay.querySelector('.gtvc-dialog-msg').textContent = message;
+    const cancelBtn = overlay.querySelector('[data-action="cancel"]');
+    if (cancelBtn) cancelBtn.textContent = cancelText;
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('visible'));
+
+    function close(result) {
+      document.removeEventListener('keydown', onKey);
+      overlay.classList.remove('visible');
+      setTimeout(() => overlay.remove(), 230);
+      resolve(result);
+    }
+
+    overlay.querySelector('[data-action="ok"]').addEventListener('click', () => close(true));
+    if (cancelBtn) cancelBtn.addEventListener('click', () => close(false));
+    // Click outside dialog cancels
+    overlay.addEventListener('click', e => { if (e.target === overlay) close(false); });
+
+    function onKey(e) {
+      if (e.key === 'Escape') close(false);
+      if (e.key === 'Enter') close(true);
+    }
+    document.addEventListener('keydown', onKey);
+    (cancelBtn || overlay.querySelector('[data-action="ok"]')).focus();
+  });
+}
+
+// Convenience wrapper for confirmations used in page scripts
+function confirmAction(message, opts = {}) {
+  return showConfirmDialog({ message, ...opts });
+}
+
+// ---- Override native popups so old code gets the styled version ----
+function detectAlertType(msg) {
+  const m = String(msg || '').toLowerCase();
+  if (/(success|completed|created|added|updated|saved|restored|removed|deleted|logged|recorded|valid|writable)/.test(m)) return 'success';
+  if (/(fail|error|cannot|can't|denied|invalid|missing|wrong|irreversible|permanently|warning)/.test(m)) return 'error';
+  if (/(please|notice|reminder)/.test(m)) return 'warning';
+  return 'info';
+}
+
+window.alert = function (message) {
+  const msg = String(message ?? '');
+  showToast(msg, detectAlertType(msg));
+};
+
+window.confirm = function (message) {
+  const msg = String(message ?? '');
+  const lower = msg.toLowerCase();
+  const isDanger = /(permanently|irreversible|cannot be recovered|delete all|remove this record|clear all)/.test(lower);
+  // Async replacement — call sites must use `await confirm(...)`.
+  return showConfirmDialog({
+    message: msg,
+    title: isDanger ? 'Confirm destructive action' : 'Please confirm',
+    type: isDanger ? 'danger' : 'warning',
+    confirmText: isDanger ? 'Yes, continue' : 'Confirm',
+    cancelText: 'Cancel'
+  });
+};
+
 
 // Redirect user to their respective dashboard
 function redirectToDashboard(role) {
   const paths = {
     admin: '/pages/admin/dashboard.html',
-    teacher: '/pages/teacher/dashboard.html',
+    teacher: '/pages/attendance.html',
     accounting: '/pages/accounting/dashboard.html'
   };
   window.location.href = paths[role] || '/pages/admin/dashboard.html';

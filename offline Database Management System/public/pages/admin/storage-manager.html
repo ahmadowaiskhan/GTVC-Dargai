@@ -785,7 +785,7 @@
     }
 
     async function setPrimaryLocation(id) {
-      if (!confirm('Are you sure you want to set this folder as the Primary Database Storage Location?')) {
+      if (!await confirm('Are you sure you want to set this folder as the Primary Database Storage Location?')) {
         return;
       }
       try {
@@ -802,7 +802,7 @@
     }
 
     async function deleteStorageLocation(id, name) {
-      if (!confirm(`Are you sure you want to remove storage location "${name}"? Existing files on disk will NOT be deleted.`)) {
+      if (!await confirm(`Are you sure you want to remove storage location "${name}"? Existing files on disk will NOT be deleted.`)) {
         return;
       }
       try {

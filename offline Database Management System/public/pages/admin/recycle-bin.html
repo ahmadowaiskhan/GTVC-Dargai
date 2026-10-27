@@ -221,7 +221,7 @@
     }
 
     async function restoreRecord(id, table) {
-      if (!confirm(`Are you sure you want to restore this ${table} record back to the database?`)) return;
+      if (!await confirm(`Are you sure you want to restore this ${table} record back to the database?`)) return;
       try {
         const res = await apiCall(`/api/admin/recycle-bin/${id}/restore`, 'POST');
         if (res && res.success) {
@@ -236,7 +236,7 @@
     }
 
     async function permanentlyDelete(id) {
-      if (!confirm('Warning: This will PERMANENTLY remove this record from the database. It cannot be recovered. Continue?')) return;
+      if (!await confirm('Warning: This will PERMANENTLY remove this record from the database. It cannot be recovered. Continue?')) return;
       try {
         const res = await apiCall(`/api/admin/recycle-bin/${id}`, 'DELETE');
         if (res && res.success) {
@@ -254,7 +254,7 @@
         alert('Recycle bin is already empty.');
         return;
       }
-      if (!confirm('Are you sure you want to permanently delete ALL items in the Recycle Bin? This action is irreversible.')) return;
+      if (!await confirm('Are you sure you want to permanently delete ALL items in the Recycle Bin? This action is irreversible.')) return;
       try {
         const res = await apiCall('/api/admin/recycle-bin', 'DELETE');
         if (res && res.success) {
